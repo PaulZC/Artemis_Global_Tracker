@@ -1,4 +1,4 @@
-# Artemis_Iridium_Tracker
+# Artemis Iridium Tracker
 
 
 An open source satellite tracker utilising the [SparkFun Artemis module](https://www.sparkfun.com/products/15484),
@@ -8,17 +8,16 @@ An open source satellite tracker utilising the [SparkFun Artemis module](https:/
 ### Work in progress!
 
 ## Repository Contents
-- /Documentation - Full documentation for both hardware and software
-- /Hardware - Eagle schematic and PCB design files **(Coming soon!)**
-- /Software - Arduino code **(Coming soon!)**
-- /Tools - Tools to help configure the tracker remotely via Iridium messaging **(Coming soon!)**
-- LICENSE.md contains the licence information
+- **/Documentation** - Full documentation for both hardware and software
+- **/Hardware** - Eagle schematic and PCB design files **(Coming soon!)**
+- **/Software** - Arduino code **(Coming soon!)**
+- **/Tools** - Tools to help configure the tracker remotely via Iridium messaging **(Coming soon!)**
+- **LICENSE.md** contains the licence information
 
 ## Documentation
 
-- [Hardware overview](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/Documents/Hardware_Overview/README.md): an overview of the hardware
-- [Message Fields](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/Documents/Message_Fields/README.md): a definition of the message format and fields, the field lengths
-(in both binary and text format) and whether they can be configured remotely via Iridium messaging or via the USB-C interface
+- [Hardware overview](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/Documentation/Hardware_Overview/README.md): an overview of the hardware
+- [Message Format](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/Documentation/Message_Format/README.md): a definition of the message format and fields (both binary and text)
 
 Enjoy!
 

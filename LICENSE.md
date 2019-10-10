@@ -1,4 +1,4 @@
-# Artemis_Iridium_Tracker
+# Artemis Iridium Tracker
 : License
 
 ## Hardware
