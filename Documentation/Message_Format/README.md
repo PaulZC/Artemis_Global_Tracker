@@ -92,78 +92,80 @@ This table defines the Artemis Iridium Tracker message fields:
 - MO: can this field be sent in a Mobile Originated message?
 - MT: can this field be set remotely by a Mobile Terminated message?
 - USB: can this field be configured via the USB-C serial interface (from the serial monitor)?
-- Desc: a brief description of this field
+- Desc.: a brief description of this field
 
-See below for a full definition and examples for each field.
+Follow the ID links for a full definition and examples for each field.
 
-| ID | Abv. | Type | Bin_Len | Txt_Len | MO | MT | USB | Desc |
+If the number of IDs is expanded beyond 0x5f, MTFIELDS will need to be redefined accordingly.
+
+| ID | Abv. | Type | Bin_Len | Txt_Len | MO | MT | USB | Desc. |
 |---|---|---|---|---|---|---|---|---|
 | 0x00 | RESV | | | | | | | **Reserved - do not use** |
 | 0x01 | RESV | | | | | | | **Reserved - do not use** |
-| 0x02 | STX | | | | | | | ASCII STX - used to indicate the start of a binary message |
-| 0x03 | ETX | | | | | | | ASCII ETX - used to indicate the end of a binary message |
-| 0x04 | SWVER | byte | 1 | 5 | Yes | No | No | The tracker software version |
+| [0x02](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#stx-0x02) | STX | | | | | | | ASCII STX - used to indicate the start of a binary message |
+| [0x03](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#etx-0x03) | ETX | | | | | | | ASCII ETX - used to indicate the end of a binary message |
+| [0x04](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#) | SWVER | byte | 1 | 5 | Yes | No | No | The tracker software version |
 | 0x05 | RESV | | | | | | | **Reserved - do not use** |
 | 0x06 | RESV | | | | | | | **Reserved - do not use** |
 | 0x07 | RESV | | | | | | | **Reserved - do not use** |
-| 0x08 | SOURCE | unsigned long | 4 | 7 | Yes | No | Yes | The source address = the tracker's RockBLOCK serial number |
-| 0x09 | BATTV | word | 2 | 4 | Yes | No | No | The battery voltage (actually the bus voltage) |
-| 0x0a | PRESS | word | 2 | 4 | Yes | No | No | The atmospheric pressure in mbar |
-| 0x0b | TEMP | int | 2 | 6 | Yes | No | No | The atmospheric temperature in Centigrade |
-| 0x0c | HUMID | word | 2 | 6 | Yes | No | No | The atmospheric humidity in %RH |
-| 0x0d | YEAR | word | 2 | 4 | Yes | No | No | UTC year |
-| 0x0e | MONTH | byte | 1 | 2 | Yes | No | No | UTC month |
-| 0x0f | DAY | byte | 1 | 2 | Yes | No | No | UTC day |
-| 0x10 | HOUR | byte | 1 | 2 | Yes | No | No | UTC hour |
-| 0x11 | MIN | byte | 1 | 2 | Yes | No | No | UTC minute |
-| 0x12 | SEC | byte | 1 | 2 | Yes | No | No | UTC second |
-| 0x13 | MILLIS | word | 2 | 3 | Yes | No | No | UTC milliseconds |
-| 0x14 | DATETIME | | 7 | 14 | Yes | No | No | Concatenated UTC Date & Time |
-| 0x15 | LAT | long | 4 | 11 | Yes | No | No | The latitude in degrees |
-| 0x16 | LON | long | 4 | 12 | Yes | No | No | The longitude in degrees |
-| 0x17 | ALT | long | 4 | 8 | Yes | No | No | The altitude above MSL |
-| 0x18 | SPEED | long | 4 | 7 | Yes | No | No | The ground speed |
-| 0x19 | HEAD | long | 4 | 6 | Yes | No | No | The course (heading) in degrees |
-| 0x1a | SATS | byte | 1 | 2 | Yes | No | No | The number of satellites (space vehicles) used in the solution | 
-| 0x1b | HDOP | word | 2 | 5 | Yes | No | No | The horizontal dilution of precision |
-| 0x1c | PDOP | word | 2 | 5 | Yes | No | No | The positional dilution of precision |
-| 0x1d | FIX | byte | 1 | 1 | Yes | No | No | The GNSS fix type |
+| [0x08](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#source-0x08) | SOURCE | unsigned long | 4 | 7 | Yes | No | Yes | The source address = the tracker's RockBLOCK serial number |
+| [0x09](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#battv-0x09) | BATTV | word | 2 | 4 | Yes | No | No | The battery voltage (actually the bus voltage) |
+| [0x0a](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#press-0x0a) | PRESS | word | 2 | 4 | Yes | No | No | The atmospheric pressure in mbar |
+| [0x0b](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#temp-0x0b) | TEMP | int | 2 | 6 | Yes | No | No | The atmospheric temperature in Centigrade |
+| [0x0c](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#humid-0x0c) | HUMID | word | 2 | 6 | Yes | No | No | The atmospheric humidity in %RH |
+| [0x0d](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#year-0x0d) | YEAR | word | 2 | 4 | Yes | No | No | UTC year |
+| [0x0e](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#month-0x0e) | MONTH | byte | 1 | 2 | Yes | No | No | UTC month |
+| [0x0f](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#day-0x0f) | DAY | byte | 1 | 2 | Yes | No | No | UTC day |
+| [0x10](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#hour-0x10) | HOUR | byte | 1 | 2 | Yes | No | No | UTC hour |
+| [0x11](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#min-0x11) | MIN | byte | 1 | 2 | Yes | No | No | UTC minute |
+| [0x12](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#sec-0x12) | SEC | byte | 1 | 2 | Yes | No | No | UTC second |
+| [0x13](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#millis-0x13) | MILLIS | word | 2 | 3 | Yes | No | No | UTC milliseconds |
+| [0x14](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#datetime-0x14) | DATETIME | | 7 | 14 | Yes | No | No | Concatenated UTC Date & Time |
+| [0x15](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#lat-0x15) | LAT | long | 4 | 11 | Yes | No | No | The latitude in degrees |
+| [0x16](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#lon-0x16) | LON | long | 4 | 12 | Yes | No | No | The longitude in degrees |
+| [0x17](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#alt-0x17) | ALT | long | 4 | 8 | Yes | No | No | The altitude above MSL |
+| [0x18](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#speed-0x18) | SPEED | long | 4 | 7 | Yes | No | No | The ground speed |
+| [0x19](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#head-0x19) | HEAD | long | 4 | 6 | Yes | No | No | The course (heading) in degrees |
+| [0x1a](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#sats-0x1a) | SATS | byte | 1 | 2 | Yes | No | No | The number of satellites (space vehicles) used in the solution | 
+| [0x1b](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#hdop-0x1b) | HDOP | word | 2 | 5 | Yes | No | No | The horizontal dilution of precision |
+| [0x1c](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#pdop-0x1c) | PDOP | word | 2 | 5 | Yes | No | No | The positional dilution of precision |
+| [0x1d](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#fix-0x1d) | FIX | byte | 1 | 1 | Yes | No | No | The GNSS fix type |
 | 0x1e - 0x2f | | | | | | | | **Currently undefined - do not use** |
-| 0x30 | MTFIELDS | 3 x unsigned long | 12 | 12 | Yes | Yes | Yes | Defines which fields are included in MT messages |
-| 0x31 | FLAGS1 | byte | 1 | 2 | Yes | Yes | Yes | Defines various message options - see below for the full definition |
-| 0x32 | FLAGS2 | byte | 1 | 2 | Yes | Yes | Yes | Defines various message options - see below for the full definition |
-| 0x33 | DEST | unsigned long | 4 | 7 | Yes | Yes | Yes | The destination RockBLOCK serial number for message forwarding |
-| 0x34 | HIPRESS | word | 2 | 6 | Yes | Yes | Yes | The high pressure alarm limit |
-| 0x35 | LOPRESS | word | 2 | 6 | Yes | Yes | Yes | The low pressure alarm limit |
-| 0x36 | HITEMP | int | 2 | 6 | Yes | Yes | Yes | The high temperature alarm limit |
-| 0x37 | LOTEMP | int | 2 | 6 | Yes | Yes | Yes | The low temperature alarm limit |
-| 0x38 | HIHUMID | word | 2 | 6 | Yes | Yes | Yes | The high humidity alarm limit |
-| 0x39 | LOHUMID | word | 2 | 6 | Yes | Yes | Yes | The low humidity alarm limit |
-| 0x3a | GEOFNUM | byte | 1 | 2 | Yes | Yes | Yes | The number of geofences (0-4) and confidence level (0-4) |
-| 0x3b | GEOF1LAT | long | 4 | 11 | Yes | Yes | Yes | The latitude of the center of geofence circle 1 |
-| 0x3c | GEOF1LON | long | 4 | 12 | Yes | Yes | Yes | The longitude of the center of geofence circle 1 |
-| 0x3d | GEOF1RAD | unsigned long | 4 | 8 | Yes | Yes | Yes | The radius of geofence circle 1 |
-| 0x3e | GEOF2LAT | long | 4 | 11 | Yes | Yes | Yes | The latitude of the center of geofence circle 2 |
-| 0x3f | GEOF2LON | long | 4 | 12 | Yes | Yes | Yes | The longitude of the center of geofence circle 2 |
-| 0x40 | GEOF2RAD | unsigned long | 4 | 8 | Yes | Yes | Yes | The radius of geofence circle 2 |
-| 0x41 | GEOF3LAT | long | 4 | 11 | Yes | Yes | Yes | The latitude of the center of geofence circle 3 |
-| 0x42 | GEOF3LON | long | 4 | 12 | Yes | Yes | Yes | The longitude of the center of geofence circle 3 |
-| 0x43 | GEOF3RAD | unsigned long | 4 | 8 | Yes | Yes | Yes | The radius of geofence circle 3 |
-| 0x44 | GEOF4LAT | long | 4 | 11 | Yes | Yes | Yes | The latitude of the center of geofence circle 4 |
-| 0x45 | GEOF4LON | long | 4 | 12 | Yes | Yes | Yes | The longitude of the center of geofence circle 4 |
-| 0x46 | GEOF4RAD | unsigned long | 4 | 8 | Yes | Yes | Yes | The radius of geofence circle 4 |
-| 0x47 | WAKEINT | word | 2 | 4 | Yes | Yes | Yes | Defines the tracker's wake-up interval (seconds)  |
-| 0x48 | ALARMINT | word | 2 | 4 | Yes | Yes | Yes | Defines the tracker's transmission interval during an alarm (minutes)  |
-| 0x48 | TXINT | word | 2 | 4 | Yes | Yes | Yes | Defines the tracker's normal transmission interval (minutes)  |
-| 0x49 - 0x4f | | | | | | | | **Currently undefined - do not use** |
-| 0x50 | USERFUNC1 | N/A | 0 | N/A | No | Yes | No | Instructs the tracker to execute user function 1 |
-| 0x51 | USERFUNC2 | N/A | 0 | N/A | No | Yes | No | Instructs the tracker to execute user function 2 |
-| 0x52 | USERFUNC3 | N/A | 0 | N/A | No | Yes | No | Instructs the tracker to execute user function 3 |
-| 0x53 | USERFUNC4 | N/A | 0 | N/A | No | Yes | No | Instructs the tracker to execute user function 4 |
-| 0x54 | USERFUNC5 | word | 2 | N/A | No | Yes | No | Instructs the tracker to execute user function 5 |
-| 0x55 | USERFUNC6 | word | 2 | N/A | No | Yes | No | Instructs the tracker to execute user function 6 |
-| 0x56 | USERFUNC7 | long | 4 | N/A | No | Yes | No | Instructs the tracker to execute user function 7 |
-| 0x57 | USERFUNC8 | long | 4 | N/A | No | Yes | No | Instructs the tracker to execute user function 8 |
+| [0x30](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#mtfields-0x30) | MTFIELDS | 3 x unsigned long | 12 | 12 | Yes | Yes | Yes | Defines which fields are included in MT messages |
+| [0x31](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#flags1-0x31) | FLAGS1 | byte | 1 | 2 | Yes | Yes | Yes | Defines various message options - see below for the full definition |
+| [0x32](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#flags2-0x32) | FLAGS2 | byte | 1 | 2 | Yes | Yes | Yes | Defines various message options - see below for the full definition |
+| [0x33](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#dest-0x33) | DEST | unsigned long | 4 | 7 | Yes | Yes | Yes | The destination RockBLOCK serial number for message forwarding |
+| [0x34](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#hipress-0x34) | HIPRESS | word | 2 | 6 | Yes | Yes | Yes | The high pressure alarm limit |
+| [0x35](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#lopress-0x35) | LOPRESS | word | 2 | 6 | Yes | Yes | Yes | The low pressure alarm limit |
+| [0x36](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#hitemp-0x36) | HITEMP | int | 2 | 6 | Yes | Yes | Yes | The high temperature alarm limit |
+| [0x37](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#lotemp-0x37) | LOTEMP | int | 2 | 6 | Yes | Yes | Yes | The low temperature alarm limit |
+| [0x38](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#hihumid-0x38) | HIHUMID | word | 2 | 6 | Yes | Yes | Yes | The high humidity alarm limit |
+| [0x39](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#lohumid-0x39) | LOHUMID | word | 2 | 6 | Yes | Yes | Yes | The low humidity alarm limit |
+| [0x3a](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#geofnum-0x3a) | GEOFNUM | byte | 1 | 2 | Yes | Yes | Yes | The number of geofences (0-4) and confidence level (0-4) |
+| [0x3b](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#geof1lat-0x3b) | GEOF1LAT | long | 4 | 11 | Yes | Yes | Yes | The latitude of the center of geofence circle 1 |
+| [0x3c](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#geof1lon-0x3c) | GEOF1LON | long | 4 | 12 | Yes | Yes | Yes | The longitude of the center of geofence circle 1 |
+| [0x3d](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#geof1rad-0x3d) | GEOF1RAD | unsigned long | 4 | 8 | Yes | Yes | Yes | The radius of geofence circle 1 |
+| [0x3e](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#geof2lat-0x3e) | GEOF2LAT | long | 4 | 11 | Yes | Yes | Yes | The latitude of the center of geofence circle 2 |
+| [0x3f](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#geof2lon-0x3f) | GEOF2LON | long | 4 | 12 | Yes | Yes | Yes | The longitude of the center of geofence circle 2 |
+| [0x40](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#geof2rad-0x40) | GEOF2RAD | unsigned long | 4 | 8 | Yes | Yes | Yes | The radius of geofence circle 2 |
+| [0x41](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#geof3lat-0x41) | GEOF3LAT | long | 4 | 11 | Yes | Yes | Yes | The latitude of the center of geofence circle 3 |
+| [0x42](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#geof3lon-0x42) | GEOF3LON | long | 4 | 12 | Yes | Yes | Yes | The longitude of the center of geofence circle 3 |
+| [0x43](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#geof3rad-0x43) | GEOF3RAD | unsigned long | 4 | 8 | Yes | Yes | Yes | The radius of geofence circle 3 |
+| [0x44](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#geof4lat-0x44) | GEOF4LAT | long | 4 | 11 | Yes | Yes | Yes | The latitude of the center of geofence circle 4 |
+| [0x45](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#geof4lon-0x45) | GEOF4LON | long | 4 | 12 | Yes | Yes | Yes | The longitude of the center of geofence circle 4 |
+| [0x46](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#geof4rad-0x46) | GEOF4RAD | unsigned long | 4 | 8 | Yes | Yes | Yes | The radius of geofence circle 4 |
+| [0x47](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#wakeint-0x47) | WAKEINT | word | 2 | 4 | Yes | Yes | Yes | Defines the tracker's wake-up interval (seconds)  |
+| [0x48](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#alarmint-0x48) | ALARMINT | word | 2 | 4 | Yes | Yes | Yes | Defines the tracker's transmission interval during an alarm (minutes)  |
+| [0x49](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#txint-0x49) | TXINT | word | 2 | 4 | Yes | Yes | Yes | Defines the tracker's normal transmission interval (minutes)  |
+| 0x4a - 0x4f | | | | | | | | **Currently undefined - do not use** |
+| [0x50](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#userfunc1-0x50) | USERFUNC1 | N/A | 0 | N/A | No | Yes | No | Instructs the tracker to execute user function 1 |
+| [0x51](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#userfunc2-0x51) | USERFUNC2 | N/A | 0 | N/A | No | Yes | No | Instructs the tracker to execute user function 2 |
+| [0x52](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#userfunc3-0x52) | USERFUNC3 | N/A | 0 | N/A | No | Yes | No | Instructs the tracker to execute user function 3 |
+| [0x53](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#userfunc4-0x53) | USERFUNC4 | N/A | 0 | N/A | No | Yes | No | Instructs the tracker to execute user function 4 |
+| [0x54](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#userfunc5-0x54) | USERFUNC5 | word | 2 | N/A | No | Yes | No | Instructs the tracker to execute user function 5 |
+| [0x55](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#userfunc6-0x55) | USERFUNC6 | word | 2 | N/A | No | Yes | No | Instructs the tracker to execute user function 6 |
+| [0x56](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#userfunc7-0x56) | USERFUNC7 | long | 4 | N/A | No | Yes | No | Instructs the tracker to execute user function 7 |
+| [0x57](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#userfunc8-0x57) | USERFUNC8 | long | 4 | N/A | No | Yes | No | Instructs the tracker to execute user function 8 |
 | 0x58 - 0x5f | | | | | | | | **Currently undefined - do not use** |
 
 ---
@@ -424,7 +426,7 @@ SATS (0x1a)
 | Binary: | byte. |
 | Text: | Sent in the format nn _without a preceding zero_ |
 | Example value: | 14 |
-| Binary example: | 0x1a (14 is 0x0e) |
+| Binary example: | 0x1a0e (14 is 0x0e) |
 | Text example: | 14 |
 
 ---
@@ -435,7 +437,7 @@ HDOP (0x1b)
 |---|---|
 | Binary: | word, 2 bytes, little endian, in **cm**. |
 | Text: | Sent as **m**, with cm resolution, in the format m.m with 1 or 2 decimal places _without preceding or trailing zeroes_ |
-| Example value: | 1.02 |
+| Example value: | 1.02m |
 | Binary example: | 0x1b6600 (102 is 0x0066) |
 | Text example: | 1.02 |
 
@@ -447,7 +449,7 @@ PDOP (0x1c)
 |---|---|
 | Binary: | word, 2 bytes, little endian, in **cm**. |
 | Text: | Sent as **m**, with cm resolution, in the format m.m with 1 or 2 decimal places _without preceding or trailing zeroes_ |
-| Example value: | 1.02 |
+| Example value: | 1.02m |
 | Binary example: | 0x1b6600 (102 is 0x0066) |
 | Text example: | 1.02 |
 
@@ -483,7 +485,6 @@ FLAGS1 (0x31)
 | Description: | Defines various message options. |
 |---|---|
 | Binary: | byte. |
-|---|---|
 | Bit 7 (MSB): | Set to 1 if binary messages are to be sent / are being sent. Set to 0 for text messages (default). |
 | Bit 6: | Set to 1 if message forwarding via the RockBLOCK gateway is enabled. Clear otherwise (default). Message will be forwarded to RB DEST. |
 | Bit 5: | Set to 1 if a message will be sent when PRESS > HIPRESS. PRESS is checked every WAKEINT seconds. Messages will be sent every ALARMINT minutes until PRESS is < HIPRESS. |
@@ -492,7 +493,6 @@ FLAGS1 (0x31)
 | Bit 2: | Set to 1 if a message will be sent when TEMP < LOTEMP. TEMP is checked every WAKEINT seconds. Messages will be sent every ALARMINT minutes until TEMP is > LOTEMP. |
 | Bit 1: | Set to 1 if a message will be sent when HUMID > HIHUMID. HUMID is checked every WAKEINT seconds. Messages will be sent every ALARMINT minutes until HUMID is < HIHUMID. |
 | Bit 0 (LSB): | Set to 1 if a message will be sent when HUMID < LOHUMID. HUMID is checked every WAKEINT seconds. Messages will be sent every ALARMINT minutes until HUMID is > LOHUMID. |
-|---|---|
 | Text: | Sent as ASCII-encoded Hex in the range 00 to ff |
 | Example value: | To send binary messages, without forwarding, and alarm when TEMP is > HITEMP |
 | Binary example: | 0x3188 (B10001000 is 0x88) |
@@ -506,7 +506,6 @@ FLAGS2 (0x32)
 | Description: | Defines various message options. |
 |---|---|
 | Binary: | byte. |
-|---|---|
 | Bit 7 (MSB): | Set to 1 if geofence alerts are enabled. Clear otherwise (default). |
 | Bit 6: | When set to 1, geofence alerts will be sent every ALARMINT minutes when the tracker _is inside_ a geofenced area. When clear, geofence alerts will be sent when the tracker _is outside_ all geofenced areas (default). |
 | Bit 5: | Undefined. |
@@ -515,7 +514,6 @@ FLAGS2 (0x32)
 | Bit 2: | Undefined. |
 | Bit 1: | Undefined. |
 | Bit 0 (LSB): | Undefined. |
-|---|---|
 | Text: | Sent as ASCII-encoded Hex in the range 00 to ff |
 | Example value: | To enable geofence alerts when the tracker leaves the geofenced area(s) |
 | Binary example: | 0x3280 (B10000000 is 0x80) |
@@ -765,7 +763,7 @@ TXINT (0x49)
 USERFUNC1 (0x50)
 ---
 
-Upon receiving this field in an MT message, the tracker will run user function 1 at the end of the SBD message cycle.
+Upon receiving this field in an MT message, the tracker will execute user function 1 at the end of the SBD message cycle.
 
 This could trigger a Qwiic-connected relay for example.
 
@@ -793,7 +791,7 @@ See USERFUNC1
 USERFUNC5 (0x54)
 ---
 
-Upon receiving this field in an MT message, the tracker will run user function 5 at the end of the SBD message cycle.
+Upon receiving this field in an MT message, the tracker will execute user function 5 at the end of the SBD message cycle.
 
 The field ID is followed by _two_ data bytes (word, little endian). The word is passed as a parameter to the user function.
 
@@ -807,7 +805,7 @@ See USERFUNC5
 USERFUNC7 (0x56)
 ---
 
-Upon receiving this field in an MT message, the tracker will run user function 7 at the end of the SBD message cycle.
+Upon receiving this field in an MT message, the tracker will execute user function 7 at the end of the SBD message cycle.
 
 The field ID is followed by _four_ data bytes (long, little endian). The long is passed as a parameter to the user function.
 
