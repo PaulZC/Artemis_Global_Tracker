@@ -206,8 +206,9 @@ SWVER (0x04)
 SOURCE (0x08)
 ---
 
-| Description: | The source address = the tracker's RockBLOCK serial number. |
+| []() | |
 |---|---|
+| Description: | The source address = the tracker's RockBLOCK serial number. |
 | Binary: | unsigned long, 4 bytes, little endian. |
 | Text: | Sent in the format nnnnn in the range 0 to 9999999 |
 | Example value: | 12345 |
@@ -218,8 +219,9 @@ SOURCE (0x08)
 BATTV (0x09)
 ---
 
-| Description: | The battery voltage (actually the bus voltage; the battery voltage minus a small diode voltage drop). |
+| []() | |
 |---|---|
+| Description: | The battery voltage (actually the bus voltage; the battery voltage minus a small diode voltage drop). |
 | Binary: | word, 2 bytes, little endian, in Volts * 10^-2. |
 | Text: | Sent in the format v.v with 1 or 2 decimal places in the range 0.0 to 9.99 |
 | Example value: | 3.60V |
@@ -230,8 +232,9 @@ BATTV (0x09)
 PRESS (0x0a)
 ---
 
-| Description: | The atmospheric pressure in mbar. |
+| []() | |
 |---|---|
+| Description: | The atmospheric pressure in mbar. |
 | Binary: | word, 2 bytes, little endian, in mbar. |
 | Text: | Sent in the format nnnn in the range 0 to 1084 (approx.) |
 | Example value: | 998 |
@@ -242,8 +245,9 @@ PRESS (0x0a)
 TEMP (0x0b)
 ---
 
-| Description: | The atmospheric temperature in Centigrade. |
+| []() | |
 |---|---|
+| Description: | The atmospheric temperature in Centigrade. |
 | Binary: | int (signed), 2 bytes, little endian, in Centigrade * 10^-2. |
 | Text: | Sent in the format n.n with 1 or 2 decimal places, signed, in the range -40.0 to 85.0 (approx.) |
 | Example value: | -12.34C |
@@ -254,8 +258,9 @@ TEMP (0x0b)
 HUMID (0x0c)
 ---
 
-| Description: | The atmospheric humidity in %RH. |
+| []() | |
 |---|---|
+| Description: | The atmospheric humidity in %RH. |
 | Binary: | word, 2 bytes, little endian, in %RH * 10^-2. |
 | Text: | Sent in the format n.n with 1 or 2 decimal places in the range 0.0 to 100.0 (approx.) |
 | Example value: | 12.34%RH |
@@ -266,8 +271,9 @@ HUMID (0x0c)
 YEAR (0x0d)
 ---
 
-| Description: | UTC year. |
+| []() | |
 |---|---|
+| Description: | UTC year. |
 | Binary: | word, 2 bytes, little endian. |
 | Text: | Sent in the format YYYY |
 | Example value: | 2019 |
@@ -278,8 +284,9 @@ YEAR (0x0d)
 MONTH (0x0e)
 ---
 
-| Description: | UTC month. |
+| []() | |
 |---|---|
+| Description: | UTC month. |
 | Binary: | byte. |
 | Text: | Sent in the format MM _without a preceding zero_ |
 | Example value: | 7 |
@@ -290,8 +297,9 @@ MONTH (0x0e)
 DAY (0x0f)
 ---
 
-| Description: | UTC day. |
+| []() | |
 |---|---|
+| Description: | UTC day. |
 | Binary: | byte. |
 | Text: | Sent in the format DD _without a preceding zero_ |
 | Example value: | 16 |
@@ -302,8 +310,9 @@ DAY (0x0f)
 HOUR (0x10)
 ---
 
-| Description: | UTC hour. |
+| []() | |
 |---|---|
+| Description: | UTC hour. |
 | Binary: | byte. |
 | Text: | Sent in 24 hour format HH _without a preceding zero_ |
 | Example value: | 23 |
@@ -314,8 +323,9 @@ HOUR (0x10)
 MIN (0x11)
 ---
 
-| Description: | UTC minute. |
+| []() | |
 |---|---|
+| Description: | UTC minute. |
 | Binary: | byte. |
 | Text: | Sent in the format MM _without a preceding zero_ |
 | Example value: | 7 |
@@ -326,8 +336,9 @@ MIN (0x11)
 SEC (0x12)
 ---
 
-| Description: | UTC seconds. |
+| []() | |
 |---|---|
+| Description: | UTC seconds. |
 | Binary: | byte. |
 | Text: | Sent in the format SS _without a preceding zero_ |
 | Example value: | 23 |
@@ -338,8 +349,9 @@ SEC (0x12)
 MILLIS (0x13)
 ---
 
-| Description: | UTC milliseconds. |
+| []() | |
 |---|---|
+| Description: | UTC milliseconds. |
 | Binary: | word, 2 bytes, little endian. |
 | Text: | Sent in the format MMM _without preceding zeroes_ |
 | Example value: | 470 |
@@ -350,8 +362,9 @@ MILLIS (0x13)
 DATETIME (0x14)
 ---
 
-| Description: | Concatenated UTC date and time. |
+| []() | |
 |---|---|
+| Description: | Concatenated UTC date and time. |
 | Binary: | 7 bytes, YYMDHMS, year is little endian. |
 | Text: | Sent in the format YYYYMMDDHHMMSS **with preceding zeroes as required** |
 | Example value: | 2019/7/16 23:07:23 |
@@ -362,8 +375,9 @@ DATETIME (0x14)
 LAT (0x15)
 ---
 
-| Description: | The latitude in degrees. |
+| []() | |
 |---|---|
+| Description: | The latitude in degrees. |
 | Binary: | long (signed), 4 bytes, little endian, in degrees * 10^-7. |
 | Text: | Sent in the format -d.d with up to 7 decimal places in the range -90.0 to 90.0 _without preceding or trailing zeroes_ |
 | Example value: | 40 degrees South |
@@ -374,8 +388,9 @@ LAT (0x15)
 LON (0x16)
 ---
 
-| Description: | The longitude in degrees. |
+| []() | |
 |---|---|
+| Description: | The longitude in degrees. |
 | Binary: | long (signed), 4 bytes, little endian, in degrees * 10^-7. |
 | Text: | Sent in the format -d.d with up to 7 decimal places in the range -180.0 to 179.9999999 _without preceding or trailing zeroes_ |
 | Example value: | 170 degrees West |
@@ -386,8 +401,9 @@ LON (0x16)
 ALT (0x17)
 ---
 
-| Description: | The altitude above MSL. |
+| []() | |
 |---|---|
+| Description: | The altitude above MSL. |
 | Binary: | long (signed), 4 bytes, little endian, in **mm** above MSL. |
 | Text: | Sent as **m** above MSL, with mm resolution, in the format -m.m with up to 3 decimal places in the range -420.0 to 50000.0 _without preceding or trailing zeroes_ |
 | Example value: | 123m above MSL |
@@ -398,8 +414,9 @@ ALT (0x17)
 SPEED (0x18)
 ---
 
-| Description: | The ground speed. |
+| []() | |
 |---|---|
+| Description: | The ground speed. |
 | Binary: | long (signed), 4 bytes, little endian, in **mm/s**. |
 | Text: | Sent as **m/s**, with mm/s resolution, in the format s.s with up to 3 decimal places in the range 0.0 to 500.0 _without preceding or trailing zeroes_ |
 | Example value: | 10 m/s |
@@ -410,8 +427,9 @@ SPEED (0x18)
 HEAD (0x19)
 ---
 
+| []() | |
+|---|---|
 | Description: | The heading in degrees. |
-| --- | --- |
 | Binary: | long (signed), 4 bytes, little endian, in degrees * 10^-7. |
 | Text: | Sent in the format -d.d with **1** decimal place _without preceding zeroes_ |
 | Example value: | 45 degrees |
@@ -422,8 +440,9 @@ HEAD (0x19)
 SATS (0x1a)
 ---
 
-| Description: | The number of satellites (space vehicles) used in the position solution. |
+| []() | |
 |---|---|
+| Description: | The number of satellites (space vehicles) used in the position solution. |
 | Binary: | byte. |
 | Text: | Sent in the format nn _without a preceding zero_ |
 | Example value: | 14 |
@@ -434,8 +453,9 @@ SATS (0x1a)
 HDOP (0x1b)
 ---
 
-| Description: | The horizontal dilution of precision. |
+| []() | |
 |---|---|
+| Description: | The horizontal dilution of precision. |
 | Binary: | word, 2 bytes, little endian, in **cm**. |
 | Text: | Sent as **m**, with cm resolution, in the format m.m with 1 or 2 decimal places _without preceding or trailing zeroes_ |
 | Example value: | 1.02m |
@@ -446,8 +466,9 @@ HDOP (0x1b)
 PDOP (0x1c)
 ---
 
-| Description: | The positional dilution of precision. |
+| []() | |
 |---|---|
+| Description: | The positional dilution of precision. |
 | Binary: | word, 2 bytes, little endian, in **cm**. |
 | Text: | Sent as **m**, with cm resolution, in the format m.m with 1 or 2 decimal places _without preceding or trailing zeroes_ |
 | Example value: | 1.02m |
@@ -458,8 +479,9 @@ PDOP (0x1c)
 FIX (0x1d)
 ---
 
-| Description: | The GNSS fix type as defined in the u-blox PVT message: 0=no fix, 1=dead reckoning, 2=2D, 3=3D, 4=GNSS, 5=Time fix |
+| []() | |
 |---|---|
+| Description: | The GNSS fix type as defined in the u-blox PVT message: 0=no fix, 1=dead reckoning, 2=2D, 3=3D, 4=GNSS, 5=Time fix |
 | Binary: | byte. |
 | Text: | Sent in the format n in the range 0 to 5 |
 | Example value: | 3 |
@@ -470,8 +492,9 @@ FIX (0x1d)
 MTFIELDS (0x30)
 ---
 
-| Description: | Defines or shows which fields are included in MT messages. |
+| []() | |
 |---|---|
+| Description: | Defines or shows which fields are included in MT messages. |
 | Binary: | 3 x unsigned long. The most significant bit of the first long defines if the field 0x00 will be sent. The least significant bit of the third long defines if field 0x5f will be sent. Some field IDs are reserved or undefined! |
 | Text: | Sent as ASCII-encoded Hex in the range 000000000000000000000000 to ffffffffffffffffffffffff |
 | Example value: | To send (only) DATETIME (0x14), LAT (0x15), LON (0x16) and ALT (0x17) |
@@ -483,9 +506,11 @@ MTFIELDS (0x30)
 FLAGS1 (0x31)
 ---
 
-| Description: | Defines various message options. |
+| []() | |
 |---|---|
+| Description: | Defines various message options. |
 | Binary: | byte. |
+| []() | |
 | Bit 7 (MSB): | Set to 1 if binary messages are to be sent / are being sent. Set to 0 for text messages (default). |
 | Bit 6: | Set to 1 if message forwarding via the RockBLOCK gateway is enabled. Clear otherwise (default). Message will be forwarded to RB DEST. |
 | Bit 5: | Set to 1 if a message will be sent when PRESS > HIPRESS. PRESS is checked every WAKEINT seconds. Messages will be sent every ALARMINT minutes until PRESS is < HIPRESS. |
@@ -494,6 +519,7 @@ FLAGS1 (0x31)
 | Bit 2: | Set to 1 if a message will be sent when TEMP < LOTEMP. TEMP is checked every WAKEINT seconds. Messages will be sent every ALARMINT minutes until TEMP is > LOTEMP. |
 | Bit 1: | Set to 1 if a message will be sent when HUMID > HIHUMID. HUMID is checked every WAKEINT seconds. Messages will be sent every ALARMINT minutes until HUMID is < HIHUMID. |
 | Bit 0 (LSB): | Set to 1 if a message will be sent when HUMID < LOHUMID. HUMID is checked every WAKEINT seconds. Messages will be sent every ALARMINT minutes until HUMID is > LOHUMID. |
+| []() | |
 | Text: | Sent as ASCII-encoded Hex in the range 00 to ff |
 | Example value: | To send binary messages, without forwarding, and alarm when TEMP is > HITEMP |
 | Binary example: | 0x3188 (B10001000 is 0x88) |
@@ -504,9 +530,11 @@ FLAGS1 (0x31)
 FLAGS2 (0x32)
 ---
 
-| Description: | Defines various message options. |
+| []() | |
 |---|---|
+| Description: | Defines various message options. |
 | Binary: | byte. |
+| []() | |
 | Bit 7 (MSB): | Set to 1 if geofence alerts are enabled. Clear otherwise (default). |
 | Bit 6: | When set to 1, geofence alerts will be sent every ALARMINT minutes when the tracker _is inside_ a geofenced area. When clear, geofence alerts will be sent when the tracker _is outside_ all geofenced areas (default). |
 | Bit 5: | Undefined. |
@@ -515,6 +543,7 @@ FLAGS2 (0x32)
 | Bit 2: | Undefined. |
 | Bit 1: | Undefined. |
 | Bit 0 (LSB): | Undefined. |
+| []() | |
 | Text: | Sent as ASCII-encoded Hex in the range 00 to ff |
 | Example value: | To enable geofence alerts when the tracker leaves the geofenced area(s) |
 | Binary example: | 0x3280 (B10000000 is 0x80) |
@@ -530,8 +559,9 @@ Battery consumption will increase when geofence alerts are enabled as the ZOE-M8
 DEST (0x33)
 ---
 
-| Description: | The destination RockBLOCK serial number for message forwarding. |
+| []() | |
 |---|---|
+| Description: | The destination RockBLOCK serial number for message forwarding. |
 | Binary: | unsigned long, 4 bytes, little endian. |
 | Text: | Sent in the format nnnnn in the range 0 to 9999999 |
 | Example value: | 12345 |
@@ -543,8 +573,9 @@ DEST (0x33)
 HIPRESS (0x34)
 ---
 
-| Description: | The high atmospheric pressure alarm limit. |
+| []() | |
 |---|---|
+| Description: | The high atmospheric pressure alarm limit. |
 | Binary: | word, 2 bytes, little endian, in mbar. |
 | Text: | Sent in the format nnnn in the range 0 to 1084 (approx.) |
 | Example value: | 998 |
@@ -556,8 +587,9 @@ HIPRESS (0x34)
 LOPRESS (0x35)
 ---
 
-| Description: | The low atmospheric pressure alarm limit. |
+| []() | |
 |---|---|
+| Description: | The low atmospheric pressure alarm limit. |
 | Binary: | word, 2 bytes, little endian, in mbar. |
 | Text: | Sent in the format nnnn in the range 0 to 1084 (approx.) |
 | Example value: | 998 |
@@ -569,8 +601,9 @@ LOPRESS (0x35)
 HITEMP (0x36)
 ---
 
-| Description: | The high atmospheric temperature alarm limit. |
+| []() | |
 |---|---|
+| Description: | The high atmospheric temperature alarm limit. |
 | Binary: | int (signed), 2 bytes, little endian, in Centigrade * 10^-2. |
 | Text: | Sent in the format n.n with 1 or 2 decimal places, signed, in the range -40.0 to 85.0 (approx.) |
 | Example value: | -12.34C |
@@ -582,8 +615,9 @@ HITEMP (0x36)
 LOTEMP (0x37)
 ---
 
-| Description: | The low atmospheric temperature alarm limit. |
+| []() | |
 |---|---|
+| Description: | The low atmospheric temperature alarm limit. |
 | Binary: | int (signed), 2 bytes, little endian, in Centigrade * 10^-2. |
 | Text: | Sent in the format n.n with 1 or 2 decimal places, signed, in the range -40.0 to 85.0 (approx.) |
 | Example value: | -12.34C |
@@ -595,8 +629,9 @@ LOTEMP (0x37)
 HIHUMID (0x38)
 ---
 
-| Description: | The high atmospheric humidity alarm limit. |
+| []() | |
 |---|---|
+| Description: | The high atmospheric humidity alarm limit. |
 | Binary: | word, 2 bytes, little endian, in %RH * 10^-2. |
 | Text: | Sent in the format n.n with 1 or 2 decimal places in the range 0.0 to 100.0 (approx.) |
 | Example value: | 12.34%RH |
@@ -608,8 +643,9 @@ HIHUMID (0x38)
 LOHUMID (0x39)
 ---
 
-| Description: | The low atmospheric humidity alarm limit. |
+| []() | |
 |---|---|
+| Description: | The low atmospheric humidity alarm limit. |
 | Binary: | word, 2 bytes, little endian, in %RH * 10^-2. |
 | Text: | Sent in the format n.n with 1 or 2 decimal places in the range 0.0 to 100.0 (approx.) |
 | Example value: | 12.34%RH |
@@ -621,8 +657,9 @@ LOHUMID (0x39)
 GEOFNUM (0x3a)
 ---
 
-| Description: | The number of geofences in use (0-4) and the confidence level: 0 = no confidence, 1 = 68%, 2 = 95%, 3 = 99.7%, 4 = 99.99%. |
+| []() | |
 |---|---|
+| Description: | The number of geofences in use (0-4) and the confidence level: 0 = no confidence, 1 = 68%, 2 = 95%, 3 = 99.7%, 4 = 99.99%. |
 | Binary: | byte, the 4 most significant bits indicate the number of geofences in use, the 4 least significant bits indicate the confidence level. |
 | Text: | Sent in the format n.c in the range 0.0 to 4.4 |
 | Example value: | 1 geofence, 99.7% confidence (level 3) |
@@ -634,8 +671,9 @@ GEOFNUM (0x3a)
 GEOF1LAT (0x3b)
 ---
 
-| Description: | The latitude of the center of geofence circle 1. |
+| []() | |
 |---|---|
+| Description: | The latitude of the center of geofence circle 1. |
 | Binary: | long (signed), 4 bytes, little endian, in degrees * 10^-7. |
 | Text: | Sent in the format -d.d with up to 7 decimal places in the range -90.0 to 90.0 _without preceding or trailing zeroes_ |
 | Example value: | 40 degrees South |
@@ -647,8 +685,9 @@ GEOF1LAT (0x3b)
 GEOF1LON (0x3c)
 ---
 
-| Description: | The longitude of the center of geofence circle 1. |
+| []() | |
 |---|---|
+| Description: | The longitude of the center of geofence circle 1. |
 | Binary: | long (signed), 4 bytes, little endian, in degrees * 10^-7. |
 | Text: | Sent in the format -d.d with up to 7 decimal places in the range -180.0 to 179.9999999 _without preceding or trailing zeroes_ |
 | Example value: | 170 degrees West |
@@ -660,8 +699,9 @@ GEOF1LON (0x3c)
 GEOF1RAD (0x3d)
 ---
 
-| Description: | The longitude of the center of geofence circle 1. |
+| []() | |
 |---|---|
+| Description: | The longitude of the center of geofence circle 1. |
 | Binary: | unsigned long, 4 bytes, little endian, in **cm**. |
 | Text: | Sent as **m**, with cm resolution, in the format m.m with 1 or 2 decimal places _without preceding or trailing zeroes_ |
 | Example value: | 100m |
@@ -727,8 +767,9 @@ See GEOF1RAD
 WAKEINT (0x47)
 ---
 
-| Description: | The tracker's wake-up interval (seconds). The tracker will wake up every WAKEINT seconds and check the PHT values. |
+| []() | |
 |---|---|
+| Description: | The tracker's wake-up interval (seconds). The tracker will wake up every WAKEINT seconds and check the PHT values. |
 | Binary: | word, 2 bytes, little endian, in seconds. |
 | Text: | Sent in the format nnnn _without preceding zeroes_ |
 | Example value: | 10 seconds |
@@ -740,8 +781,9 @@ WAKEINT (0x47)
 ALARMINT (0x48)
 ---
 
-| Description: | The tracker's alarm interval (minutes). The tracker will send a message every ALARMINT minutes while an alarm is present. |
+| []() | |
 |---|---|
+| Description: | The tracker's alarm interval (minutes). The tracker will send a message every ALARMINT minutes while an alarm is present. |
 | Binary: | word, 2 bytes, little endian, in minutes. |
 | Text: | Sent in the format nnnn _without preceding zeroes_ |
 | Example value: | 10 minutes |
@@ -753,8 +795,9 @@ ALARMINT (0x48)
 TXINT (0x49)
 ---
 
-| Description: | The tracker's transmission interval (minutes). The tracker will send a routine message every TXINT minutes. |
+| []() | |
 |---|---|
+| Description: | The tracker's transmission interval (minutes). The tracker will send a routine message every TXINT minutes. |
 | Binary: | word, 2 bytes, little endian, in minutes. |
 | Text: | Sent in the format nnnn _without preceding zeroes_ |
 | Example value: | 10 minutes |
