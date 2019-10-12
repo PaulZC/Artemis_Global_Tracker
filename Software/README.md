@@ -1,5 +1,4 @@
-# Artemis Iridium Tracker
-: Software
+# Artemis Iridium Tracker: Software
 
 ### Coming soon!
 

@@ -1,5 +1,4 @@
-# Artemis Iridium Tracker
-: Tools
+# Artemis Iridium Tracker: Tools
 
 ### Coming soon!
 

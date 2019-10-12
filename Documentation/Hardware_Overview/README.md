@@ -1,5 +1,4 @@
-# Artemis Iridium Tracker
-: Hardware Overview
+# Artemis Iridium Tracker: Hardware Overview
 
 ### Coming soon!
 
