@@ -4,21 +4,20 @@ The Artemis Iridium Tracker is an open source satellite tracker utilising the [S
 [Iridium 9603N satellite transceiver](https://www.iridium.com/products/iridium-9603/) and [u-blox ZOE-M8Q GNSS
 ](https://www.u-blox.com/en/product/zoe-m8-series).
 
-The hardware design is based extensively on:
-- [the SparkFun Artemis module](https://www.sparkfun.com/products/15484)
-- [the SparkFun Thing Plus - Artemis](https://www.sparkfun.com/products/15574) battery charging circuit
-- [the SparkFun RedBoard Artemis](https://www.sparkfun.com/products/15444) USB-C interface
-- [the SparkFun Artemis design block]() AP3429 3.3V buck regulator circuit
-- [the Qwiic Iridium 9603N](https://github.com/PaulZC/Qwiic_Iridium_9603N) Iridium 9603N, LTC3225 supercapacitor charger and ADM4210 inrush current circuit
-- [the SparkFun GPS Breakout - ZOE-M8Q](https://www.sparkfun.com/products/15193) ZOE connections and backup battery circuit
+The hardware design is based extensively on the:
+- [SparkFun Artemis module](https://www.sparkfun.com/products/15484)
+- [SparkFun Thing Plus - Artemis](https://www.sparkfun.com/products/15574) battery charging circuit
+- [SparkFun RedBoard Artemis](https://www.sparkfun.com/products/15444) USB-C interface
+- [SparkFun Artemis design block]() [AP3429](https://www.diodes.com/part/view/AP3429) 3.3V buck regulator circuit
+- [Qwiic Iridium 9603N](https://github.com/PaulZC/Qwiic_Iridium_9603N) Iridium 9603N, LTC3225 supercapacitor charger and ADM4210 inrush current circuit
+- [SparkFun GPS Breakout - ZOE-M8Q](https://www.sparkfun.com/products/15193) ZOE connections and backup battery circuit
 
-The design also makes use of:
-- [the Skyworks AS179-92LF GaAs RF Switch](https://www.skyworksinc.com/products/switches/as179-92lf) as used on the [Iridium 9603N Solar Beacon](https://github.com/PaulZC/Iridium_9603N_Solar_Beacon)
-- [the Maxtena M1600HCT-P-SMA antenna](https://www.maxtena.com/products/f-gps/m1600hct-p-sma/) which is tuned for Iridium, GPS and GLONASS
-- [the TE / MEAS Switzerland MS8607](https://www.te.com/usa-en/product-CAT-BLPS0018.html) combined pressure, humidity and temperature sensor
-- [the AP3429 buck converter](https://www.diodes.com/part/view/AP3429)
+The design also makes use of the:
+- [Skyworks AS179-92LF GaAs RF Switch](https://www.skyworksinc.com/products/switches/as179-92lf) as used on the [Iridium 9603N Solar Beacon](https://github.com/PaulZC/Iridium_9603N_Solar_Beacon)
+- [Maxtena M1600HCT-P-SMA antenna](https://www.maxtena.com/products/f-gps/m1600hct-p-sma/) which is tuned for Iridium, GPS and GLONASS
+- [TE / MEAS Switzerland MS8607](https://www.te.com/usa-en/product-CAT-BLPS0018.html) combined pressure, humidity and temperature sensor
 
-The full schmatic for the tracker can be found [here](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/Hardware/Schematic.pdf)
+The full schematic for the tracker can be found [here](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/Hardware/Schematic.pdf)
 
 ## The Artemis Module
 
@@ -33,10 +32,10 @@ The tracker can be powered from:
 - a LiPo battery (recharged via the USB-C interface)
 - three Energizer® Ultimate Lithium AA cells (which will work down to -40C)
 
-Low forward-voltage diodes isolate the power sources from each other. You can have all three connected simultaneously, it will do no harm.
+Low-forward-voltage diodes isolate the power sources from each other. You can have all three connected simultaneously, it will do no harm.
 The tracker will preferentially draw power from USB if it is connected.
 
-Please be aware that if you have only the AA cells and LiPo connected simultaneously, the tracker will preferentially draw power from the AA cells.
+Please be aware that if you have only the AA cells and LiPo connected, the tracker will preferentially draw power from the AA cells.
 If you have the AA cells installed, you may as well disconnect the LiPo.
 
 ![Power_Select](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/Power_Select.JPG)
@@ -57,10 +56,66 @@ The LiPo charger circuit is taken directly from [the SparkFun RedBoard Artemis N
 
 ## 3.3V Buck Regulator
 
-Power for the tracker is regulated by an AP3429A buck regulator. Its 90uA quiescent current draw means it can be powered continuously without
-depleting the batteries.
+3.3V power for the tracker is regulated by an AP3429A buck regulator. Its 90uA quiescent current draw means it can be powered continuously without
+depleting the batteries during sleep.
 
 ![Buck_Reg](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/Buck_Reg.JPG)
+
+## ZOE-M8Q
+
+GNSS data is provided by the u-blox ZOE-M8Q as used on the [SparkFun GPS Breakout - ZOE-M8Q](https://www.sparkfun.com/products/15193).
+
+Data communication is via I2C port 1. The ZOE's PIO15 pin is connected to the Artemis so it can be woken up when a geofence alert occurs.
+
+![ZOE](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/ZOE.JPG)
+
+Back-up power for the ZOE is drawn preferentially from the 3.3V rail, but there is a small back-up battery too to keep the ZOE's clock running
+when all other power sources have been disconnected. The battery recharges only when USB power is connected (to help minimise the 3.3V current
+draw during sleep).
+
+![VBCKP](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/VBCKP.JPG)
+
+3.3V power for the ZOE is switched via a FET. The same switched power also feeds the antenna switch when the GNSS is in use.
+
+![GPS_EN](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/GPS_EN.JPG)
+
+## Iridium 9603N
+
+The tracker uses the same Iridium 9603N transceiver as the [Qwiic Iridium 9603N](https://github.com/PaulZC/Qwiic_Iridium_9603N).
+
+![9603N](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/9603N.JPG)
+
+Power for the 9603N is provided by the same LTC3225 supercapacitor charger and ADM4210 in-rush current limit circuit as used by the Qwiic Iridium.
+
+![LTC3225](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/LTC3225.JPG)
+
+## Antenna Switch
+
+The ZOE and Iridium 9603N share the antenna via a [Skyworks AS179-92LF GaAs RF Switch](https://www.skyworksinc.com/products/switches/as179-92lf)
+which has been flight tested on the [Iridium 9603N Solar Beacon](https://github.com/PaulZC/Iridium_9603N_Solar_Beacon).
+
+Care needs to be taken that the 3.3V GNSS and 5.3V 9603N are not powered up simultaneously as _bad things might happen to the AS179_.
+
+![RF](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/RF.JPG)
+
+## Pressure, Humidity and Temperature Sensor
+
+Pressure, humidity and temperature readings are provided by a [TE / MEAS Switzerland MS8607](https://www.te.com/usa-en/product-CAT-BLPS0018.html) combined sensor.
+The MS8607 shares I2C port 1 with the ZOE and is powered by the same switched 3.3V power rail.
+
+The sensor will provide pressure readings as low as 10mbar which is equivalent to an altitude of approximately 31,000m.
+
+![PHT](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/PHT.JPG)
+
+## I/O Pins
+
+The Artemis' SPI and I2C (port 1) pins are broken out on pin headers so the user can connect external peripherals.
+
+![Pins](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/Pins.JPG)
+
+I2C port 4 is broken out on a standard SparkFun Qwiic connector.
+
+![Qwiic](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/Qwiic.JPG)
 
 
 

@@ -5,33 +5,33 @@
 | 1 | GND | | Power Ground |
 | 2 | GPIO20 | SWDCK | JTAG single wire clock |
 | 3 | GPIO49 | RX0 | Bootload RX pin for serial bootloading |
-| 4 | GPIO39 | ~D39 | |
-| 5 | GPIO40 | D40 | |
-| 6 | GPIO9 | D9 | |
+| 4 | GPIO39 | ~D39 | Qwiic SCL |
+| 5 | GPIO40 | D40 | Qwiic SDA |
+| 6 | GPIO9 | D9 | ZOE-M8Q SDA |
 | 7 | BOOT | | Bootload Hold pin high during reset to initiate bootloader |
-| 8 | GPIO10 | D10 | |
+| 8 | GPIO10 | D10 | ZOE-M8Q PIO15 (Geofence Alert) |
 | 9 | GPIO48 | TX0 | Bootload TX pin for serial bootloading |
 | 10 | GPIO21 | SWDIO | JTAG single wire I/O |
-| 11 | GPIO8 | D8 | |
-| 12 | GPIO5 | ~D5 | |
-| 13 | GPIO7 | D7 | |
+| 11 | GPIO8 | D8 | ZOE-M8Q SCL |
+| 12 | GPIO5 | ~D5 | SCK |
+| 13 | GPIO7 | D7 | MOSI |
 | 14 | GPIO35 | ~AD35 | |
 | 15 | GPIO4 | ~D4 | |
-| 16 | GPIO24 | ~D24 | |
-| 17 | GPIO22 | ~D22 | |
+| 16 | GPIO24 | ~D24 | Iridium 9603N TX(In) |
+| 17 | GPIO22 | ~D22 | AD4210 ON |
 | 18 | GPIO23 | ~D23 | |
-| 19 | GPIO27 | ~D27 | |
+| 19 | GPIO27 | ~D27 | LTC3225 SHDN |
 | 20 | GPIO14 | D14 | |
-| 21 | GPIO28 | ~D28 | |
+| 21 | GPIO28 | ~D28 | LTC3225 PGOOD |
 | 22 | GND | | Power |
-| 23 | GPIO6 | ~D6 | |
+| 23 | GPIO6 | ~D6 | MISO |
 | 24 | GPIO32 | ~AD32 | |
-| 25 | GPIO25 | ~D25 | |
+| 25 | GPIO25 | ~D25 | Iridium 9603N RX(Out) |
 | 26 | GPIO12 | ~AD12 | |
-| 27 | GPIO26 | ~D26 | |
+| 27 | GPIO26 | ~D26 | GPS_EN |
 | 28 | GPIO13 | ~AD13 | |
 | 29 | GPIO15 | D15 | |
-| 30 | GPIO33 | ~AD33/SWO | |
+| 30 | GPIO33 | ~AD33/SWO | JTAG SWO |
 | 31 | GPIO34 | AD34 | |
 | 32 | GPIO11 | ~AD11 | |
 | 33 | GPIO29 | ~AD29 | |
@@ -42,11 +42,11 @@
 | 38 | GND | | Power |
 | 39 | GND | | Power |
 | 40 | GPIO19 | ~D19 | |
-| 41 | GPIO18 | ~D18 | |
+| 41 | GPIO18 | ~D18 | Iridium 9603N Network Available |
 | 42 | GPIO16 | AD16 | |
-| 43 | GPIO17 | D17 | |
+| 43 | GPIO17 | D17 | Iridium 9603N ON/OFF |
 | 44 | GPIO31 | ~AD31 | |
-| 45 | GPIO41 | D41 | |
+| 45 | GPIO41 | D41 | Iridium 9603N Ring Indicator |
 | 46 | GPIO45 | ~D45 | |
 | 47 | GND | | Power |
 | 48 | GPIO2 | D2 | |
@@ -54,7 +54,7 @@
 | 50 | nRESET | | System Reset Pull pin low to reset system |
 | 51 | GPIO0 | D0 | |
 | 52 | GPIO43 | ~D43 | |
-| 53 | GPIO42 | ~D42 | |
+| 53 | GPIO42 | ~D42 | Wake |
 | 54 | GPIO3 | D3 | |
 | 55 | GPIO36 | D36 | |
 | 56 | GPIO38 | D38 | |
