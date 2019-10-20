@@ -100,7 +100,7 @@ Follow the ID links for a full definition and examples for each field.
 If the number of IDs is expanded beyond 0x5f, MOFIELDS will need to be redefined accordingly.
 
 | ID | Abv. | Type | Bin_Len | Txt_Len | MO | MT | USB | EEPROM | Desc. |
-|---|---|---|---|---|---|---|---|---|
+|---|---|---|---|---|---|---|---|---|---|
 | 0x00 | RESV | | | | | | | | **Reserved - do not use** |
 | 0x01 | RESV | | | | | | | | **Reserved - do not use** |
 | [0x02](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#stx-0x02) | STX | | | | | | | Yes | ASCII STX - used to indicate the start of a binary message |

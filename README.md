@@ -10,7 +10,7 @@ An open source satellite tracker utilising the [SparkFun Artemis module](https:/
 ## Repository Contents
 - **/Documentation** - Full documentation for both hardware and software
 - **/Hardware** - Eagle schematic and PCB design files
-- **/Software** - Arduino code **(Coming soon!)**
+- **/Software** - Arduino code
 - **/Tools** - Tools to help configure the tracker remotely via Iridium messaging **(Coming soon!)**
 - **LICENSE.md** contains the licence information
 
