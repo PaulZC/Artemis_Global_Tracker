@@ -41,7 +41,7 @@
 | 37 | VDD | | Power |
 | 38 | GND | | Power |
 | 39 | GND | | Power |
-| 40 | GPIO19 | ~D19 | |
+| 40 | GPIO19 | ~D19 | LED |
 | 41 | GPIO18 | ~D18 | Iridium 9603N Network Available |
 | 42 | GPIO16 | AD16 | |
 | 43 | GPIO17 | D17 | Iridium 9603N ON/OFF |
