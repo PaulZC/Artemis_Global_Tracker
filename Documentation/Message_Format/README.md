@@ -158,7 +158,7 @@ If the number of IDs is expanded beyond 0x5f, MOFIELDS will need to be redefined
 | [0x47](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#wakeint-0x47) | WAKEINT | uint16_t | 2 | 4 | Yes | Yes | Yes | Yes | Defines the tracker's wake-up interval (seconds)  |
 | [0x48](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#alarmint-0x48) | ALARMINT | uint16_t | 2 | 4 | Yes | Yes | Yes | Yes | Defines the tracker's transmission interval during an alarm (minutes)  |
 | [0x49](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#txint-0x49) | TXINT | uint16_t | 2 | 4 | Yes | Yes | Yes | DYes | efines the tracker's normal transmission interval (minutes)  |
-| 0x4a - 0x4f | | | | | | | | **Currently undefined - do not use** |
+| 0x4a - 0x4f | | | | | | | | | **Currently undefined - do not use** |
 | [0x50](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#userfunc1-0x50) | USERFUNC1 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 1 |
 | [0x51](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#userfunc2-0x51) | USERFUNC2 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 2 |
 | [0x52](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#userfunc3-0x52) | USERFUNC3 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 3 |
@@ -167,7 +167,7 @@ If the number of IDs is expanded beyond 0x5f, MOFIELDS will need to be redefined
 | [0x55](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#userfunc6-0x55) | USERFUNC6 | uint16_t | 2 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 6 |
 | [0x56](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#userfunc7-0x56) | USERFUNC7 | uint32_t | 4 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 7 |
 | [0x57](https://github.com/PaulZC/Artemis_Iridium_Tracker/tree/master/Documentation/Message_Format#userfunc8-0x57) | USERFUNC8 | uint32_t | 4 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 8 |
-| 0x58 - 0x5f | | | | | | | | **Currently undefined - do not use** |
+| 0x58 - 0x5f | | | | | | | | | **Currently undefined - do not use** |
 
 ---
 ### Field Definition
