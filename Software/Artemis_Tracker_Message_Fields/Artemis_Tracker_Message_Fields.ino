@@ -2,12 +2,15 @@
  * Example code showing how the Artemis Iridium Tracker will store the message fields in RAM and EEPROM
  */
 
-#include <EEPROM.h>
 #include "Message_Fields.h"
+
+Iridium_Tracker_Message_Fields mf;
 
 void setup() {
   Serial.begin(115200);
   while (!Serial); // Wait for the user to open the serial monitor
+
+  delay(100);
   
   Serial.println();
   Serial.println();
@@ -23,32 +26,33 @@ void setup() {
   //clean up
   while(Serial.available() > 0) Serial.read();
 
-  trackerSettings myTrackerSettings; // Create RAM storage
+  mf.enableDebugging(); // Enable debug messages to Serial
 
-  initTrackerSettings(&myTrackerSettings); // Initialise the values in RAM
+  mf.initTrackerSettings(&mf.myTrackerSettings); // Initialise the tracker settings in RAM
+  //mf.putTrackerSettings(&mf.myTrackerSettings); // Reset EEPROM with the default settings - uncomment only if necessary!
 
   // Check if the EEPROM data is valid (i.e. has already been initialised)
-  if (checkEEPROM(&myTrackerSettings))
+  if (mf.checkEEPROM(&mf.myTrackerSettings))
   {
-    Serial.println(F("EEPROM data is valid. Updating values in RAM with values from EEPROM."));
-    getTrackerSettings(&myTrackerSettings);
+    Serial.println(F("Tracker EEPROM data is valid. Updating values in RAM with values from EEPROM."));
+    mf.getTrackerSettings(&mf.myTrackerSettings);
   }
   else
   {
-    Serial.println(F("EEPROM data is invalid. Initialising EEPROM values with values from RAM."));
-    putTrackerSettings(&myTrackerSettings);
+    Serial.println(F("Tracker EEPROM data is invalid. Initialising EEPROM values with values from RAM."));
+    mf.putTrackerSettings(&mf.myTrackerSettings);
   }
 
   // Example: increment the software version each time the code is run
   
   Serial.print(F("Software version is "));
-  Serial.println(myTrackerSettings.SWVER);
+  Serial.println(mf.myTrackerSettings.SWVER);
 
   Serial.println(F("Incrementing the software version by 1..."));
-  myTrackerSettings.SWVER = myTrackerSettings.SWVER + 1;
+  mf.myTrackerSettings.SWVER = mf.myTrackerSettings.SWVER + 1;
 
   Serial.println(F("Updating values in EEPROM."));
-  updateTrackerSettings(&myTrackerSettings);
+  mf.updateTrackerSettings(&mf.myTrackerSettings);
 
   // EEPROM location LOC_SWVER will now contain the incremented SWVER
 
@@ -57,10 +61,16 @@ void setup() {
 
   Serial.println();
   Serial.println(F("EEPROM contents (remember that data is little endian!):"));
-  displayEEPROMcontents();
-  Serial.println();
-  Serial.println();
+  mf.displayEEPROMcontents();
 
+  // Example: print the tracker settings from RAM as text
+  
+  Serial.println();
+  Serial.println();
+  Serial.println("Tracker settings are:");
+  mf.printTrackerSettings(&mf.myTrackerSettings);
+
+  Serial.println();
   Serial.println(F("Done!"));
 }
 

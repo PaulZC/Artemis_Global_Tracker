@@ -15,8 +15,8 @@
 | 11 | GPIO8 | D8 | ZOE-M8Q SCL |
 | 12 | GPIO5 | ~D5 | SCK |
 | 13 | GPIO7 | D7 | MOSI |
-| 14 | GPIO35 | ~AD35 | |
-| 15 | GPIO4 | ~D4 | |
+| 14 | GPIO35 | ~AD35 | SPI_CS1 |
+| 15 | GPIO4 | ~D4 | SPI_CS2 |
 | 16 | GPIO24 | ~D24 | Iridium 9603N TX(In) |
 | 17 | GPIO22 | ~D22 | AD4210 ON |
 | 18 | GPIO23 | ~D23 | |
@@ -29,10 +29,10 @@
 | 25 | GPIO25 | ~D25 | Iridium 9603N RX(Out) |
 | 26 | GPIO12 | ~AD12 | |
 | 27 | GPIO26 | ~D26 | GPS_EN |
-| 28 | GPIO13 | ~AD13 | |
+| 28 | GPIO13 | ~AD13 | Bus Voltage Measure |
 | 29 | GPIO15 | D15 | |
 | 30 | GPIO33 | ~AD33/SWO | JTAG SWO |
-| 31 | GPIO34 | AD34 | |
+| 31 | GPIO34 | AD34 | Bus Voltage Measure Enable |
 | 32 | GPIO11 | ~AD11 | |
 | 33 | GPIO29 | ~AD29 | |
 | 34 | XO | | 32kHz Xtal Connection for external 32.768kHz RTC crystal |
