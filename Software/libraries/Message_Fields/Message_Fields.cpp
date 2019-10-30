@@ -349,7 +349,7 @@ uint8_t Iridium_Tracker_Message_Fields::ascii_hex_to_bin(uint8_t chr)
   else return (0);
 }
 
-int Iridium_Tracker_Message_Fields::check_for_serial_data(bool fresh)
+enum serial_rx_status Iridium_Tracker_Message_Fields::check_for_serial_data(bool fresh)
 // A non-blocking way to check for the arrival of serial data and time out when
 // no data is received for CHECK_SERIAL_TIMEOUT seconds, or if there is a gap of
 // RX_IDLE_TIMEOUT in receiving the data
@@ -404,7 +404,7 @@ bool Iridium_Tracker_Message_Fields::is_ID_valid(uint8_t ID, uint16_t &data_widt
   return (false);
 }
 
-int Iridium_Tracker_Message_Fields::check_data(uint8_t *data_buffer, size_t &data_buffer_size)
+enum parsing_result Iridium_Tracker_Message_Fields::check_data(uint8_t *data_buffer, size_t &data_buffer_size)
 // Checks that the data in data_buffer has the correct format and checksums
 // We will want to use this function on both the serial_rx_buffer and the Iridium SBD buffer
 // Serial data could be binary or ASCII-encoded Hex
@@ -512,7 +512,7 @@ int Iridium_Tracker_Message_Fields::check_data(uint8_t *data_buffer, size_t &dat
   return (DATA_VALID);
 }
 
-int Iridium_Tracker_Message_Fields::parse_data(uint8_t *data_buffer, size_t &data_buffer_size, trackerSettings *myTrackerSettings, bool over_serial)
+enum parsing_result Iridium_Tracker_Message_Fields::parse_data(uint8_t *data_buffer, size_t &data_buffer_size, trackerSettings *myTrackerSettings, bool over_serial)
 // Parse the data, updating the tracker settings in RAM and EEPROM
 // Some settings can only be updated over serial, not via SBD message.
 {

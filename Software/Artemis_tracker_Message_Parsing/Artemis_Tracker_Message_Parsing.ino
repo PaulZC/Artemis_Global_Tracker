@@ -49,15 +49,15 @@ void setup() {
   Serial.println(F("OK. I am ready for your serial data. Send it to me!"));
   int err = mf.check_for_serial_data(true); // Start checking for the arrival of new serial data
 
-  while ((err != mf.DATA_RECEIVED) && (err != mf.DATA_TIMEOUT))
+  while ((err != DATA_RECEIVED) && (err != DATA_TIMEOUT))
   {
     err = mf.check_for_serial_data(); // Keep checking for the arrival of serial data
   }
 
-  if (err == mf.DATA_RECEIVED) // If we received some data then parse it
+  if (err == DATA_RECEIVED) // If we received some data then parse it
   {
     err = mf.check_data(mf.serial_rx_buffer, mf.serial_rx_buffer_size);
-    if (err == mf.DATA_VALID) // If the data is valid, parse it (and update the values in RAM)
+    if (err == DATA_VALID) // If the data is valid, parse it (and update the values in RAM)
     {
       mf.parse_data(mf.serial_rx_buffer, mf.serial_rx_buffer_size, &mf.myTrackerSettings, true);
       Serial.println(F("Parsing complete. Updating values in EEPROM."));

@@ -141,6 +141,25 @@
 #define CHECK_SERIAL_TIMEOUT 60UL // Make check_for_serial_data timeout after this many seconds
 #define RX_IDLE_TIMEOUT 1UL // Make check_for_serial_data timeout after no further data is received for this many seconds
 
+// Define the status for serial data receive
+enum serial_rx_status {
+  DATA_NOT_SEEN = 0,
+  DATA_SEEN,
+  DATA_RECEIVED,
+  DATA_TIMEOUT
+};
+  
+// Define the result values for message parsing
+enum parsing_result {
+  DATA_VALID = 0,
+  DATA_TOO_SHORT,
+  NO_STX,
+  INVALID_FIELD,
+  NO_ETX,
+  CHECKSUM_ERROR,
+  DATA_WIDTH_INVALID
+};
+
 class Iridium_Tracker_Message_Fields
 {
 public:
@@ -213,27 +232,6 @@ public:
     uint8_t ID;
     uint8_t data_width;
     } ID_width;
-
-  // Define the parsing state for serial data receive
-  enum parsing_state
-  {
-    DATA_NOT_SEEN = 0,
-    DATA_SEEN = 1,
-    DATA_RECEIVED = 2,
-    DATA_TIMEOUT = 3
-  };
-  
-  // Define the result values for message parsing
-  enum parsing_result
-  {
-    DATA_VALID = 0,
-    DATA_TOO_SHORT = 1,
-    NO_STX = 2,
-    INVALID_FIELD = 3,
-    NO_ETX = 4,
-    CHECKSUM_ERROR = 5,
-    DATA_WIDTH_INVALID = 6
-  };
 
   // Define unions for each data type so we can access individual bytes easily
   typedef union {
@@ -398,9 +396,9 @@ public:
   void getTrackerSettings(trackerSettings *myTrackerSettings);
   void displayEEPROMcontents();
   bool is_ID_valid(uint8_t ID, uint16_t &data_width);
-  int check_for_serial_data(bool fresh = false);
-  int check_data(uint8_t *data_buffer, size_t &data_buffer_size);
-  int parse_data(uint8_t *data_buffer, size_t &data_buffer_size, trackerSettings *myTrackerSettings, bool over_serial = false);
+  enum serial_rx_status check_for_serial_data(bool fresh = false);
+  enum parsing_result check_data(uint8_t *data_buffer, size_t &data_buffer_size);
+  enum parsing_result parse_data(uint8_t *data_buffer, size_t &data_buffer_size, trackerSettings *myTrackerSettings, bool over_serial = false);
   void printTrackerSettings(trackerSettings *myTrackerSettings);
   void printBinary(uint8_t the_byte);
 
