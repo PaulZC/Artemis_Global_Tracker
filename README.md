@@ -7,6 +7,8 @@ An open source satellite tracker utilising the [SparkFun Artemis module](https:/
 
 ### Work in progress!
 
+![Dimensions](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/Dimensions.png)
+
 ## Repository Contents
 - **/Documentation** - Full documentation for both hardware and software
 - **/Hardware** - Eagle schematic and PCB design files
