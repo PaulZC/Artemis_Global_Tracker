@@ -20339,6 +20339,11 @@ or measure power</text>
 Ultimate Lithium in Keystone
 Electronics 82 clips</text>
 <text x="172.72" y="101.6" size="2.54" layer="94" font="vector" ratio="15">Bus Voltage Measurement</text>
+<text x="170.18" y="114.3" size="1.778" layer="97" font="vector" align="bottom-center">Connector for
+solar power
+or external
+batteries.
+5.5V Max.</text>
 </plain>
 <instances>
 <instance part="FRAME4" gate="G$1" x="0" y="0" smashed="yes"/>
