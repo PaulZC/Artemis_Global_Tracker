@@ -62,6 +62,11 @@ depleting the batteries during sleep.
 
 ![Buck_Reg](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/Buck_Reg.JPG)
 
+If you want to completely disable the buck regulator to minimise the current draw, you can do so by opening the 3V3EN split pad. The EN pin can then be used to enable/disable the regulator.
+Pull EN low to disable the regulator, pull it up to VIN (labelled as VBUS on J4) to enable it. EN could be driven by a logic signal from an external timer circuit.
+
+![Buck_Reg_EN](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/Buck_Reg_EN.JPG)
+
 ## ZOE-M8Q
 
 GNSS data is provided by the u-blox ZOE-M8Q as used on the [SparkFun GPS Breakout - ZOE-M8Q](https://www.sparkfun.com/products/15193).
