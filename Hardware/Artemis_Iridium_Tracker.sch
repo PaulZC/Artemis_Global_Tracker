@@ -18089,6 +18089,153 @@ by exp-lbrs.ulp</description>
 </deviceset>
 </devicesets>
 </library>
+<library name="Microchip-MCP11">
+<description>&lt;b&gt; Developed By element14 &lt;/b&gt;&lt;p&gt; 
+
+For feedback and Technical support please contact reach from below:
+&lt;br&gt; Tech Support e-mail  : &lt;a href="mailto:CAD_Tech@element14.com"&gt;CAD_Tech@element14.com&lt;/a&gt;
+&lt;br&gt;Community website: &lt;a href=http://www.element14.com/community/community/knode/cadsoft_eagle/eagle_cad_libraries&gt;
+EAGLE CAD Libraries on element14&lt;/a&gt;</description>
+<packages>
+<package name="SOT95P237X112-3N">
+<smd name="1" x="-0.9398" y="-1.0414" dx="0.5588" dy="1.27" layer="1"/>
+<smd name="2" x="0.9398" y="-1.0414" dx="0.5588" dy="1.27" layer="1"/>
+<smd name="3" x="0" y="1.0414" dx="0.5588" dy="1.27" layer="1"/>
+<wire x1="-0.6858" y1="-0.7112" x2="-1.1938" y2="-0.7112" width="0.1524" layer="51"/>
+<wire x1="-1.1938" y1="-0.7112" x2="-1.1938" y2="-1.3208" width="0.1524" layer="51"/>
+<wire x1="-1.1938" y1="-1.3208" x2="-0.6858" y2="-1.3208" width="0.1524" layer="51"/>
+<wire x1="-0.6858" y1="-1.3208" x2="-0.6858" y2="-0.7112" width="0.1524" layer="51"/>
+<wire x1="1.1938" y1="-0.7112" x2="0.6858" y2="-0.7112" width="0.1524" layer="51"/>
+<wire x1="0.6858" y1="-0.7112" x2="0.6858" y2="-1.3208" width="0.1524" layer="51"/>
+<wire x1="0.6858" y1="-1.3208" x2="1.1938" y2="-1.3208" width="0.1524" layer="51"/>
+<wire x1="1.1938" y1="-1.3208" x2="1.1938" y2="-0.7112" width="0.1524" layer="51"/>
+<wire x1="-0.254" y1="0.7112" x2="0.254" y2="0.7112" width="0.1524" layer="51"/>
+<wire x1="0.254" y1="0.7112" x2="0.254" y2="1.3208" width="0.1524" layer="51"/>
+<wire x1="0.254" y1="1.3208" x2="-0.254" y2="1.3208" width="0.1524" layer="51"/>
+<wire x1="-0.254" y1="1.3208" x2="-0.254" y2="0.7112" width="0.1524" layer="51"/>
+<wire x1="-1.524" y1="-0.7112" x2="1.524" y2="-0.7112" width="0.1524" layer="51"/>
+<wire x1="1.524" y1="-0.7112" x2="1.524" y2="0.7112" width="0.1524" layer="51"/>
+<wire x1="1.524" y1="0.7112" x2="-1.524" y2="0.7112" width="0.1524" layer="51"/>
+<wire x1="-1.524" y1="0.7112" x2="-1.524" y2="-0.7112" width="0.1524" layer="51"/>
+<wire x1="-0.6096" y1="0.7112" x2="-1.524" y2="0.7112" width="0.1524" layer="21"/>
+<wire x1="-0.3302" y1="-0.7112" x2="0.3302" y2="-0.7112" width="0.1524" layer="21"/>
+<wire x1="1.524" y1="-0.254" x2="1.524" y2="0.7112" width="0.1524" layer="21"/>
+<wire x1="1.524" y1="0.7112" x2="0.6096" y2="0.7112" width="0.1524" layer="21"/>
+<wire x1="-1.524" y1="0.7112" x2="-1.524" y2="-0.254" width="0.1524" layer="21"/>
+<text x="-4.5212" y="2.159" size="2.0828" layer="25" ratio="10" rot="SR0">&gt;NAME</text>
+<text x="-5.461" y="-4.2418" size="2.0828" layer="27" ratio="10" rot="SR0">&gt;VALUE</text>
+</package>
+</packages>
+<symbols>
+<symbol name="MCP11">
+<pin name="VSS" x="-12.7" y="-5.08" length="middle" direction="pwr"/>
+<pin name="VDD" x="-12.7" y="0" length="middle" direction="pwr"/>
+<pin name="VOUT" x="12.7" y="-2.54" length="middle" direction="out" rot="R180"/>
+<wire x1="-7.62" y1="2.54" x2="-7.62" y2="-10.16" width="0.4064" layer="94"/>
+<wire x1="-7.62" y1="-10.16" x2="7.62" y2="-10.16" width="0.4064" layer="94"/>
+<wire x1="7.62" y1="-10.16" x2="7.62" y2="2.54" width="0.4064" layer="94"/>
+<wire x1="7.62" y1="2.54" x2="-7.62" y2="2.54" width="0.4064" layer="94"/>
+<text x="-4.826" y="5.0292" size="2.0828" layer="95" ratio="10" rot="SR0">&gt;NAME</text>
+<text x="-5.08" y="-13.589" size="2.0828" layer="96" ratio="10" rot="SR0">&gt;VALUE</text>
+</symbol>
+</symbols>
+<devicesets>
+<deviceset name="MCP11" prefix="U">
+<description>Micropower Voltage Detector ,SOT23-3;</description>
+<gates>
+<gate name="A" symbol="MCP11" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="SOT95P237X112-3N">
+<connects>
+<connect gate="A" pin="VDD" pad="3"/>
+<connect gate="A" pin="VOUT" pad="1"/>
+<connect gate="A" pin="VSS" pad="2"/>
+</connects>
+<technologies>
+<technology name="1T-270E/TT">
+<attribute name="MPN" value="MCP111T-270E/TT" constant="no"/>
+<attribute name="OC_FARNELL" value="1851877" constant="no"/>
+<attribute name="OC_NEWARK" value="56J7328" constant="no"/>
+<attribute name="PACKAGE" value="SOT23-3" constant="no"/>
+<attribute name="SUPPLIER" value="MICROCHIP" constant="no"/>
+</technology>
+<technology name="1T-290E/TT">
+<attribute name="MPN" value="MCP111T-290E/TT" constant="no"/>
+<attribute name="OC_FARNELL" value="1332057" constant="no"/>
+<attribute name="OC_NEWARK" value="84R5163" constant="no"/>
+<attribute name="PACKAGE" value="SOT23-3" constant="no"/>
+<attribute name="SUPPLIER" value="MICROCHIP" constant="no"/>
+</technology>
+<technology name="1T-300E/TT">
+<attribute name="MPN" value="MCP111T-300E/TT" constant="no"/>
+<attribute name="OC_FARNELL" value="1605552" constant="no"/>
+<attribute name="OC_NEWARK" value="11N7983" constant="no"/>
+<attribute name="PACKAGE" value="SOT23-3" constant="no"/>
+<attribute name="SUPPLIER" value="MICROCHIP" constant="no"/>
+</technology>
+<technology name="1T-450E/TT">
+<attribute name="MPN" value="MCP111T-450E/TT" constant="no"/>
+<attribute name="OC_FARNELL" value="1332058" constant="no"/>
+<attribute name="OC_NEWARK" value="34M7389" constant="no"/>
+<attribute name="PACKAGE" value="SOT23-3" constant="no"/>
+<attribute name="SUPPLIER" value="MICROCHIP" constant="no"/>
+</technology>
+<technology name="1T-475E/TT">
+<attribute name="MPN" value="MCP111T-475E/TT" constant="no"/>
+<attribute name="OC_FARNELL" value="1863908" constant="no"/>
+<attribute name="OC_NEWARK" value="37J1622" constant="no"/>
+<attribute name="PACKAGE" value="SOT23-3" constant="no"/>
+<attribute name="SUPPLIER" value="MICROCHIP" constant="no"/>
+</technology>
+<technology name="2T-240E/TT">
+<attribute name="MPN" value="MCP112T-240E/TT" constant="no"/>
+<attribute name="OC_FARNELL" value="1851884" constant="no"/>
+<attribute name="OC_NEWARK" value="56J7347" constant="no"/>
+<attribute name="PACKAGE" value="SOT23-3" constant="no"/>
+<attribute name="SUPPLIER" value="MICROCHIP" constant="no"/>
+</technology>
+<technology name="2T-290E/TT">
+<attribute name="MPN" value="MCP112T-290E/TT" constant="no"/>
+<attribute name="OC_FARNELL" value="1332061" constant="no"/>
+<attribute name="OC_NEWARK" value="84R5167" constant="no"/>
+<attribute name="PACKAGE" value="SOT23-3" constant="no"/>
+<attribute name="SUPPLIER" value="MICROCHIP" constant="no"/>
+</technology>
+<technology name="2T-300E/TT">
+<attribute name="MPN" value="MCP112T-300E/TT" constant="no"/>
+<attribute name="OC_FARNELL" value="1851887" constant="no"/>
+<attribute name="OC_NEWARK" value="56J7353" constant="no"/>
+<attribute name="PACKAGE" value="SOT23-3" constant="no"/>
+<attribute name="SUPPLIER" value="MICROCHIP" constant="no"/>
+</technology>
+<technology name="2T-315E/TT">
+<attribute name="MPN" value="MCP112T-315E/TT" constant="no"/>
+<attribute name="OC_FARNELL" value="Unknown" constant="no"/>
+<attribute name="OC_NEWARK" value="56J7355" constant="no"/>
+<attribute name="PACKAGE" value="SOT23-3" constant="no"/>
+<attribute name="SUPPLIER" value="MICROCHIP" constant="no"/>
+</technology>
+<technology name="2T-450E/TT">
+<attribute name="MPN" value="MCP112T-450E/TT" constant="no"/>
+<attribute name="OC_FARNELL" value="1332062" constant="no"/>
+<attribute name="OC_NEWARK" value="84R5169" constant="no"/>
+<attribute name="PACKAGE" value="SOT23-3" constant="no"/>
+<attribute name="SUPPLIER" value="MICROCHIP" constant="no"/>
+</technology>
+<technology name="2T-475E/TT">
+<attribute name="MPN" value="MCP112T-475E/TT" constant="no"/>
+<attribute name="OC_FARNELL" value="Unknown" constant="no"/>
+<attribute name="OC_NEWARK" value="56J7359" constant="no"/>
+<attribute name="PACKAGE" value="SOT23-3" constant="no"/>
+<attribute name="SUPPLIER" value="MICROCHIP" constant="no"/>
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+</devicesets>
+</library>
 </libraries>
 <attributes>
 </attributes>
@@ -18097,7 +18244,7 @@ by exp-lbrs.ulp</description>
 <classes>
 <class number="0" name="default" width="0" drill="0">
 </class>
-<class number="1" name="3.3V" width="0.3048" drill="0">
+<class number="1" name="3.3V" width="0.2032" drill="0">
 </class>
 </classes>
 <parts>
@@ -18332,6 +18479,11 @@ by exp-lbrs.ulp</description>
 <part name="SUPPLY13" library="SparkFun-PowerSymbols" deviceset="3.3V" device=""/>
 <part name="SUPPLY14" library="SparkFun-PowerSymbols" deviceset="3.3V" device=""/>
 <part name="5V3" library="SparkFun-Connectors" library_urn="urn:adsk.eagle:library:513" deviceset="TEST-POINT" device="3X5" package3d_urn="urn:adsk.eagle:package:38285/1"/>
+<part name="U10" library="Microchip-MCP11" deviceset="MCP11" device="" technology="1T-270E/TT" value="MCP111T-240E/TT">
+<attribute name="MPN" value="MCP111T-240E/TT"/>
+</part>
+<part name="GND38" library="SparkFun-PowerSymbols" deviceset="GND" device=""/>
+<part name="SUPPLY15" library="SparkFun-PowerSymbols" deviceset="3.3V" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -19537,11 +19689,11 @@ and Qwiic ZOE-M8Q</text>
 <text x="78.74" y="152.4" size="1.778" layer="97">Artemis VCC Range:
 1.76-3.6V</text>
 <text x="193.294" y="177.546" size="2.54" layer="97" font="vector" align="center">Bootloader Reset Circuit</text>
-<text x="195.834" y="120.396" size="2.54" layer="94" ratio="15" align="center">SWD Program/Debug Interface</text>
-<text x="193.294" y="83.566" size="2.54" layer="94" font="vector" ratio="15" align="center">I2C/Qwiic</text>
+<text x="198.374" y="102.616" size="2.54" layer="94" ratio="15" align="center">SWD Program/Debug Interface</text>
+<text x="198.374" y="70.866" size="2.54" layer="94" font="vector" ratio="15" align="center">I2C/Qwiic</text>
 <text x="50.8" y="7.62" size="3.81" layer="97" ratio="15">Connections</text>
 <text x="86.36" y="35.56" size="1.778" layer="97" align="center">I2C Port 1</text>
-<text x="208.28" y="63.5" size="1.778" layer="97" align="center">I2C Port 4</text>
+<text x="213.36" y="50.8" size="1.778" layer="97" align="center">I2C Port 4</text>
 </plain>
 <instances>
 <instance part="FRAME3" gate="G$1" x="0" y="0" smashed="yes"/>
@@ -19652,25 +19804,25 @@ and Qwiic ZOE-M8Q</text>
 <attribute name="NAME" x="208.534" y="144.78" size="1.778" layer="95" font="vector" rot="R90" align="bottom-center"/>
 <attribute name="VALUE" x="216.154" y="144.78" size="1.778" layer="96" font="vector" rot="R90" align="top-center"/>
 </instance>
-<instance part="GND61" gate="1" x="175.26" y="96.52" smashed="yes">
-<attribute name="VALUE" x="175.26" y="96.266" size="1.778" layer="96" align="top-center"/>
+<instance part="GND61" gate="1" x="177.8" y="78.74" smashed="yes">
+<attribute name="VALUE" x="177.8" y="78.486" size="1.778" layer="96" align="top-center"/>
 </instance>
-<instance part="DEBUG" gate="G$1" x="190.5" y="104.14" smashed="yes">
-<attribute name="NAME" x="180.34" y="112.014" size="1.778" layer="95" font="vector"/>
-<attribute name="VALUE" x="180.34" y="96.774" size="1.778" layer="96" font="vector"/>
+<instance part="DEBUG" gate="G$1" x="193.04" y="86.36" smashed="yes">
+<attribute name="NAME" x="182.88" y="94.234" size="1.778" layer="95" font="vector"/>
+<attribute name="VALUE" x="182.88" y="78.994" size="1.778" layer="96" font="vector"/>
 </instance>
-<instance part="SUPPLY38" gate="G$1" x="175.26" y="111.76" smashed="yes">
-<attribute name="VALUE" x="175.26" y="114.554" size="1.778" layer="96" align="bottom-center"/>
+<instance part="SUPPLY38" gate="G$1" x="177.8" y="93.98" smashed="yes">
+<attribute name="VALUE" x="177.8" y="96.774" size="1.778" layer="96" align="bottom-center"/>
 </instance>
-<instance part="QWIIC" gate="G$1" x="182.88" y="66.04" smashed="yes">
-<attribute name="VALUE" x="177.8" y="60.706" size="1.778" layer="96" font="vector" align="top-left"/>
-<attribute name="NAME" x="177.8" y="73.914" size="1.778" layer="95" font="vector"/>
+<instance part="QWIIC" gate="G$1" x="187.96" y="53.34" smashed="yes">
+<attribute name="VALUE" x="182.88" y="48.006" size="1.778" layer="96" font="vector" align="top-left"/>
+<attribute name="NAME" x="182.88" y="61.214" size="1.778" layer="95" font="vector"/>
 </instance>
-<instance part="GND62" gate="1" x="193.04" y="58.42" smashed="yes">
-<attribute name="VALUE" x="193.04" y="58.166" size="1.778" layer="96" align="top-center"/>
+<instance part="GND62" gate="1" x="198.12" y="45.72" smashed="yes">
+<attribute name="VALUE" x="198.12" y="45.466" size="1.778" layer="96" align="top-center"/>
 </instance>
-<instance part="SUPPLY39" gate="G$1" x="193.04" y="73.66" smashed="yes">
-<attribute name="VALUE" x="193.04" y="76.454" size="1.778" layer="96" align="bottom-center"/>
+<instance part="SUPPLY39" gate="G$1" x="198.12" y="60.96" smashed="yes">
+<attribute name="VALUE" x="198.12" y="63.754" size="1.778" layer="96" align="bottom-center"/>
 </instance>
 <instance part="I2C" gate="G$1" x="63.5" y="25.4" smashed="yes">
 <attribute name="VALUE" x="58.42" y="20.066" size="1.778" layer="96" font="vector" align="top-left"/>
@@ -19695,6 +19847,16 @@ and Qwiic ZOE-M8Q</text>
 </instance>
 <instance part="SUPPLY14" gate="G$1" x="73.66" y="35.56" smashed="yes">
 <attribute name="VALUE" x="73.66" y="38.354" size="1.778" layer="96" align="bottom-center"/>
+</instance>
+<instance part="U10" gate="A" x="195.58" y="127" smashed="yes">
+<attribute name="NAME" x="190.754" y="132.0292" size="2.0828" layer="95" ratio="10" rot="SR0"/>
+<attribute name="VALUE" x="187.96" y="113.411" size="2.0828" layer="96" ratio="10" rot="SR0"/>
+</instance>
+<instance part="GND38" gate="1" x="180.34" y="119.38" smashed="yes">
+<attribute name="VALUE" x="180.34" y="119.126" size="1.778" layer="96" align="top-center"/>
+</instance>
+<instance part="SUPPLY15" gate="G$1" x="180.34" y="127" smashed="yes">
+<attribute name="VALUE" x="180.34" y="129.794" size="1.778" layer="96" align="bottom-center"/>
 </instance>
 </instances>
 <busses>
@@ -19757,14 +19919,14 @@ and Qwiic ZOE-M8Q</text>
 </segment>
 <segment>
 <pinref part="GND61" gate="1" pin="GND"/>
-<wire x1="175.26" y1="101.6" x2="175.26" y2="99.06" width="0.1524" layer="91"/>
-<wire x1="177.8" y1="101.6" x2="175.26" y2="101.6" width="0.1524" layer="91"/>
+<wire x1="177.8" y1="83.82" x2="177.8" y2="81.28" width="0.1524" layer="91"/>
+<wire x1="180.34" y1="83.82" x2="177.8" y2="83.82" width="0.1524" layer="91"/>
 <pinref part="DEBUG" gate="G$1" pin="GND"/>
 </segment>
 <segment>
 <pinref part="QWIIC" gate="G$1" pin="1"/>
-<wire x1="190.5" y1="63.5" x2="193.04" y2="63.5" width="0.1524" layer="91"/>
-<wire x1="193.04" y1="63.5" x2="193.04" y2="60.96" width="0.1524" layer="91"/>
+<wire x1="195.58" y1="50.8" x2="198.12" y2="50.8" width="0.1524" layer="91"/>
+<wire x1="198.12" y1="50.8" x2="198.12" y2="48.26" width="0.1524" layer="91"/>
 <pinref part="GND62" gate="1" pin="GND"/>
 </segment>
 <segment>
@@ -19778,6 +19940,11 @@ and Qwiic ZOE-M8Q</text>
 <wire x1="22.86" y1="17.78" x2="27.94" y2="17.78" width="0.1524" layer="91"/>
 <pinref part="GND1" gate="1" pin="GND"/>
 <wire x1="27.94" y1="17.78" x2="27.94" y2="15.24" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="U10" gate="A" pin="VSS"/>
+<pinref part="GND38" gate="1" pin="GND"/>
+<wire x1="182.88" y1="121.92" x2="180.34" y2="121.92" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="3.3V" class="1">
@@ -19808,15 +19975,15 @@ and Qwiic ZOE-M8Q</text>
 <pinref part="SUPPLY28" gate="G$1" pin="3.3V"/>
 </segment>
 <segment>
-<wire x1="177.8" y1="109.22" x2="175.26" y2="109.22" width="0.1524" layer="91"/>
-<wire x1="175.26" y1="109.22" x2="175.26" y2="111.76" width="0.1524" layer="91"/>
+<wire x1="180.34" y1="91.44" x2="177.8" y2="91.44" width="0.1524" layer="91"/>
+<wire x1="177.8" y1="91.44" x2="177.8" y2="93.98" width="0.1524" layer="91"/>
 <pinref part="DEBUG" gate="G$1" pin="VCC"/>
 <pinref part="SUPPLY38" gate="G$1" pin="3.3V"/>
 </segment>
 <segment>
 <pinref part="QWIIC" gate="G$1" pin="2"/>
-<wire x1="190.5" y1="66.04" x2="193.04" y2="66.04" width="0.1524" layer="91"/>
-<wire x1="193.04" y1="66.04" x2="193.04" y2="73.66" width="0.1524" layer="91"/>
+<wire x1="195.58" y1="53.34" x2="198.12" y2="53.34" width="0.1524" layer="91"/>
+<wire x1="198.12" y1="53.34" x2="198.12" y2="60.96" width="0.1524" layer="91"/>
 <pinref part="SUPPLY39" gate="G$1" pin="3.3V"/>
 </segment>
 <segment>
@@ -19831,6 +19998,11 @@ and Qwiic ZOE-M8Q</text>
 <pinref part="SUPPLY14" gate="G$1" pin="3.3V"/>
 <wire x1="73.66" y1="25.4" x2="73.66" y2="35.56" width="0.1524" layer="91"/>
 </segment>
+<segment>
+<pinref part="U10" gate="A" pin="VDD"/>
+<pinref part="SUPPLY15" gate="G$1" pin="3.3V"/>
+<wire x1="182.88" y1="127" x2="180.34" y2="127" width="0.1524" layer="91"/>
+</segment>
 </net>
 <net name="ARTEMIS_SWDIO" class="0">
 <segment>
@@ -19839,8 +20011,8 @@ and Qwiic ZOE-M8Q</text>
 <pinref part="U7" gate="U1" pin="D21(SWDIO/RX1/SCCRST)"/>
 </segment>
 <segment>
-<label x="210.82" y="106.68" size="1.27" layer="95" xref="yes"/>
-<wire x1="200.66" y1="106.68" x2="210.82" y2="106.68" width="0.1524" layer="91"/>
+<label x="213.36" y="88.9" size="1.27" layer="95" xref="yes"/>
+<wire x1="203.2" y1="88.9" x2="213.36" y2="88.9" width="0.1524" layer="91"/>
 <pinref part="DEBUG" gate="G$1" pin="SWDIO"/>
 </segment>
 </net>
@@ -19874,9 +20046,14 @@ and Qwiic ZOE-M8Q</text>
 <pinref part="!RESET" gate="G$1" pin="1"/>
 </segment>
 <segment>
-<wire x1="200.66" y1="109.22" x2="210.82" y2="109.22" width="0.1524" layer="91"/>
-<label x="210.82" y="109.22" size="1.27" layer="95" xref="yes"/>
+<wire x1="203.2" y1="91.44" x2="213.36" y2="91.44" width="0.1524" layer="91"/>
+<label x="213.36" y="91.44" size="1.27" layer="95" xref="yes"/>
 <pinref part="DEBUG" gate="G$1" pin="!RESET"/>
+</segment>
+<segment>
+<pinref part="U10" gate="A" pin="VOUT"/>
+<wire x1="208.28" y1="124.46" x2="213.36" y2="124.46" width="0.1524" layer="91"/>
+<label x="213.36" y="124.46" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="ARTEMIS_RX0" class="0">
@@ -19936,8 +20113,8 @@ and Qwiic ZOE-M8Q</text>
 <pinref part="U7" gate="U1" pin="~AD33(SWO/32KHZ)"/>
 </segment>
 <segment>
-<wire x1="200.66" y1="101.6" x2="210.82" y2="101.6" width="0.1524" layer="91"/>
-<label x="210.82" y="101.6" size="1.27" layer="95" xref="yes"/>
+<wire x1="203.2" y1="83.82" x2="213.36" y2="83.82" width="0.1524" layer="91"/>
+<label x="213.36" y="83.82" size="1.27" layer="95" xref="yes"/>
 <pinref part="DEBUG" gate="G$1" pin="SWO"/>
 </segment>
 </net>
@@ -19948,8 +20125,8 @@ and Qwiic ZOE-M8Q</text>
 <pinref part="U7" gate="U1" pin="D20(SWDCK/TX1)"/>
 </segment>
 <segment>
-<label x="210.82" y="104.14" size="1.27" layer="95" xref="yes"/>
-<wire x1="200.66" y1="104.14" x2="210.82" y2="104.14" width="0.1524" layer="91"/>
+<label x="213.36" y="86.36" size="1.27" layer="95" xref="yes"/>
+<wire x1="203.2" y1="86.36" x2="213.36" y2="86.36" width="0.1524" layer="91"/>
 <pinref part="DEBUG" gate="G$1" pin="SWDCLK"/>
 </segment>
 </net>
@@ -20095,8 +20272,8 @@ and Qwiic ZOE-M8Q</text>
 </segment>
 <segment>
 <pinref part="QWIIC" gate="G$1" pin="4"/>
-<wire x1="190.5" y1="71.12" x2="203.2" y2="71.12" width="0.1524" layer="91"/>
-<label x="203.2" y="71.12" size="1.27" layer="95" xref="yes"/>
+<wire x1="195.58" y1="58.42" x2="208.28" y2="58.42" width="0.1524" layer="91"/>
+<label x="208.28" y="58.42" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="ARTEMIS_D40_SDA4" class="0">
@@ -20107,8 +20284,8 @@ and Qwiic ZOE-M8Q</text>
 </segment>
 <segment>
 <pinref part="QWIIC" gate="G$1" pin="3"/>
-<wire x1="190.5" y1="68.58" x2="203.2" y2="68.58" width="0.1524" layer="91"/>
-<label x="203.2" y="68.58" size="1.27" layer="95" xref="yes"/>
+<wire x1="195.58" y1="55.88" x2="208.28" y2="55.88" width="0.1524" layer="91"/>
+<label x="208.28" y="55.88" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="ARTEMIS_D31" class="0">
@@ -21191,14 +21368,16 @@ batteries.
 <approved hash="104,4,66.04,27.94,U9,VIN,V_USB,,,"/>
 <approved hash="104,4,86.36,27.94,U9,VBAT,V_BATT,,,"/>
 <approved hash="104,4,86.36,22.86,U9,VSS,GND,,,"/>
-<approved hash="104,3,190.5,63.5,QWIIC,1,GND,,,"/>
-<approved hash="104,3,190.5,66.04,QWIIC,2,3.3V,,,"/>
+<approved hash="104,3,195.58,50.8,QWIIC,1,GND,,,"/>
+<approved hash="104,3,195.58,53.34,QWIIC,2,3.3V,,,"/>
 <approved hash="104,4,193.04,132.08,BAT1,+,N$42,,,"/>
 <approved hash="104,4,193.04,121.92,BAT1,-,N$38,,,"/>
 <approved hash="104,4,205.74,121.92,BAT2,+,N$38,,,"/>
 <approved hash="104,4,205.74,132.08,BAT2,-,N$43,,,"/>
 <approved hash="104,4,218.44,132.08,BAT3,+,N$43,,,"/>
 <approved hash="104,4,218.44,121.92,BAT3,-,GND,,,"/>
+<approved hash="104,3,182.88,121.92,U10,VSS,GND,,,"/>
+<approved hash="104,3,182.88,127,U10,VDD,3.3V,,,"/>
 <approved hash="106,3,124.46,147.32,ARTEMIS_D0,,,,,"/>
 <approved hash="106,3,124.46,144.78,ARTEMIS_D1,,,,,"/>
 <approved hash="106,3,124.46,142.24,ARTEMIS_D2,,,,,"/>
@@ -21226,7 +21405,7 @@ batteries.
 <approved hash="113,1,52.6627,145.982,SC2+,,,,,"/>
 <approved hash="113,1,52.6627,138.362,SC2-,,,,,"/>
 <approved hash="113,4,118.787,26.67,J5,,,,,"/>
-<approved hash="113,3,186.013,68.5207,QWIIC,,,,,"/>
+<approved hash="113,3,191.093,55.8207,QWIIC,,,,,"/>
 <approved hash="113,4,213.292,154.263,J4,,,,,"/>
 <approved hash="113,3,19.8374,27.2457,SPI,,,,,"/>
 <approved hash="113,4,34.8827,97.8577,EN,,,,,"/>
