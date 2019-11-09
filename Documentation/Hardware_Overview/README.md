@@ -6,9 +6,8 @@ The Artemis Iridium Tracker is an open source satellite tracker utilising the [S
 
 The hardware design is based extensively on the:
 - [SparkFun Artemis module](https://www.sparkfun.com/products/15484)
-- [SparkFun Thing Plus - Artemis](https://www.sparkfun.com/products/15574) battery charging circuit
-- [SparkFun RedBoard Artemis](https://www.sparkfun.com/products/15444) USB-C interface
-- [SparkFun Artemis design block]() [AP3429](https://www.diodes.com/part/view/AP3429) 3.3V buck regulator circuit
+- [SparkFun Thing Plus - Artemis](https://www.sparkfun.com/products/15574) battery charging circuit and USB-C interface
+- SparkFun Artemis design block [AP3429](https://www.diodes.com/part/view/AP3429) 3.3V buck regulator circuit
 - [Qwiic Iridium 9603N](https://github.com/PaulZC/Qwiic_Iridium_9603N) Iridium 9603N, LTC3225 supercapacitor charger and ADM4210 inrush current circuit
 - [SparkFun GPS Breakout - ZOE-M8Q](https://www.sparkfun.com/products/15193) ZOE connections and backup battery circuit
 
@@ -30,13 +29,15 @@ The heart of the tracker is, of course, the most excellent Artemis module from S
 The tracker can be powered from:
 - the USB-C interface
 - a LiPo battery (recharged via the USB-C interface)
-- three Energizer® Ultimate Lithium AA cells (which will work down to -40C)
+- three Energizer® Ultimate Lithium AAA cells (which will work down to -40C)
+- an external solar panel or battery pack (5.5V maximum)
 
-Low-forward-voltage diodes isolate the power sources from each other. You can have all three connected simultaneously, it will do no harm.
+Low-forward-voltage diodes isolate the power sources from each other. You can have the USB, LiPo and AAA cells connected simultaneously, it will do no harm.
 The tracker will preferentially draw power from USB if it is connected.
 
-Please be aware that if you have only the AA cells and LiPo connected, the tracker will preferentially draw power from the AA cells.
-If you have the AA cells installed, you may as well disconnect the LiPo.
+If the USB is disconnected, the tracker will preferentially draw power from the AAA cells. If you have the AAA cells installed, you may as well disconnect the LiPo.
+
+The connector for the external solar panel is connected in parallel with the three AAA cells. Please use either the AAA cells or the external supply, not both!
 
 ![Power_Select](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/Power_Select.JPG)
 
@@ -44,13 +45,13 @@ J4 can be used to measure the current draw or to connect a power switch after yo
 
 ## USB Interface
 
-The USB interface is taken directly from [the SparkFun RedBoard Artemis](https://www.sparkfun.com/products/15444).
+The USB interface is taken directly from the [SparkFun Thing Plus - Artemis](https://www.sparkfun.com/products/15574).
 
 ![USB](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/USB.JPG)
 
 ## LiPo Charger
 
-The LiPo charger circuit is taken directly from [the SparkFun RedBoard Artemis Nano](https://www.sparkfun.com/products/15443).
+The LiPo charger circuit is taken directly from the [SparkFun Thing Plus - Artemis](https://www.sparkfun.com/products/15574).
 
 ![LiPo](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/LiPo.JPG)
 
@@ -79,6 +80,10 @@ draw during sleep).
 
 ![GPS_EN](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/GPS_EN.JPG)
 
+Connection to the Artemis is via I2C port 1. The serial and safeboot pins are available on test pads to allow the ZOE firmware to be updated.
+
+Geofence alerts from the ZOE can be produced on PIO14, which is connected to Artemis pin D10.
+
 ## Iridium 9603N
 
 The tracker uses the same Iridium 9603N transceiver as the [Qwiic Iridium 9603N](https://github.com/PaulZC/Qwiic_Iridium_9603N).
@@ -101,7 +106,7 @@ Care needs to be taken that the 3.3V GNSS and 5.3V 9603N are not powered up simu
 ## Pressure, Humidity and Temperature Sensor
 
 Pressure, humidity and temperature readings are provided by a [TE / MEAS Switzerland MS8607](https://www.te.com/usa-en/product-CAT-BLPS0018.html) combined sensor.
-The MS8607 shares I2C port 1 with the ZOE and is powered by the same switched 3.3V power rail.
+The MS8607 shares I2C port 1 with the ZOE.
 
 The sensor will provide pressure readings as low as 10mbar which is equivalent to an altitude of approximately 31,000m.
 
@@ -117,7 +122,12 @@ I2C port 4 is broken out on a standard SparkFun Qwiic connector.
 
 ![Qwiic](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/Qwiic.JPG)
 
+## Bus Voltage
 
+The bus voltage (from the USB, LiPo or AAA cells) can be measured via the Artemis pin AD13. A simple two resistor divider divides the bus voltage by three.
+Power to the resistor divider is switched by an N-FET so the power draw can be minimised during sleep.
+
+![Bus_V](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/Bus_V.JPG)
 
 
 
