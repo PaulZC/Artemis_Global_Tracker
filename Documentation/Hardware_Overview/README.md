@@ -71,7 +71,9 @@ Pull EN low to disable the regulator, pull it up to VIN (labelled as VBUS on J4)
 
 GNSS data is provided by the u-blox ZOE-M8Q as used on the [SparkFun GPS Breakout - ZOE-M8Q](https://www.sparkfun.com/products/15193).
 
-Data communication is via I2C port 1. The ZOE's PIO15 pin is connected to the Artemis so it can be woken up when a geofence alert occurs.
+Connection to the Artemis is via I2C port 1. The serial and safeboot pins are available on test pads to allow the ZOE firmware to be updated.
+
+Geofence alerts from the ZOE can be produced on PIO14, which is connected to Artemis pin D10.
 
 ![ZOE](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/ZOE.JPG)
 
@@ -84,10 +86,6 @@ draw during sleep).
 3.3V power for the ZOE is switched via a FET. The same switched power also feeds the antenna switch when the GNSS is in use.
 
 ![GPS_EN](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/GPS_EN.JPG)
-
-Connection to the Artemis is via I2C port 1. The serial and safeboot pins are available on test pads to allow the ZOE firmware to be updated.
-
-Geofence alerts from the ZOE can be produced on PIO14, which is connected to Artemis pin D10.
 
 ## Iridium 9603N
 
