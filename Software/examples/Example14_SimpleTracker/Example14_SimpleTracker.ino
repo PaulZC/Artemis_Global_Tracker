@@ -31,6 +31,7 @@
   By: Nathan Seidle
   SparkFun Electronics
   (Date: October 17th, 2019)
+  Also the OpenLog_Artemis PowerDownRTC example
   
   License: This code is public domain. Based on deepsleep_wake.c from Ambiq SDK v2.2.0.
 
@@ -55,6 +56,9 @@
 #define iridiumRI           41 // Input for the Iridium 9603N Ring Indicator
 // Make sure you do not have gnssEN and iridiumPwrEN enabled at the same time!
 // If you do, bad things might happen to the AS179 RF switch!
+
+//#define noLED // Uncomment this line to disable the White LED
+//#define noTX // Uncomment this line to disable the Iridium SBD transmit if you want to test the code without using message credits
 
 // Declares a Uart object called Serial using instance 1 of Apollo3 UART peripherals with RX on variant pin 25 and TX on pin 24
 // (note, in this variant the pins map directly to pad, so pin === pad when talking about the pure Artemis module)
@@ -133,7 +137,7 @@ bool dynamicModelSet = false; // Flag to indicate if the ZOE-M8Q dynamic model h
 
 // Loop Steps - these are used by the switch/case in the main loop
 // This structure makes it easy to go from any of the steps directly to zzz when (e.g.) the batteries are low
-#define init          0 // Send the welcome message, check the battery voltage
+#define loop_init     0 // Send the welcome message, check the battery voltage
 #define start_GPS     1 // Enable the ZOE-M8Q, check the battery voltage
 #define read_GPS      2 // Wait for up to GNSS_timeout minutes for a valid 3D fix, check the battery voltage
 #define read_pressure 3 // Read the pressure and temperature from the MS8607
@@ -142,7 +146,7 @@ bool dynamicModelSet = false; // Flag to indicate if the ZOE-M8Q dynamic model h
 #define start_9603    6 // Power on the 9603N, send the message, check the battery voltage
 #define zzz           7 // Turn everything off and put the processor into deep sleep
 #define wake          8 // Wake from deep sleep, restore the processor clock speed
-int loop_step = init; // Make sure loop_step is set to init
+int loop_step = loop_init; // Make sure loop_step is set to loop_init
 
 // Set up the RTC and generate interrupts every second
 void setupRTC()
@@ -211,6 +215,7 @@ void get_vbat()
 // IridiumSBD Callback - this code is called while the 9603N is trying to transmit
 bool ISBDCallback()
 {
+#ifndef noLED
   // Flash the LED at 4 Hz
   if ((millis() / 250) % 2 == 1) {
     digitalWrite(LED, HIGH);
@@ -218,6 +223,7 @@ bool ISBDCallback()
   else {
     digitalWrite(LED, LOW);
   }
+#endif
 
   // Check the battery voltage now we are drawing current for the 9603
   // If voltage is low, stop Iridium send
@@ -259,7 +265,7 @@ void setup()
 
   // Initialise the globals
   iterationCounter = 0; // Make sure iterationCounter is set to zero (indicating a reset)
-  loop_step = init; // Make sure loop_step is set to init
+  loop_step = loop_init; // Make sure loop_step is set to loop_init
   seconds_count = 0; // Make sure seconds_count is reset
   interval_alarm = false; // Make sure the interval alarm flag is clear
   dynamicModelSet = false; // Make sure the dynamicModelSet flag is clear
@@ -276,7 +282,7 @@ void loop()
 
     // ************************************************************************************************
     // Initialise things
-    case init:
+    case loop_init:
     
       // Start the console serial port and send the welcome message
       Serial.begin(115200);
@@ -303,7 +309,7 @@ void loop()
         loop_step = start_GPS; // Move on, start the GNSS
       }
       
-      break; // End of case init
+      break; // End of case loop_init
 
     // ************************************************************************************************
     // Power up the GNSS (ZOE-M8Q)
@@ -409,6 +415,7 @@ void loop()
           break; // Exit the for loop now
         }
 
+#ifndef noLED
         // Flash the LED at 1Hz
         if ((millis() / 1000) % 2 == 1) {
           digitalWrite(LED, HIGH);
@@ -416,6 +423,7 @@ void loop()
         else {
           digitalWrite(LED, LOW);
         }
+#endif
 
         delay(1000); // Don't pound the I2C bus too hard!
 
@@ -494,18 +502,27 @@ void loop()
 
       Serial.println("Getting the pressure and temperature readings...");
 
-      if (barometricSensor.begin(Wire1) == false)
+      bool barometricSensorOK;
+
+      barometricSensorOK = barometricSensor.begin(Wire1); // Begin the PHT sensor
+      if (barometricSensorOK == false)
       {
-        // If we were unable to connect to the MS8607:
-        
-        // Send a warning message
-        Serial.println(F("***!!! MS8607 sensor not detected at default I2C address !!!***"));
-        
-        // Set the pressure and temperature to default values
+        // Send a warning message if we were unable to connect to the MS8607:
+        Serial.println(F("*! Could not detect the MS8607 sensor. Trying again... !*"));
+        barometricSensorOK = barometricSensor.begin(Wire1); // Re-begin the PHT sensor
+        if (barometricSensorOK == false)
+        {
+          // Send a warning message if we were unable to connect to the MS8607:
+          Serial.println(F("***!!! MS8607 sensor not detected at default I2C address !!!***"));
+        }
+      }
+
+      if (barometricSensorOK == false)
+      {
+         // Set the pressure and temperature to default values
         pascals = 0.0;
         tempC = 0.0;
       }
-
       else
       {
         tempC = barometricSensor.getTemperature();
@@ -550,6 +567,7 @@ void loop()
           break;
         }
 
+#ifndef noLED
         // Flash the LED at 2Hz
         if ((millis() / 500) % 2 == 1) {
           digitalWrite(LED, HIGH);
@@ -557,6 +575,7 @@ void loop()
         else {
           digitalWrite(LED, LOW);
         }
+#endif
 
         delay(100); // Let's not pound the bus voltage monitor too hard!
 
@@ -606,6 +625,7 @@ void loop()
           break;
         }
 
+#ifndef noLED
         // Flash the LED at 2Hz
         if ((millis() / 500) % 2 == 1) {
           digitalWrite(LED, HIGH);
@@ -613,6 +633,7 @@ void loop()
         else {
           digitalWrite(LED, LOW);
         }
+#endif
 
         delay(100); // Let's not pound the bus voltage monitor too hard!
 
@@ -707,19 +728,27 @@ void loop()
         Serial.print("Transmitting message '");
         Serial.print(outBuffer);
         Serial.println("'");
+
+#ifndef noTX
         err = modem.sendSBDText(outBuffer); // This could take many seconds to complete and will call ISBDCallback() periodically
+#else
+        err = ISBD_SUCCESS;
+#endif
 
         // Check if the message sent OK
         if (err != ISBD_SUCCESS)
         {
           Serial.print(F("Transmission failed with error code "));
           Serial.println(err);
+#ifndef noLED
           // Turn on LED to indicate failed send
           digitalWrite(LED, HIGH);
+#endif
         }
         else
         {
           Serial.println(F(">>> Message sent! <<<"));
+#ifndef noLED
           // Flash LED rapidly to indicate successful send
           for (int i = 0; i < 10; i++)
           {
@@ -728,6 +757,7 @@ void loop()
             digitalWrite(LED, LOW);
             delay(100);
           }
+#endif
         }
 
         // Clear the Mobile Originated message buffer
@@ -793,17 +823,25 @@ void loop()
       delay(1000); // Wait for serial port to clear
       Serial.end(); // Close the serial console
 
-      // Code taken (mostly) from the LowPower_WithWake example
+      // Code taken (mostly) from the LowPower_WithWake example and the and OpenLog_Artemis PowerDownRTC example
       
-      //Turn off ADC
-      power_adc_disable();
+      //Force the peripherals off
+      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_IOM0);
+      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_IOM1);
+      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_IOM2);
+      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_IOM3);
+      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_IOM4);
+      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_IOM5);
+      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_ADC);
+      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_UART0);
+      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_UART1);
   
       // Set the clock frequency.
-      am_hal_clkgen_control(AM_HAL_CLKGEN_CONTROL_SYSCLK_MAX, 0);
+      //am_hal_clkgen_control(AM_HAL_CLKGEN_CONTROL_SYSCLK_MAX, 0);
   
       // Set the default cache configuration
-      am_hal_cachectrl_config(&am_hal_cachectrl_defaults);
-      am_hal_cachectrl_enable();
+      //am_hal_cachectrl_config(&am_hal_cachectrl_defaults);
+      //am_hal_cachectrl_enable();
   
       // Note: because we called setupRTC earlier,
       // we do NOT want to call am_bsp_low_power_init() here.
@@ -814,7 +852,7 @@ void loop()
 
       // Initialize for low power in the power control block
       // "Initialize BLE Buck Trims for Lowest Power"
-      am_hal_pwrctrl_low_power_init();
+      //am_hal_pwrctrl_low_power_init();
   
       // Disabling the debugger GPIOs saves about 1.2 uA total:
       am_hal_gpio_pinconfig(20 /* SWDCLK */, g_AM_HAL_GPIO_DISABLE);
@@ -845,7 +883,8 @@ void loop()
       // Nathan seems to have gone a little off script here and isn't using
       // am_hal_pwrctrl_memory_deepsleep_powerdown or 
       // am_hal_pwrctrl_memory_deepsleep_retain. I wonder why?
-      PWRCTRL->MEMPWDINSLEEP_b.SRAMPWDSLP = PWRCTRL_MEMPWDINSLEEP_SRAMPWDSLP_ALLBUTLOWER32K;
+      // ** Use ALLBUTLOWER64K. ALLBUTLOWER32K is not enough! **
+      PWRCTRL->MEMPWDINSLEEP_b.SRAMPWDSLP = PWRCTRL_MEMPWDINSLEEP_SRAMPWDSLP_ALLBUTLOWER64K;
   
 
       // This while loop keeps the processor asleep until INTERVAL seconds have passed
@@ -867,11 +906,11 @@ void loop()
     case wake:
 
       // Set the clock frequency. (redundant?)
-      am_hal_clkgen_control(AM_HAL_CLKGEN_CONTROL_SYSCLK_MAX, 0);
+      //am_hal_clkgen_control(AM_HAL_CLKGEN_CONTROL_SYSCLK_MAX, 0);
   
       // Set the default cache configuration. (redundant?)
-      am_hal_cachectrl_config(&am_hal_cachectrl_defaults);
-      am_hal_cachectrl_enable();
+      //am_hal_cachectrl_config(&am_hal_cachectrl_defaults);
+      //am_hal_cachectrl_enable();
   
       // Note: because we called setupRTC earlier,
       // we do NOT want to call am_bsp_low_power_init() here.
@@ -882,7 +921,7 @@ void loop()
 
       // Initialize for low power in the power control block. (redundant?)
       // "Initialize BLE Buck Trims for Lowest Power"
-      am_hal_pwrctrl_low_power_init();
+      //am_hal_pwrctrl_low_power_init();
   
       // Power up SRAM
       PWRCTRL->MEMPWDINSLEEP_b.SRAMPWDSLP = PWRCTRL_MEMPWDINSLEEP_SRAMPWDSLP_NONE;
@@ -905,12 +944,20 @@ void loop()
       am_hal_gpio_pinconfig(20 /* SWDCLK */, g_AM_BSP_GPIO_SWDCK);
       am_hal_gpio_pinconfig(21 /* SWDIO */, g_AM_BSP_GPIO_SWDIO);
 
-      //Turn on ADC
-      ap3_adc_setup();
+      //Turn the peripherals back on
+      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_IOM0);
+      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_IOM1);
+      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_IOM2);
+      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_IOM3);
+      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_IOM4);
+      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_IOM5);
+      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_ADC);
+      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_UART0);
+      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_UART1);
   
       // Do it all again!
-      loop_step = init;
-  
+      loop_step = loop_init;
+
       break; // End of case wake
 
   } // End of switch (loop_step)

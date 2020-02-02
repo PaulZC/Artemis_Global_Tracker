@@ -24,6 +24,7 @@
   By: Nathan Seidle
   SparkFun Electronics
   (Date: October 17th, 2019)
+  Also the OpenLog_Artemis PowerDownRTC example
   
   License: This code is public domain. Based on deepsleep_wake.c from Ambiq SDK v2.3.2.
 
@@ -50,7 +51,7 @@
 // If you do, bad things might happen to the AS179 RF switch!
 
 // Define how often to wake up in SECONDS
-unsigned long INTERVAL = 10;
+unsigned long INTERVAL = 15;
 
 // Use this to keep track of the second alarms from the RTC
 volatile unsigned long seconds_count = 0;
@@ -59,11 +60,11 @@ volatile unsigned long seconds_count = 0;
 volatile bool interval_alarm = false;
 
 // Loop Steps - these are used by the switch/case in the main loop
-#define init          0
+#define loop_init     0
 #define send_time     1
 #define zzz           2
 #define wake          3
-int loop_step = init; // Make sure loop_step is set to init
+int loop_step = loop_init; // Make sure loop_step is set to loop_init
 
 // Set up the RTC and generate interrupts every second
 void setupRTC()
@@ -139,7 +140,7 @@ void setup()
   analogReadResolution(14); //Set resolution to 14 bit
 
   // Initialise the globals
-  loop_step = init; // Make sure loop_step is set to init
+  loop_step = loop_init; // Make sure loop_step is set to loop_init
   seconds_count = 0; // Make sure seconds_count is reset
   interval_alarm = false; // Make sure the interval alarm is clear
 
@@ -155,7 +156,7 @@ void loop()
 
     // ************************************************************************************************
     // Print the welcome message
-    case init:
+    case loop_init:
 
       digitalWrite(LED, HIGH); // Enable the LED
     
@@ -173,7 +174,7 @@ void loop()
 
       loop_step = send_time; // Move on, send the time
       
-      break; // End of case init
+      break; // End of case loop_init
 
     // ************************************************************************************************
     // Print the time (millis and RTC)
@@ -211,7 +212,7 @@ void loop()
 
       loop_step = zzz; // Move on, go to sleep
       
-      break; // End of case init
+      break; // End of case send_time
 
     // ************************************************************************************************
     // Go to sleep
@@ -219,17 +220,25 @@ void loop()
     
       Serial.end(); // Close the serial console
 
-      // Code taken (mostly) from the LowPower_WithWake example
+      // Code taken (mostly) from the LowPower_WithWake example and the and OpenLog_Artemis PowerDownRTC example
       
-      //Turn off ADC
-      power_adc_disable();
+      //Force the peripherals off
+      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_IOM0);
+      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_IOM1);
+      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_IOM2);
+      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_IOM3);
+      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_IOM4);
+      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_IOM5);
+      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_ADC);
+      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_UART0);
+      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_UART1);
   
       // Set the clock frequency.
-      am_hal_clkgen_control(AM_HAL_CLKGEN_CONTROL_SYSCLK_MAX, 0);
+      //am_hal_clkgen_control(AM_HAL_CLKGEN_CONTROL_SYSCLK_MAX, 0);
   
       // Set the default cache configuration
-      am_hal_cachectrl_config(&am_hal_cachectrl_defaults);
-      am_hal_cachectrl_enable();
+      //am_hal_cachectrl_config(&am_hal_cachectrl_defaults);
+      //am_hal_cachectrl_enable();
   
       // Note: because we called setupRTC earlier,
       // we do NOT want to call am_bsp_low_power_init() here.
@@ -240,7 +249,7 @@ void loop()
 
       // Initialize for low power in the power control block
       // "Initialize BLE Buck Trims for Lowest Power"
-      am_hal_pwrctrl_low_power_init();
+      //am_hal_pwrctrl_low_power_init();
   
       // Disabling the debugger GPIOs saves about 1.2 uA total:
       am_hal_gpio_pinconfig(20 /* SWDCLK */, g_AM_HAL_GPIO_DISABLE);
@@ -271,7 +280,8 @@ void loop()
       // Nathan seems to have gone a little off script here and isn't using
       // am_hal_pwrctrl_memory_deepsleep_powerdown or 
       // am_hal_pwrctrl_memory_deepsleep_retain. I wonder why?
-      PWRCTRL->MEMPWDINSLEEP_b.SRAMPWDSLP = PWRCTRL_MEMPWDINSLEEP_SRAMPWDSLP_ALLBUTLOWER32K;
+      // ** Use ALLBUTLOWER64K. ALLBUTLOWER32K is not enough! **
+      PWRCTRL->MEMPWDINSLEEP_b.SRAMPWDSLP = PWRCTRL_MEMPWDINSLEEP_SRAMPWDSLP_ALLBUTLOWER64K;
 
   
       // This while loop keeps the processor asleep until INTERVAL seconds have passed
@@ -293,11 +303,11 @@ void loop()
     case wake:
 
       // Set the clock frequency. (redundant?)
-      am_hal_clkgen_control(AM_HAL_CLKGEN_CONTROL_SYSCLK_MAX, 0);
+      //am_hal_clkgen_control(AM_HAL_CLKGEN_CONTROL_SYSCLK_MAX, 0);
   
       // Set the default cache configuration. (redundant?)
-      am_hal_cachectrl_config(&am_hal_cachectrl_defaults);
-      am_hal_cachectrl_enable();
+      //am_hal_cachectrl_config(&am_hal_cachectrl_defaults);
+      //am_hal_cachectrl_enable();
   
       // Note: because we called setupRTC earlier,
       // we do NOT want to call am_bsp_low_power_init() here.
@@ -307,7 +317,7 @@ void loop()
       // (BSP = Board Support Package)
 
       // Initialize for low power in the power control block.  (redundant?)
-      am_hal_pwrctrl_low_power_init();
+      //am_hal_pwrctrl_low_power_init();
   
       // Power up SRAM
       PWRCTRL->MEMPWDINSLEEP_b.SRAMPWDSLP = PWRCTRL_MEMPWDINSLEEP_SRAMPWDSLP_NONE;
@@ -330,8 +340,16 @@ void loop()
       am_hal_gpio_pinconfig(20 /* SWDCLK */, g_AM_BSP_GPIO_SWDCK);
       am_hal_gpio_pinconfig(21 /* SWDIO */, g_AM_BSP_GPIO_SWDIO);
 
-      //Turn on ADC
-      ap3_adc_setup();
+      //Turn the peripherals back on
+      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_IOM0);
+      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_IOM1);
+      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_IOM2);
+      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_IOM3);
+      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_IOM4);
+      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_IOM5);
+      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_ADC);
+      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_UART0);
+      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_UART1);
 
       // Do it all again!
       loop_step = send_time;
