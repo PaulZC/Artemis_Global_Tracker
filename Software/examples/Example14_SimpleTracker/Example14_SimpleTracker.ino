@@ -316,9 +316,7 @@ void loop()
     case start_GPS:
 
       Serial.println("Powering up the GNSS...");
-
       Wire1.begin(); // Set up the I2C pins
-
       digitalWrite(gnssEN, LOW); // Enable GNSS power (HIGH = disable; LOW = enable)
 
       delay(2000); // Give it time to power up
@@ -425,7 +423,7 @@ void loop()
         }
 #endif
 
-        delay(1000); // Don't pound the I2C bus too hard!
+        delay(100); // Don't pound the I2C bus too hard!
 
       }
 
@@ -825,23 +823,15 @@ void loop()
 
       // Code taken (mostly) from the LowPower_WithWake example and the and OpenLog_Artemis PowerDownRTC example
       
-      //Force the peripherals off
-      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_IOM0);
-      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_IOM1);
-      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_IOM2);
-      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_IOM3);
-      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_IOM4);
-      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_IOM5);
-      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_ADC);
-      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_UART0);
-      am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_UART1);
-  
+      // Turn off ADC
+      power_adc_disable();
+        
       // Set the clock frequency.
-      //am_hal_clkgen_control(AM_HAL_CLKGEN_CONTROL_SYSCLK_MAX, 0);
+      am_hal_clkgen_control(AM_HAL_CLKGEN_CONTROL_SYSCLK_MAX, 0);
   
       // Set the default cache configuration
-      //am_hal_cachectrl_config(&am_hal_cachectrl_defaults);
-      //am_hal_cachectrl_enable();
+      am_hal_cachectrl_config(&am_hal_cachectrl_defaults);
+      am_hal_cachectrl_enable();
   
       // Note: because we called setupRTC earlier,
       // we do NOT want to call am_bsp_low_power_init() here.
@@ -852,7 +842,7 @@ void loop()
 
       // Initialize for low power in the power control block
       // "Initialize BLE Buck Trims for Lowest Power"
-      //am_hal_pwrctrl_low_power_init();
+      am_hal_pwrctrl_low_power_init();
   
       // Disabling the debugger GPIOs saves about 1.2 uA total:
       am_hal_gpio_pinconfig(20 /* SWDCLK */, g_AM_HAL_GPIO_DISABLE);
@@ -883,9 +873,8 @@ void loop()
       // Nathan seems to have gone a little off script here and isn't using
       // am_hal_pwrctrl_memory_deepsleep_powerdown or 
       // am_hal_pwrctrl_memory_deepsleep_retain. I wonder why?
-      // ** Use ALLBUTLOWER64K. ALLBUTLOWER32K is not enough! **
-      PWRCTRL->MEMPWDINSLEEP_b.SRAMPWDSLP = PWRCTRL_MEMPWDINSLEEP_SRAMPWDSLP_ALLBUTLOWER64K;
-  
+      PWRCTRL->MEMPWDINSLEEP_b.SRAMPWDSLP = PWRCTRL_MEMPWDINSLEEP_SRAMPWDSLP_ALLBUTLOWER32K;
+
 
       // This while loop keeps the processor asleep until INTERVAL seconds have passed
       while (!interval_alarm) // Wake up every INTERVAL seconds
@@ -906,11 +895,11 @@ void loop()
     case wake:
 
       // Set the clock frequency. (redundant?)
-      //am_hal_clkgen_control(AM_HAL_CLKGEN_CONTROL_SYSCLK_MAX, 0);
+      am_hal_clkgen_control(AM_HAL_CLKGEN_CONTROL_SYSCLK_MAX, 0);
   
       // Set the default cache configuration. (redundant?)
-      //am_hal_cachectrl_config(&am_hal_cachectrl_defaults);
-      //am_hal_cachectrl_enable();
+      am_hal_cachectrl_config(&am_hal_cachectrl_defaults);
+      am_hal_cachectrl_enable();
   
       // Note: because we called setupRTC earlier,
       // we do NOT want to call am_bsp_low_power_init() here.
@@ -921,7 +910,7 @@ void loop()
 
       // Initialize for low power in the power control block. (redundant?)
       // "Initialize BLE Buck Trims for Lowest Power"
-      //am_hal_pwrctrl_low_power_init();
+      am_hal_pwrctrl_low_power_init();
   
       // Power up SRAM
       PWRCTRL->MEMPWDINSLEEP_b.SRAMPWDSLP = PWRCTRL_MEMPWDINSLEEP_SRAMPWDSLP_NONE;
@@ -943,18 +932,10 @@ void loop()
       // Reenable the debugger GPIOs
       am_hal_gpio_pinconfig(20 /* SWDCLK */, g_AM_BSP_GPIO_SWDCK);
       am_hal_gpio_pinconfig(21 /* SWDIO */, g_AM_BSP_GPIO_SWDIO);
-
-      //Turn the peripherals back on
-      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_IOM0);
-      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_IOM1);
-      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_IOM2);
-      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_IOM3);
-      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_IOM4);
-      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_IOM5);
-      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_ADC);
-      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_UART0);
-      am_hal_pwrctrl_periph_enable(AM_HAL_PWRCTRL_PERIPH_UART1);
   
+      // Turn on ADC
+      ap3_adc_setup();
+      
       // Do it all again!
       loop_step = loop_init;
 
