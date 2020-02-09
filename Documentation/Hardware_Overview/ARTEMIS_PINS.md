@@ -13,10 +13,10 @@
 | 9 | GPIO48 | TX0 | Bootload TX pin for serial bootloading |
 | 10 | GPIO21 | SWDIO | JTAG single wire I/O |
 | 11 | GPIO8 | D8 | ZOE-M8Q SCL |
-| 12 | GPIO5 | ~D5 | SCK |
-| 13 | GPIO7 | ~D7 | MOSI |
-| 14 | GPIO35 | ~AD35 | SPI CS(1) |
-| 15 | GPIO4 | ~D4 | SPI CS(2) or external WAKE interrupt |
+| 12 | GPIO5 | ~D5 | SPI SCK or GPIO |
+| 13 | GPIO7 | ~D7 | SPI MOSI or GPIO |
+| 14 | GPIO35 | ~AD35 | SPI CS(1) or GPIO |
+| 15 | GPIO4 | ~D4 | SPI CS(2) or GPIO |
 | 16 | GPIO24 | ~D24 | Iridium 9603N TX(In) |
 | 17 | GPIO22 | ~D22 | AD4210 ON |
 | 18 | GPIO23 | ~D23 | N/C |
@@ -24,7 +24,7 @@
 | 20 | GPIO14 | D14 | N/C |
 | 21 | GPIO28 | ~D28 | LTC3225 PGOOD |
 | 22 | GND | | Power |
-| 23 | GPIO6 | ~D6 | MISO |
+| 23 | GPIO6 | ~D6 | SPI MISO or GPIO |
 | 24 | GPIO32 | ~AD32 | N/C |
 | 25 | GPIO25 | ~D25 | Iridium 9603N RX(Out) |
 | 26 | GPIO12 | ~AD12 | N/C |
@@ -41,7 +41,7 @@
 | 37 | VDD | | Power |
 | 38 | GND | | Power |
 | 39 | GND | | Power |
-| 40 | GPIO19 | ~D19 | LED |
+| 40 | GPIO19 | ~D19 | White LED |
 | 41 | GPIO18 | ~D18 | Iridium 9603N Network Available |
 | 42 | GPIO16 | AD16 | N/C |
 | 43 | GPIO17 | D17 | Iridium 9603N ON/OFF |

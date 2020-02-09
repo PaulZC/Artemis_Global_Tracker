@@ -16,15 +16,15 @@ An open source satellite tracker utilising the [SparkFun Artemis module](https:/
 - **/Documentation** - Full documentation for both hardware and software
 - **/Hardware** - BOM, schematic and Eagle PCB design files
 - **/Software** - Arduino code
-- **/Tools** - Tools to help configure the tracker remotely via Iridium messaging **(Coming soon!)**
+- **/Tools** - Tools to help configure the ComplexTracker remotely via Iridium messaging **(Coming soon!)**
 - **LICENSE.md** contains the licence information
 
 ## Documentation
 
-- [Message Format](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/Documentation/Message_Format/README.md): a definition of the message format and fields (both binary and text)
-
 - [Hardware overview](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/Documentation/Hardware_Overview/README.md): an overview of the hardware
 - The Artemis pin allocation is summarised [here](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/Documentation/Hardware_Overview/ARTEMIS_PINS.md).
+
+- [Message Format](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/Documentation/Message_Format/README.md): a definition of the message format and fields (both binary and text) for the ComplexTracker
 
 Enjoy!
 
