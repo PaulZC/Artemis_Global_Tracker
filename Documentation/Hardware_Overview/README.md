@@ -30,7 +30,7 @@ The tracker can be powered from:
 - a LiPo battery (recharged via the USB-C interface)
 - an external solar panel or battery pack (6V maximum)
 
-3 x Energizer® Ultimate Lithium AA or AAA cells are recommended as the will work down to -40C
+3 x Energizer® Ultimate Lithium AA or AAA cells are recommended as they will work down to -40C
 
 Low-forward-voltage diodes isolate the power sources from each other. You can have the USB, LiPo and external cells connected simultaneously, it will do no harm.
 The tracker will preferentially draw power from USB if it is connected.
@@ -60,7 +60,7 @@ depleting the batteries during sleep.
 
 ![Reg](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/Reg.JPG)
 
-If you want to completely disable the regulator to minimise the current draw, you can do so by opening the 3V3_EN split pad. The EN pin can then be used to enable/disable the regulator.
+If you want to completely disable the regulator to minimise the current draw, you can do so by opening the 3.3V_EN split pad. The EN pin can then be used to enable/disable the regulator.
 Pull EN low to disable the regulator, pull it up to VIN to enable it. EN could also be driven by a logic signal from an external timer circuit.
 
 ![Reg_EN](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/Reg_EN.JPG)

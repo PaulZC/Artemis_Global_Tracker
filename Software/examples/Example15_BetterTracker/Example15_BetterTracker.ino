@@ -1,19 +1,42 @@
 /*
   Artemis Iridium Tracker Examples
-  Example: Simple Tracker
+  Example: A Better Tracker
   
   Written by Paul Clark (PaulZC)
   9th February 2020
 
-  This example configures the Artemis Iridium Tracker as a simple
-  GNSS + Iridium tracker. A 3D fix is taken from the ZOE-M8Q.
-  PHT readings are taken from the MS8607. The bus voltage
-  is measured. The data is transmitted every INTERVAL minutes
-  via Iridium SBD. The Artemis goes into low power mode between transmissions.
+  This example builds on the SimpleTracker example. The functionality is basically the same, except:
+  * The transmit interval is stored in 'EEPROM' (flash memory) and can be updated via Iridium SBD message
+  * The code supports message forwarding to another tracker/RockBLOCK via the Rock7 RockBLOCK Gateway
+
+  You can change the message interval by changing the value of DEF_TXINT below. Or send a text
+  message to the tracker from Rock7 Operations containing the text [INTERVAL=nnn]
+  where nnn is the message interval in _minutes_.
+
+  If you bought your 9603N from Rock7, you can have your messages delivered to another RockBLOCK automatically:
+  http://www.rock7mobile.com/downloads/RockBLOCK-9603-Developers-Guide.pdf (see last page)
+  Change DEF_DEST (below) to the serial number of the destination RockBLOCK.
+  Change DEF_SOURCE (below) to the serial number of the RockBLOCK on the tracker.
+  Both source and destination can be updated via a Mobile-Terminated SBD text message:
+  Send a text message to the tracker containing the text [RBDESTINATION=nnnnn]
+  where nnnnn is the RockBLOCK serial number of the destination RockBLOCK.
+  Set RBDESTINATION back to zero to disable message forwarding: [RBDESTINATION=0]
+  The destination tracker/RockBLOCK won't know who sent the message unless you also set RBSOURCE:
+  Send a text message to the tracker containing the text [RBSOURCE=nnnnn]
+  where nnnnn is the RockBLOCK serial number of the 9603N on the tracker.
+  Note: the RockBLOCK gateway does not remove the destination RockBLOCK address from the SBD message
+  so, in this code, it is included as a full CSV field.
+  You can concatenate the configuration messages if required: [INTERVAL=5][RBDESTINATION=12345][RBSOURCE=54321]
 
   The message is transmitted in text and has the format:
   
-  DateTime,Latitude,Longitude,Altitude,Speed,Course,PDOP,Satellites,Pressure,Temperature,Battery,Count
+    DateTime,Latitude,Longitude,Altitude,Speed,Course,PDOP,Satellites,Pressure,Temperature,Battery,Count
+
+  If message forwarding is enabled, the format will be (using the above example):
+
+    RB0012345,DateTime,Latitude,Longitude,Altitude,Speed,Course,PDOP,Satellites,Pressure,Temperature,Battery,Count,RB0054321
+
+  If message forwarding is enabled, you will be charged _twice_ for each message. Once to send it and once to receive it.
   
   ** Set the Board to "SparkFun Artemis Module" **
   
@@ -23,6 +46,7 @@
   
   You will also need to install the Qwiic_PHT_MS8607_Library:
   https://github.com/PaulZC/Qwiic_PHT_MS8607_Library
+  (Available through the Arduino Library Manager: search for MS8607)
   
   Basic information on how to install an Arduino library is available here:
   https://learn.sparkfun.com/tutorials/installing-an-arduino-library
@@ -31,14 +55,43 @@
   By: Nathan Seidle
   SparkFun Electronics
   (Date: October 17th, 2019)
-  Also the OpenLog_Artemis PowerDownRTC example
-  
   License: This code is public domain. Based on deepsleep_wake.c from Ambiq SDK v2.2.0.
+  Also the OpenLog_Artemis PowerDownRTC example
+  Also the EEPROM GetPut example
+  By: Nathan Seidle
+  SparkFun Electronics
+  Date: June 24th, 2019
 
-  SparkFun labored with love to create this code. Feel like supporting open source hardware?
+  PaulZC and SparkFun labored with love to create this code. Feel like supporting open source hardware?
   Buy a board from SparkFun!
 
 */
+
+// Define how often messages are sent in MINUTES (max 1440)
+// This is the _quickest_ messages will be sent. Could be much slower than this depending on:
+// capacitor charge time; gnss fix time; Iridium timeout; etc.
+// The default value will be overwritten with the one stored in Flash EEPROM - if one exists
+// The value can be changed via a Mobile Terminated message: [INTERVAL=nnn]
+#define DEF_TXINT 5 // DEFault TX INTerval (Minutes)
+
+// Both the source and destination RockBLOCK serial numbers are stored in flash.
+// These can be changed via MT message too: [RBSOURCE=nnnnn] and [RBDESTINATION=nnnnn]
+// Set RBDESTINATION to zero to disable message forwarding
+// The default values are:
+#define DEF_SOURCE    0 // DEFault SOURCE RockBLOCK serial number (the serial number of the 9603N on this tracker)
+#define DEF_DEST      0 // DEFault DESTination RockBLOCK (the serial number of the desination RockBLOCK)
+
+// Define the struct for the tracker settings (stored in RAM and copied to or loaded from EEPROM)
+typedef struct 
+{
+  byte STX;             // 0x02 - when written to EEPROM, helps indicate if EEPROM contains valid data
+  uint32_t SOURCE;       // The tracker's RockBLOCK serial number
+  uint32_t DEST;         // The destination RockBLOCK serial number for message forwarding
+  uint16_t TXINT;        // The message transmit interval in minutes
+  byte ETX;             // 0x03 - when written to EEPROM, helps indicate if EEPROM contains valid data
+} trackerSettings;
+
+trackerSettings myTrackerSettings; // Define storage for the tracker settings
 
 // Artemis Tracker pin definitions
 #define spiCS1              4  // D4 can be used as an SPI chip select or as a general purpose IO pin
@@ -60,6 +113,8 @@
 //#define noLED // Uncomment this line to disable the White LED
 //#define noTX // Uncomment this line to disable the Iridium SBD transmit if you want to test the code without using message credits
 
+#include <EEPROM.h> // Needed for EEPROM storage on the Artemis
+
 // Declares a Uart object called Serial using instance 1 of Apollo3 UART peripherals with RX on variant pin 25 and TX on pin 24
 // (note, in this variant the pins map directly to pad, so pin === pad when talking about the pure Artemis module)
 Uart iridiumSerial(1, 25, 24);
@@ -79,11 +134,6 @@ MS8607 barometricSensor; //Create an instance of the MS8607 object
 
 // Include dtostrf
 #include <avr/dtostrf.h>
-
-// Define how often messages are sent in SECONDS
-// This is the _quickest_ messages will be sent. Could be much slower than this depending on:
-// capacitor charge time; gnss fix time; Iridium timeout; etc.
-unsigned long INTERVAL = 15 * 60; // 15 minutes
 
 // Use this to keep a count of the second alarms from the rtc
 volatile unsigned long seconds_count = 0;
@@ -178,7 +228,7 @@ void setupRTC()
 
 // RTC alarm Interrupt Service Routine
 // Clear the interrupt flag and increment seconds_count
-// If INTERVAL has been reached, set the interval_alarm flag and reset seconds_count
+// If TXINT has been reached, set the interval_alarm flag and reset seconds_count
 // (Always keep ISRs as short as possible, don't do anything clever in them,
 //  and always use volatile variables if the main loop needs to access them too.)
 extern "C" void am_rtc_isr(void)
@@ -190,7 +240,7 @@ extern "C" void am_rtc_isr(void)
   seconds_count = seconds_count + 1;
 
   // Check if interval_alarm should be set
-  if (seconds_count >= INTERVAL)
+  if (seconds_count >= (myTrackerSettings.TXINT * 60))
   {
     interval_alarm = true;
     seconds_count = 0;
@@ -206,8 +256,8 @@ extern "C" void am_rtc_isr(void)
 void get_vbat()
 {
   digitalWrite(busVoltageMonEN, HIGH); // Enable the bus voltage monitor
-  //analogReadResolution(14); //Set resolution to 14 bit
-  delay(1); // Let the voltage settle
+  analogReadResolution(14); //Set resolution to 14 bit
+  delay(10); // Let the voltage settle
   vbat = ((float)analogRead(busVoltagePin)) * 3.0 * 2.0 / 16384.0;
   digitalWrite(busVoltageMonEN, LOW); // Disable the bus voltage monitor
 }
@@ -270,9 +320,23 @@ void setup()
   interval_alarm = false; // Make sure the interval alarm flag is clear
   dynamicModelSet = false; // Make sure the dynamicModelSet flag is clear
 
-  // Set up the rtc for 1 second interrupts
-  setupRTC();
+  // Initialise the tracker settings in RAM - before we enable the RTC
+  initTrackerSettings(&myTrackerSettings);
   
+  //putTrackerSettings(&myTrackerSettings); // Uncomment this line to reset the EEPROM with the default settings
+
+  // Check if the EEPROM data is valid (i.e. has already been initialised)
+  if (checkEEPROM(&myTrackerSettings))
+  {
+    getTrackerSettings(&myTrackerSettings);
+  }
+  else
+  {
+    putTrackerSettings(&myTrackerSettings);
+  }
+
+  // Set up the rtc for 1 second interrupts now that TXINT has been initialized
+  setupRTC();
 }
 
 void loop()
@@ -290,12 +354,20 @@ void loop()
       Serial.println();
       Serial.println();
       Serial.println(F("Artemis Iridium Tracker"));
-      Serial.println(F("Example: Simple Tracker"));
+      Serial.println(F("Example: A Better Tracker"));
       Serial.println();
 
-      Serial.print(F("Using an INTERVAL of "));
-      Serial.print(INTERVAL);
-      Serial.println(F(" seconds"));
+      // Print the TXINT, DEST and SOURCE
+      Serial.print(F("Using a transmit interval of "));
+      Serial.print(myTrackerSettings.TXINT);
+      Serial.println(F(" minutes"));
+      if (myTrackerSettings.DEST > 0)
+      {
+        Serial.print(F("Using a DEST of RB"));
+        Serial.print(myTrackerSettings.DEST);
+        Serial.print(F(" and a SOURCE of RB"));
+        Serial.println(myTrackerSettings.SOURCE);
+      }
 
       // Setup the IridiumSBD
       modem.setPowerProfile(IridiumSBD::USB_POWER_PROFILE); // Change power profile to "low current"
@@ -723,18 +795,28 @@ void loop()
         dtostrf(tempC,3,1,temperature_str);
 
         // Assemble the message using sprintf
-        sprintf(outBuffer, "%d%02d%02d%02d%02d%02d,%s,%s,%s,%s,%d,%d,%d,%s,%s,%s,%d", year, month, day, hour, minute, second, 
-          lat_str, lon_str, alt_str, speed_str, course, pdop, satellites, pressure_str, temperature_str, vbat_str, iterationCounter);
+        if (myTrackerSettings.DEST > 0) {
+          sprintf(outBuffer, "RB%07d,%d%02d%02d%02d%02d%02d,%s,%s,%s,%s,%d,%d,%d,%s,%s,%s,%d,RB%07d", myTrackerSettings.DEST, year, month, day, hour, minute, second, 
+            lat_str, lon_str, alt_str, speed_str, course, pdop, satellites, pressure_str, temperature_str, vbat_str, iterationCounter, myTrackerSettings.SOURCE);
+        }
+        else {
+          sprintf(outBuffer, "%d%02d%02d%02d%02d%02d,%s,%s,%s,%s,%d,%d,%d,%s,%s,%s,%d", year, month, day, hour, minute, second, 
+            lat_str, lon_str, alt_str, speed_str, course, pdop, satellites, pressure_str, temperature_str, vbat_str, iterationCounter);
+        }
 
         // Send the message
         Serial.print("Transmitting message '");
         Serial.print(outBuffer);
         Serial.println("'");
 
+        uint8_t mt_buffer[100]; // Buffer to store Mobile Terminated SBD message
+        size_t mtBufferSize = sizeof(mt_buffer); // Size of MT buffer
+
 #ifndef noTX
-        err = modem.sendSBDText(outBuffer); // This could take many seconds to complete and will call ISBDCallback() periodically
+        err = modem.sendReceiveSBDText(outBuffer, mt_buffer, mtBufferSize); // This could take many seconds to complete and will call ISBDCallback() periodically
 #else
-        err = ISBD_SUCCESS;
+        err = ISBD_SUCCESS; // Fake success
+        mtBufferSize = 0;
 #endif
 
         // Check if the message sent OK
@@ -760,6 +842,77 @@ void loop()
             delay(100);
           }
 #endif
+          if (mtBufferSize > 0) { // Was an MT message received?
+            // Check message content
+            mt_buffer[mtBufferSize] = 0; // Make sure message is NULL terminated
+            String mt_str = String((char *)mt_buffer); // Convert message into a String
+            Serial.print("Received a MT message: "); Serial.println(mt_str);
+
+            // Check if the message contains a correctly formatted interval: "[INTERVAL=nnn]"
+            int new_interval = 0;
+            int starts_at = -1;
+            int ends_at = -1;
+            starts_at = mt_str.indexOf("[INTERVAL="); // See is message contains "[INTERVAL="
+            if (starts_at >= 0) { // If it does:
+              ends_at = mt_str.indexOf("]", starts_at); // Find the following "]"
+              if (ends_at > starts_at) { // If the message contains both "[INTERVAL=" and "]"
+                String new_interval_str = mt_str.substring((starts_at + 10),ends_at); // Extract the value after the "="
+                Serial.print("Extracted an INTERVAL of: "); Serial.println(new_interval_str);
+                new_interval = (int)new_interval_str.toInt(); // Convert it to int
+              }
+            }
+            if ((new_interval > 0) and (new_interval <= 1440)) { // Check new interval is valid
+              Serial.print("New INTERVAL received. Setting TXINT to ");
+              Serial.print(new_interval);
+              Serial.println(" minutes.");
+              myTrackerSettings.TXINT = new_interval; // Update the transmit interval
+              updateTrackerSettings(&myTrackerSettings); // Update flash memory
+            }
+
+            // Check if the message contains a correctly formatted RBSOURCE: "[RBSOURCE=nnnnn]"
+            int new_source = -1;
+            starts_at = -1;
+            ends_at = -1;
+            starts_at = mt_str.indexOf("[RBSOURCE="); // See is message contains "[RBSOURCE="
+            if (starts_at >= 0) { // If it does:
+              ends_at = mt_str.indexOf("]", starts_at); // Find the following "]"
+              if (ends_at > starts_at) { // If the message contains both "[RBSOURCE=" and "]"
+                String new_source_str = mt_str.substring((starts_at + 10),ends_at); // Extract the value after the "="
+                Serial.print("Extracted an RBSOURCE of: "); Serial.println(new_source_str);
+                new_source = (int)new_source_str.toInt(); // Convert it to int
+              }
+            }
+            // toInt returns zero if the conversion fails, so it is not possible to distinguish between a source of zero and an invalid value!
+            // An invalid value will cause RBSOURCE to be set to zero
+            if (new_source >= 0) { // If new_source was received
+              Serial.print("New RBSOURCE received. Setting SOURCE to ");
+              Serial.println(new_source);
+              myTrackerSettings.SOURCE = new_source; // Update the source RockBLOCK serial number
+              updateTrackerSettings(&myTrackerSettings); // Update flash memory
+            }
+
+            // Check if the message contains a correctly formatted RBDESTINATION: "[RBDESTINATION=nnnnn]"
+            int new_destination = -1;
+            starts_at = -1;
+            ends_at = -1;
+            starts_at = mt_str.indexOf("[RBDESTINATION="); // See is message contains "[RBDESTINATION="
+            if (starts_at >= 0) { // If it does:
+              ends_at = mt_str.indexOf("]", starts_at); // Find the following "]"
+              if (ends_at > starts_at) { // If the message contains both "[RBDESTINATION=" and "]"
+                String new_destination_str = mt_str.substring((starts_at + 15),ends_at); // Extract the value after the "="
+                Serial.print("Extracted an RBDESTINATION of: "); Serial.println(new_destination_str);
+                new_destination = (int)new_destination_str.toInt(); // Convert it to int
+              }
+            }
+            // toInt returns zero if the conversion fails, so it is not possible to distinguish between a destination of zero and an invalid value!
+            // An invalid value will cause RBDESTINATION to be set to zero
+            if (new_destination >= 0) { // If new_destination was received
+              Serial.print("New RBDESTINATION received. Setting DEST to ");
+              Serial.println(new_destination);
+              myTrackerSettings.DEST = new_destination; // Update the destination RockBLOCK serial number
+              updateTrackerSettings(&myTrackerSettings); // Update flash memory
+            }
+          }
         }
 
         // Clear the Mobile Originated message buffer
@@ -821,7 +974,7 @@ void loop()
       digitalWrite(LED, LOW); // Disable the LED
 
       // Close and detach the serial console
-      Serial.println("Going into deep sleep until next INTERVAL...");
+      Serial.println("Going into deep sleep until next TXINT...");
       delay(1000); // Wait for serial port to clear
       Serial.end(); // Close the serial console
 
@@ -880,8 +1033,8 @@ void loop()
       PWRCTRL->MEMPWDINSLEEP_b.SRAMPWDSLP = PWRCTRL_MEMPWDINSLEEP_SRAMPWDSLP_ALLBUTLOWER64K;
 
 
-      // This while loop keeps the processor asleep until INTERVAL seconds have passed
-      while (!interval_alarm) // Wake up every INTERVAL seconds
+      // This while loop keeps the processor asleep until TXINT minutes have passed
+      while (!interval_alarm) // Wake up every TXINT minutes
       {
         // Go to Deep Sleep.
         am_hal_sysctrl_sleep(AM_HAL_SYSCTRL_SLEEP_DEEP);
@@ -947,6 +1100,127 @@ void loop()
 
   } // End of switch (loop_step)
 } // End of loop()
+
+// EEPROM storage
+
+// Data type storage lengths when stored in EEPROM
+#define LEN_BYTE    1
+#define LEN_INT16   2
+#define LEN_INT32   4
+#define LEN_FLOAT   4
+
+// Define the storage lengths for the message fields that will be stored in EEPROM
+#define LEN_STX       LEN_BYTE    // STX is byte
+#define LEN_SOURCE    LEN_INT32   // SOURCE is uint32
+#define LEN_DEST      LEN_INT32   // DEST is uint32
+#define LEN_TXINT     LEN_INT16   // TXINT is uint16
+#define LEN_ETX       LEN_BYTE    // ETX is byte
+#define LEN_CSUMA     LEN_BYTE    // ChecksumA is byte
+#define LEN_CSUMB     LEN_BYTE    // ChecksumB is byte
+
+// Define the storage locations for each message field that will be stored in EEPROM
+#define LOC_STX       0 // Change this if you want the data to be stored higher up in the EEPROM
+#define LOC_SOURCE    LOC_STX + LEN_STX
+#define LOC_DEST      LOC_SOURCE + LEN_SOURCE
+#define LOC_TXINT     LOC_DEST + LEN_DEST
+#define LOC_ETX       LOC_TXINT + LEN_TXINT
+#define LOC_CSUMA     LOC_ETX + LEN_ETX
+#define LOC_CSUMB     LOC_CSUMA + LEN_CSUMA
+
+// Define the default value for each message field
+#define DEF_STX       0x02
+#define DEF_ETX       0x03
+
+byte calculateEEPROMchecksumA() // Calculate the RFC 1145 Checksum A for the EEPROM data
+{
+  uint32_t csuma = 0;
+  for (uint16_t x = LOC_STX; x < (LOC_ETX + LEN_ETX); x += 1) // Calculate a sum of every byte from STX to ETX
+  {
+    csuma = csuma + *(byte *)(AP3_FLASH_EEPROM_START + x);
+  }
+  return ((byte)(csuma & 0x000000ff));
+}
+
+byte calculateEEPROMchecksumB() // Calculate the RFC 1145 Checksum B for the EEPROM data
+{
+  uint32_t csuma = 0;
+  uint32_t csumb = 0;
+  for (uint16_t x = LOC_STX; x < (LOC_ETX + LEN_ETX); x += 1) // Calculate a sum of sums for every byte from STX to ETX
+  {
+    csuma = csuma + *(byte *)(AP3_FLASH_EEPROM_START + x);
+    csumb = csumb + csuma;
+  }
+  return ((byte)(csumb & 0x000000ff));
+}
+
+bool checkEEPROM(trackerSettings *myTrackerSettings)
+// Checks if EEPROM data is valid (i.e. has been initialised) by checking that the STX, ETX and the two checksum bytes are valid
+{
+  byte stx;
+  byte etx;
+  EEPROM.get(LOC_STX, stx);
+  EEPROM.get(LOC_ETX, etx);
+  byte eeprom_csuma;
+  byte eeprom_csumb;
+  EEPROM.get(LOC_CSUMA, eeprom_csuma);
+  EEPROM.get(LOC_CSUMB, eeprom_csumb);
+  byte csuma = calculateEEPROMchecksumA();
+  byte csumb = calculateEEPROMchecksumB();
+  bool result = true;
+  result = result && ((stx == myTrackerSettings->STX) && (etx == myTrackerSettings->ETX)); // Check that EEPROM STX and ETX match the values in RAM
+  result = result && ((csuma == eeprom_csuma) && (csumb == eeprom_csumb)); // Check that the EEPROM checksums are valid
+  result = result && ((stx == myTrackerSettings->STX) && (etx == myTrackerSettings->ETX)); // Check that EEPROM STX and ETX are actually STX and ETX (not zero!)
+  return (result);
+}
+
+void updateEEPROMchecksum() // Update the two EEPROM checksum bytes
+{
+  byte csuma = calculateEEPROMchecksumA();
+  byte csumb = calculateEEPROMchecksumB();
+  EEPROM.write(LOC_CSUMA, csuma);
+  EEPROM.write(LOC_CSUMB, csumb);
+}
+
+void initTrackerSettings(trackerSettings *myTrackerSettings) // Initialises the trackerSettings in RAM with the default values
+{
+  myTrackerSettings->STX = DEF_STX;
+  myTrackerSettings->SOURCE = DEF_SOURCE;
+  myTrackerSettings->DEST = DEF_DEST;
+  myTrackerSettings->TXINT = DEF_TXINT;
+  myTrackerSettings->ETX = DEF_ETX;
+}
+
+void putTrackerSettings(trackerSettings *myTrackerSettings) // Write the trackerSettings from RAM into EEPROM
+{
+  EEPROM.erase(); // Erase any old data first
+  EEPROM.put(LOC_STX, myTrackerSettings->STX);
+  EEPROM.put(LOC_SOURCE, myTrackerSettings->SOURCE);
+  EEPROM.put(LOC_DEST, myTrackerSettings->DEST);
+  EEPROM.put(LOC_TXINT, myTrackerSettings->TXINT);
+  EEPROM.put(LOC_ETX, myTrackerSettings->ETX);
+  updateEEPROMchecksum();
+}
+
+void updateTrackerSettings(trackerSettings *myTrackerSettings) // Update any changed trackerSettings in EEPROM
+{
+  EEPROM.update(LOC_STX, myTrackerSettings->STX);
+  EEPROM.update(LOC_SOURCE, myTrackerSettings->SOURCE);
+  EEPROM.update(LOC_DEST, myTrackerSettings->DEST);
+  EEPROM.update(LOC_TXINT, myTrackerSettings->TXINT);
+  EEPROM.update(LOC_ETX, myTrackerSettings->ETX);
+  updateEEPROMchecksum();
+}
+
+void getTrackerSettings(trackerSettings *myTrackerSettings) // Read the trackerSettings from EEPROM into RAM
+{
+  EEPROM.get(LOC_STX, myTrackerSettings->STX);
+  EEPROM.get(LOC_SOURCE, myTrackerSettings->SOURCE);
+  EEPROM.get(LOC_DEST, myTrackerSettings->DEST);
+  EEPROM.get(LOC_TXINT, myTrackerSettings->TXINT);
+  EEPROM.get(LOC_ETX, myTrackerSettings->ETX);
+}
+
+// IridiumSBD Callbacks
 
 void ISBDConsoleCallback(IridiumSBD *device, char c)
 {
