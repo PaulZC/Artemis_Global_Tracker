@@ -1169,7 +1169,7 @@ bool checkEEPROM(trackerSettings *myTrackerSettings)
   bool result = true;
   result = result && ((stx == myTrackerSettings->STX) && (etx == myTrackerSettings->ETX)); // Check that EEPROM STX and ETX match the values in RAM
   result = result && ((csuma == eeprom_csuma) && (csumb == eeprom_csumb)); // Check that the EEPROM checksums are valid
-  result = result && ((stx == myTrackerSettings->STX) && (etx == myTrackerSettings->ETX)); // Check that EEPROM STX and ETX are actually STX and ETX (not zero!)
+  result = result && ((stx == DEF_STX) && (etx == DEF_ETX)); // Check that EEPROM STX and ETX are actually STX and ETX (not zero!)
   return (result);
 }
 
