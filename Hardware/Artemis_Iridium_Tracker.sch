@@ -16948,7 +16948,7 @@ and Qwiic ZOE-M8Q</text>
 <pinref part="C30" gate="G$1" pin="2"/>
 </segment>
 </net>
-<net name="N$7" class="0">
+<net name="XTALO" class="0">
 <segment>
 <wire x1="55.88" y1="109.22" x2="38.1" y2="109.22" width="0.1524" layer="91"/>
 <wire x1="38.1" y1="109.22" x2="38.1" y2="104.14" width="0.1524" layer="91"/>
@@ -16961,7 +16961,7 @@ and Qwiic ZOE-M8Q</text>
 <pinref part="U7" gate="U1" pin="XO"/>
 </segment>
 </net>
-<net name="N$31" class="0">
+<net name="XTALI" class="0">
 <segment>
 <pinref part="X1" gate="G$1" pin="1"/>
 <wire x1="55.88" y1="111.76" x2="27.94" y2="111.76" width="0.1524" layer="91"/>
