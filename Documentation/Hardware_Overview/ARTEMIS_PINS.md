@@ -1,4 +1,4 @@
-# Artemis Iridium Tracker: Artemis Pad Allocation
+# Artemis Global Tracker: Artemis Pad Allocation
 
 | Module Pad No. | Name | Pin | Allocation |
 |---|---|---|---|

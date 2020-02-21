@@ -1,6 +1,6 @@
-# Artemis Iridium Tracker: Hardware Overview
+# Artemis Global Tracker: Hardware Overview
 
-The Artemis Iridium Tracker is an open source satellite tracker utilising the [SparkFun Artemis module](https://www.sparkfun.com/products/15484),
+The Artemis Global Tracker is an open source satellite tracker utilising the [SparkFun Artemis module](https://www.sparkfun.com/products/15484),
 [Iridium 9603N satellite transceiver](https://www.iridium.com/products/iridium-9603/) and [u-blox ZOE-M8Q GNSS
 ](https://www.u-blox.com/en/product/zoe-m8-series).
 
@@ -15,13 +15,13 @@ The design also makes use of the:
 - [Maxtena M1600HCT-P-SMA antenna](https://www.maxtena.com/products/f-gps/m1600hct-p-sma/) which is tuned for Iridium, GPS and GLONASS
 - [TE / MEAS Switzerland MS8607](https://www.te.com/usa-en/product-CAT-BLPS0018.html) combined pressure, humidity and temperature sensor
 
-The full schematic for the tracker can be found [here](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/Hardware/Schematic.pdf)
+The full schematic for the tracker can be found [here](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Hardware/Schematic.pdf)
 
 ## The Artemis Module
 
-The heart of the tracker is, of course, the most excellent Artemis module from SparkFun. The pad allocation is defined [here](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/Documentation/Hardware_Overview/ARTEMIS_PINS.md).
+The heart of the tracker is, of course, the most excellent Artemis module from SparkFun. The pad allocation is defined [here](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/Hardware_Overview/ARTEMIS_PINS.md).
 
-![Artemis](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/Artemis.JPG)
+![Artemis](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/Artemis.JPG)
 
 ## Power Options
 
@@ -37,7 +37,7 @@ The tracker will preferentially draw power from USB if it is connected.
 
 If the USB is disconnected, the tracker will preferentially draw power from the external cells. If you have the external cells connected, you may as well disconnect the LiPo.
 
-![Power_Select](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/Power_Select.JPG)
+![Power_Select](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/Power_Select.JPG)
 
 J4 (VBUS -> VIN) can be used to measure the current draw or to connect a power switch after you open the MEAS split pad.
 
@@ -45,25 +45,25 @@ J4 (VBUS -> VIN) can be used to measure the current draw or to connect a power s
 
 The USB interface is taken directly from the [SparkFun Thing Plus - Artemis](https://www.sparkfun.com/products/15574).
 
-![USB](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/USB.JPG)
+![USB](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/USB.JPG)
 
 ## LiPo Charger
 
 The LiPo charger circuit is taken directly from the [SparkFun Thing Plus - Artemis](https://www.sparkfun.com/products/15574).
 
-![LiPo](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/LiPo.JPG)
+![LiPo](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/LiPo.JPG)
 
 ## 3.3V Regulator
 
 3.3V power for the tracker is regulated by an AP2112K regulator. Its 50uA quiescent current draw means it can be powered continuously without
 depleting the batteries during sleep.
 
-![Reg](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/Reg.JPG)
+![Reg](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/Reg.JPG)
 
 If you want to completely disable the regulator to minimise the current draw, you can do so by opening the 3.3V_EN split pad. The EN pin can then be used to enable/disable the regulator.
 Pull EN low to disable the regulator, pull it up to VIN to enable it. EN could also be driven by a logic signal from an external timer circuit.
 
-![Reg_EN](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/Reg_EN.JPG)
+![Reg_EN](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/Reg_EN.JPG)
 
 ## ZOE-M8Q
 
@@ -73,28 +73,28 @@ Connection to the Artemis is via I2C port 1. The serial and safeboot pins are av
 
 Geofence alerts from the ZOE can be produced on PIO14, which is connected to Artemis pin D10.
 
-![ZOE](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/ZOE.JPG)
+![ZOE](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/ZOE.JPG)
 
 Back-up power for the ZOE is drawn preferentially from the 3.3V rail, but there is a small back-up battery too to keep the ZOE's clock running
 when all other power sources have been disconnected. The battery recharges only when USB power is connected (to help minimise the 3.3V current
 draw during sleep).
 
-![VBCKP](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/VBCKP.JPG)
+![VBCKP](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/VBCKP.JPG)
 
 3.3V power for the ZOE is switched via a FET. The same switched power also feeds the antenna switch when the GNSS is in use.
 
-![GPS_EN](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/GPS_EN.JPG)
+![GPS_EN](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/GPS_EN.JPG)
 
 ## Iridium 9603N
 
 The tracker uses the same Iridium 9603N transceiver as the [Qwiic Iridium 9603N](https://github.com/PaulZC/Qwiic_Iridium_9603N).
 The Qwiic Iridium is [available from SparkFun](https://www.sparkfun.com/products/15780).
 
-![9603N](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/9603N.JPG)
+![9603N](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/9603N.JPG)
 
 Power for the 9603N is provided by the same LTC3225 supercapacitor charger and ADM4210 in-rush current limit circuit as used by the Qwiic Iridium.
 
-![LTC3225](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/LTC3225.JPG)
+![LTC3225](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/LTC3225.JPG)
 
 ## Antenna Switch
 
@@ -103,7 +103,7 @@ which has been flight tested on the [Iridium 9603N Solar Beacon](https://github.
 
 Care needs to be taken that the 3.3V GNSS and 5.3V 9603N are not powered up simultaneously as _bad things might happen to the AS179_.
 
-![RF](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/RF.JPG)
+![RF](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/RF.JPG)
 
 ## Pressure, Humidity and Temperature Sensor
 
@@ -112,24 +112,24 @@ The MS8607 shares I2C port 1 with the ZOE.
 
 The sensor will provide pressure readings as low as 10mbar which is equivalent to an altitude of approximately 31,000m.
 
-![PHT](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/PHT.JPG)
+![PHT](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/PHT.JPG)
 
 ## I/O Pins
 
 The Artemis' SPI and I2C (port 1) pins are broken out on pin headers so the user can connect external peripherals.
 
-![Pins](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/Pins.JPG)
+![Pins](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/Pins.JPG)
 
 I2C port 4 is broken out on a standard SparkFun Qwiic connector.
 
-![Qwiic](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/Qwiic.JPG)
+![Qwiic](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/Qwiic.JPG)
 
 ## Bus Voltage
 
 The bus voltage (from the USB, LiPo or external cells) can be measured via the Artemis pin AD13. A simple two resistor divider divides the bus voltage by three.
 Power to the resistor divider is switched by an N-FET so the power draw can be minimised during sleep.
 
-![Bus_V](https://github.com/PaulZC/Artemis_Iridium_Tracker/blob/master/img/Bus_V.JPG)
+![Bus_V](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/Bus_V.JPG)
 
 
 
