@@ -1,5 +1,5 @@
 /*
- Artemis Iridium Tracker
+ Artemis Global Tracker
  Example: Bus Voltage
 
  Written by Paul Clark (PaulZC)
@@ -66,7 +66,7 @@ void setup()
   delay(100);
   Serial.println();
   Serial.println();
-  Serial.println(F("Artemis Iridium Tracker"));
+  Serial.println(F("Artemis Global Tracker"));
   Serial.println(F("Example: Bus Voltage"));
   Serial.println();
 

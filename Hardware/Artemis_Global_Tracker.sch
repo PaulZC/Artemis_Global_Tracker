@@ -17904,16 +17904,16 @@ solar power or
 <approved hash="104,4,86.36,22.86,U9,VSS,GND,,,"/>
 <approved hash="104,3,198.12,45.72,QWIIC,1,GND,,,"/>
 <approved hash="104,3,198.12,48.26,QWIIC,2,3.3V,,,"/>
-<approved hash="113,3,113.623,29.2777,!RESET,,,,,"/>
-<approved hash="113,1,52.6627,161.222,SC1+,,,,,"/>
-<approved hash="113,1,52.6627,153.602,SC1-,,,,,"/>
-<approved hash="113,1,52.6627,145.982,SC2+,,,,,"/>
-<approved hash="113,1,52.6627,138.362,SC2-,,,,,"/>
+<approved hash="113,3,113.623,29.2473,!RESET,,,,,"/>
+<approved hash="113,1,52.6627,161.253,SC1+,,,,,"/>
+<approved hash="113,1,52.6627,153.633,SC1-,,,,,"/>
+<approved hash="113,1,52.6627,146.013,SC2+,,,,,"/>
+<approved hash="113,1,52.6627,138.393,SC2-,,,,,"/>
 <approved hash="113,4,118.787,26.67,J5,,,,,"/>
-<approved hash="113,4,213.292,154.263,J4,,,,,"/>
-<approved hash="113,3,19.8374,27.2457,SPI,,,,,"/>
-<approved hash="113,4,52.6627,97.8577,EN,,,,,"/>
-<approved hash="113,4,52.6627,69.9177,GND,,,,,"/>
+<approved hash="113,4,213.323,154.263,J4,,,,,"/>
+<approved hash="113,3,19.8069,27.2153,SPI,,,,,"/>
+<approved hash="113,4,52.6627,97.8273,EN,,,,,"/>
+<approved hash="113,4,52.6627,69.8873,GND,,,,,"/>
 <approved hash="113,4,205.147,130.81,J3,,,,,"/>
 </errors>
 </schematic>

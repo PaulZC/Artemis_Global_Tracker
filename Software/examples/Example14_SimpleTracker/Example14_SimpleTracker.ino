@@ -1,5 +1,5 @@
 /*
-  Artemis Iridium Tracker Examples
+  Artemis Global Tracker
   Example: Simple Tracker
   
   Written by Paul Clark (PaulZC)
@@ -289,7 +289,7 @@ void loop()
       delay(1000); // Wait for the user to open the serial monitor (extend this delay if you need more time)
       Serial.println();
       Serial.println();
-      Serial.println(F("Artemis Iridium Tracker"));
+      Serial.println(F("Artemis Global Tracker"));
       Serial.println(F("Example: Simple Tracker"));
       Serial.println();
 

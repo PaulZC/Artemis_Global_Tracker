@@ -1,8 +1,8 @@
-# Artemis Iridium Tracker Examples
+# Artemis Global Tracker Examples
 
 ### Work in progress!
 
-These examples demonstrate how to use the Artemis Iridium Tracker. There are examples showing: how to communicate with the MS8607 PHT sensor;
+These examples demonstrate how to use the Artemis Global Tracker. There are examples showing: how to communicate with the MS8607 PHT sensor;
 how to get a fix from the ZOE-M8Q GNSS; how to set up a geofence and how to wake up the Artemis when the geofence status changes;
 how to send Iridium Short Burst Data (SBD) messages and monitor the ring channel for new messages.
 
@@ -56,8 +56,8 @@ If message forwarding is enabled, the message format will be (using the above ex
 
 If message forwarding is enabled, you will be charged twice for each message: once to send it, and once to receive it.
 
-**(Coming soon!)** **Example16** is a full-on complex tracker which has many settings that can be configured and stored in EEPROM. The ComplexTracker can be configured to transmit:
-on a GeoFence alert; or when Pressure, Temperature or Humidity limits are exceeded; or if the battery voltage is low. All of the settings can be configured via the Arduino Serial Monitor
+**(Coming soon!)** **Example16** is a full-on Global Tracker which has many settings that can be configured and stored in EEPROM. The GlobalTracker can be configured to transmit:
+on a GeoFence alert; or when Pressure, Temperature or Humidity limits are exceeded; or if the battery voltage is low. All of the settings can be configured via the Arduino Serial Monitor (USB-C)
 or via a binary format Iridium SBD message.
 
 Messages can be sent in text format (human-readable) or binary format (to save messages credits). You can configure which message fields are included in the message so you only send the data you need.
@@ -70,6 +70,7 @@ You can also include readings from additional sensors e.g.: [UV](https://www.spa
 You can have the Iridium 9603N monitor the ring channel continuously for new Mobile Terminated messages but this will increase the current draw considerably (approximately 50mA).
 This is not recommended for battery-powered applications.
 
+<br/>
 
 To run the examples, you will need to install the SparkFun Apollo3 core and then set the board to the "SparkFun Artemis Module":
 - https://learn.sparkfun.com/tutorials/artemis-development-with-arduino

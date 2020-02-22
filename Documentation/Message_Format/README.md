@@ -1,5 +1,7 @@
 # Artemis Global Tracker: Message Format and Fields
 
+This document defines the message format used by the full GlobalTracker example.
+
 The Iridium 9603N and the RockBLOCK Gateway support messaging in both text and binary format. Text is human-readable; binary is more compact and will use fewer message credits.
 
 - Mobile Originated (MO) messages are messages sent _by_ the tracker.
@@ -128,10 +130,18 @@ If the number of IDs is expanded beyond 0x5f, MOFIELDS will need to be redefined
 | [0x18](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#speed-0x18) | SPEED | int32_t | 4 | 7 | Yes | No | No | No | The ground speed |
 | [0x19](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#head-0x19) | HEAD | int32_t | 4 | 6 | Yes | No | No | No | The course (heading) in degrees |
 | [0x1a](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#sats-0x1a) | SATS | byte | 1 | 2 | Yes | No | No | No | The number of satellites (space vehicles) used in the solution | 
-| [0x1b](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#hdop-0x1b) | HDOP | uint16_t | 2 | 6 | Yes | No | No | No | The horizontal dilution of precision |
-| [0x1c](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#pdop-0x1c) | PDOP | uint16_t | 2 | 6 | Yes | No | No | No | The positional dilution of precision |
-| [0x1d](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#fix-0x1d) | FIX | byte | 1 | 1 | Yes | No | No | No | The GNSS fix type |
-| 0x1e - 0x2f | | | | | | | | | **Currently undefined - do not use** |
+| [0x1b](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#pdop-0x1b) | PDOP | uint16_t | 2 | 6 | Yes | No | No | No | The positional dilution of precision |
+| [0x1c](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#fix-0x1c) | FIX | byte | 1 | 1 | Yes | No | No | No | The GNSS fix type |
+| 0x1d - 0x1f | | | | | | | | | **Currently undefined - do not use** |
+| [0x20](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userval1-0x20) | USERVAL1 | byte | 1 | 3 | Yes | No | No | No | User value 1 (e.g. from an external sensor) |
+| [0x21](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userval2-0x21) | USERVAL2 | byte | 1 | 3 |Yes | No | No | No | User value 2 |
+| [0x22](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userval3-0x22) | USERVAL3 | uint16_t | 2 | 5 |Yes | No | No | No | User value 3 |
+| [0x23](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userval4-0x23) | USERVAL4 | uint16_t | 2 | 5 |Yes | No | No | No | User value 4 |
+| [0x24](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userval5-0x24) | USERVAL5 | uint32_t | 4 | 10 |Yes | No | No | No | User value 5 |
+| [0x25](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userval6-0x25) | USERVAL6 | uint32_t | 4 | 10 |Yes | No | No | No | User value 6 |
+| [0x26](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userval7-0x26) | USERVAL7 | float | 4 | 14 |Yes | No | No | No | User value 7 |
+| [0x27](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userval8-0x27) | USERVAL8 | float | 4 | 14 |Yes | No | No | No | User value 8 |
+| 0x28 - 0x2f | | | | | | | | | **Currently undefined - do not use** |
 | [0x30](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#mofields-0x30) | MOFIELDS | 3 x uint32_t | 12 | 24 | Yes | Yes | Yes | Yes | Defines which fields are included in MO messages |
 | [0x31](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#flags1-0x31) | FLAGS1 | byte | 1 | 2 | Yes | Yes | Yes | Yes | Defines various message options - see below for the full definition |
 | [0x32](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#flags2-0x32) | FLAGS2 | byte | 1 | 2 | Yes | Yes | Yes | Yes | Defines various message options - see below for the full definition |
@@ -158,7 +168,9 @@ If the number of IDs is expanded beyond 0x5f, MOFIELDS will need to be redefined
 | [0x47](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#wakeint-0x47) | WAKEINT | uint16_t | 2 | 4 | Yes | Yes | Yes | Yes | Defines the tracker's wake-up interval (seconds)  |
 | [0x48](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#alarmint-0x48) | ALARMINT | uint16_t | 2 | 4 | Yes | Yes | Yes | Yes | Defines the tracker's transmission interval during an alarm (minutes)  |
 | [0x49](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#txint-0x49) | TXINT | uint16_t | 2 | 4 | Yes | Yes | Yes | Yes | Defines the tracker's normal transmission interval (minutes)  |
-| 0x4a - 0x4f | | | | | | | | | **Currently undefined - do not use** |
+| [0x4a](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#lowbatt-0x4a) | LOWBATT | uint16_t | 2 | 4 | Yes | Yes | Yes | Yes | The low battery limit |
+| [0x4b](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#dynmodel-0x4b) | DYNMODEL | byte | 1 | 2 | Yes | Yes | Yes | Yes | The GNSS dynamic platform model |
+| 0x4c - 0x4f | | | | | | | | | **Currently undefined - do not use** |
 | [0x50](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc1-0x50) | USERFUNC1 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 1 |
 | [0x51](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc2-0x51) | USERFUNC2 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 2 |
 | [0x52](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc3-0x52) | USERFUNC3 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 3 |
@@ -172,9 +184,10 @@ If the number of IDs is expanded beyond 0x5f, MOFIELDS will need to be redefined
 ---
 ### Field Definition
 
-The uint16_t and uint32_t examples are calculated using:
+The uint16_t, uint32_t and float examples are calculated using:
 - https://www.binaryconvert.com/convert_signed_short.html
 - https://www.binaryconvert.com/convert_signed_int.html
+- https://www.binaryconvert.com/convert_float.html
 
 ---
 STX (0x02)
@@ -451,20 +464,7 @@ SATS (0x1a)
 | Text example: | 14 |
 
 ---
-HDOP (0x1b)
----
-
-| []() | |
-|---|---|
-| Description: | The horizontal dilution of precision. |
-| Binary: | uint16_t, 2 bytes, little endian, in **cm**. |
-| Text: | Sent as **m**, with cm resolution, in the format m.m with 1 or 2 decimal places _without preceding or trailing zeroes_ |
-| Example value: | 1.02m |
-| Binary example: | 0x1b6600 (102 is 0x0066) |
-| Text example: | 1.02 |
-
----
-PDOP (0x1c)
+PDOP (0x1b)
 ---
 
 | []() | |
@@ -477,7 +477,7 @@ PDOP (0x1c)
 | Text example: | 1.02 |
 
 ---
-FIX (0x1d)
+FIX (0x1c)
 ---
 
 | []() | |
@@ -488,6 +488,82 @@ FIX (0x1d)
 | Example value: | 3 |
 | Binary example: | 0x1d03 (3 is 0x03) |
 | Text example: | 3 |
+
+---
+USERVAL1 (0x20)
+---
+
+| []() | |
+|---|---|
+| Description: | A value defined by the user (e.g. the reading from an external sensor) |
+| Binary: | byte. |
+| Text: | Sent in the format n in the range 0 to 255 |
+| Example value: | 3 |
+| Binary example: | 0x2003 (3 is 0x03) |
+| Text example: | 3 |
+
+---
+USERVAL2 (0x21)
+---
+
+See USERVAL1
+
+---
+USERVAL3 (0x22)
+---
+
+| []() | |
+|---|---|
+| Description: | A value defined by the user (e.g. the reading from an external sensor) |
+| Binary: | uint16_t, 2 bytes, little endian. |
+| Text: | Sent in the format n in the range 0 to 65535 |
+| Example value: | 3 |
+| Binary example: | 0x220300 (3 is 0x0003) |
+| Text example: | 3 |
+
+---
+USERVAL4 (0x23)
+---
+
+See USERVAL3
+
+---
+USERVAL5 (0x24)
+---
+
+| []() | |
+|---|---|
+| Description: | A value defined by the user (e.g. the reading from an external sensor) |
+| Binary: | uint32_t, 4 bytes, little endian. |
+| Text: | Sent in the format n in the range 0 to 4294967295 |
+| Example value: | 3 |
+| Binary example: | 0x2403000000 (3 is 0x00000003) |
+| Text example: | 3 |
+
+---
+USERVAL6 (0x25)
+---
+
+See USERVAL5
+
+---
+USERVAL7 (0x26)
+---
+
+| []() | |
+|---|---|
+| Description: | A value defined by the user (e.g. the reading from an external sensor) |
+| Binary: | float, 4 bytes, little endian. |
+| Text: | Sent in the format n in the range 3.4028235E+38 to -3.4028235E+38 |
+| Example value: | 3.0 |
+| Binary example: | 0x2600004040 (3.0 is 0x40400000 (3.0E0)) |
+| Text example: | 3.0 |
+
+---
+USERVAL8 (0x27)
+---
+
+See USERVAL7
 
 ---
 MOFIELDS (0x30)
@@ -517,13 +593,13 @@ FLAGS1 (0x31)
 | Binary: | byte. |
 | []() | |
 | Bit 7 (MSB): | Set to 1 if binary messages are to be sent / are being sent. Set to 0 for text messages (default). |
-| Bit 6: | Set to 1 if message forwarding via the RockBLOCK gateway is enabled. Clear otherwise (default). Message will be forwarded to RB DEST. |
-| Bit 5: | Set to 1 if a message will be sent when PRESS > HIPRESS. PRESS is checked every WAKEINT seconds. Messages will be sent every ALARMINT minutes until PRESS is < HIPRESS. |
-| Bit 4: | Set to 1 if a message will be sent when PRESS < LOPRESS. PRESS is checked every WAKEINT seconds. Messages will be sent every ALARMINT minutes until PRESS is > LOPRESS. |
-| Bit 3: | Set to 1 if a message will be sent when TEMP > HITEMP. TEMP is checked every WAKEINT seconds. Messages will be sent every ALARMINT minutes until TEMP is < HITEMP. |
-| Bit 2: | Set to 1 if a message will be sent when TEMP < LOTEMP. TEMP is checked every WAKEINT seconds. Messages will be sent every ALARMINT minutes until TEMP is > LOTEMP. |
-| Bit 1: | Set to 1 if a message will be sent when HUMID > HIHUMID. HUMID is checked every WAKEINT seconds. Messages will be sent every ALARMINT minutes until HUMID is < HIHUMID. |
-| Bit 0 (LSB): | Set to 1 if a message will be sent when HUMID < LOHUMID. HUMID is checked every WAKEINT seconds. Messages will be sent every ALARMINT minutes until HUMID is > LOHUMID. |
+| Bit 6: | When set to 1, message forwarding via the RockBLOCK gateway is enabled. Message will be forwarded automatically to RB DEST. |
+| Bit 5: | When set to 1, a message will be sent when PRESS > HIPRESS. PRESS is checked every WAKEINT seconds. Messages will be sent every ALARMINT minutes until PRESS is < HIPRESS. |
+| Bit 4: | When set to 1, a message will be sent when PRESS < LOPRESS. PRESS is checked every WAKEINT seconds. Messages will be sent every ALARMINT minutes until PRESS is > LOPRESS. |
+| Bit 3: | When set to 1, a message will be sent when TEMP > HITEMP. TEMP is checked every WAKEINT seconds. Messages will be sent every ALARMINT minutes until TEMP is < HITEMP. |
+| Bit 2: | When set to 1, a message will be sent when TEMP < LOTEMP. TEMP is checked every WAKEINT seconds. Messages will be sent every ALARMINT minutes until TEMP is > LOTEMP. |
+| Bit 1: | When set to 1, a message will be sent when HUMID > HIHUMID. HUMID is checked every WAKEINT seconds. Messages will be sent every ALARMINT minutes until HUMID is < HIHUMID. |
+| Bit 0 (LSB): | When set to 1, a message will be sent when HUMID < LOHUMID. HUMID is checked every WAKEINT seconds. Messages will be sent every ALARMINT minutes until HUMID is > LOHUMID. |
 | []() | |
 | Text: | Sent as ASCII-encoded Hex in the range 00 to ff |
 | Example value: | To send binary messages, without forwarding, and alarm when TEMP is > HITEMP |
@@ -540,10 +616,10 @@ FLAGS2 (0x32)
 | Description: | Defines various message options. |
 | Binary: | byte. |
 | []() | |
-| Bit 7 (MSB): | Set to 1 if geofence alerts are enabled. Clear otherwise (default). |
+| Bit 7 (MSB): | When set to 1, geofence alerts are enabled. |
 | Bit 6: | When set to 1, geofence alerts will be sent every ALARMINT minutes when the tracker _is inside_ a geofenced area. When clear, geofence alerts will be sent when the tracker _is outside_ all geofenced areas (default). |
-| Bit 5: | Undefined. |
-| Bit 4: | Undefined. |
+| Bit 5: | When set to 1, messages will be sent every ALARMINT minutes when the battery (bus) voltage falls below LOWBATT. |
+| Bit 4: | When set to 1, the tracker will stay powered up and will monitor the Iridium ring channel continuously for new MT messages. |
 | Bit 3: | Undefined. |
 | Bit 2: | Undefined. |
 | Bit 1: | Undefined. |
@@ -559,6 +635,8 @@ FLAGS2 (0x32)
 
 The geofence alert is generated by the ZOE-M8Q. It will automatically wake the tracker so an alert message can be sent. WAKEINT does not apply to geofence alerts.
 Battery consumption will increase when geofence alerts are enabled as the ZOE-M8Q will be powered continuously.
+
+Power consumption will increase dramatically if the tracker is configured to monitor the Iridium ring channel. This is not recommended for battery-powered applications.
 
 ---
 DEST (0x33)
@@ -809,6 +887,42 @@ TXINT (0x49)
 | Binary example: | 0x490a00 (10 is 0x000a) |
 | Text example: | 10 |
 | Default value: | 10 |
+
+---
+LOWBATT (0x4a)
+---
+
+| []() | |
+|---|---|
+| Description: | The low battery limit. |
+| Binary: | uint16_t, 2 bytes, little endian, in Volts * 10^-2. |
+| Text: | Sent in the format v.v with 1 or 2 decimal places in the range 0.0 to 9.99 |
+| Example value: | 3.60V |
+| Binary example: | 0x096801 (360 is 0x0168) |
+| Text example: | 3.6 |
+
+---
+DYNMODEL (0x4b)
+---
+
+| []() | |
+|---|---|
+| Description: | The GNSS dynamic platform model: |
+| |	0 = PORTABLE : Applications with low acceleration, e.g. portable devices. Suitable for most situations. |
+| |	2 = STATIONARY : Used in timing applications (antenna must be stationary) or other stationary applications. Velocity restricted to 0 m/s. Zero dynamics assumed. |
+| | 3 = PEDESTRIAN : Applications with low acceleration and speed, e.g. how a pedestrian would move. Low acceleration assumed. |
+| |	4 = AUTOMOTIVE : Used for applications with equivalent dynamics to those of a passenger car. Low vertical acceleration assumed. |
+| |	5 = SEA : Recommended for applications at sea, with zero vertical velocity. Zero vertical velocity assumed. Sea level assumed. |
+| |	6 = AIRBORNE1g : Airborne <1g acceleration. Used for applications with a higher dynamic range and greater vertical acceleration than a passenger car. No 2D position fixes supported. |
+| |	7 = AIRBORNE2g : Airborne <2g acceleration. Recommended for typical airborne environments. No 2D position fixes supported. |
+| |	8 = AIRBORNE4g: Airborne <4g acceleration. Only recommended for extremely dynamic environments. No 2D position fixes supported. |
+| |	9 = WRIST : Not supported in protocol versions less than 18. Only recommended for wrist worn applications. Receiver will filter out arm motion. |
+| |	10 = BIKE : Supported in protocol versions 19.2 |
+| Binary: | byte. |
+| Text: | Sent in the format n in the range 0 to 10 |
+| Example value: | 3 |
+| Binary example: | 0x4b03 (3 is 0x03) |
+| Text example: | 3 |
 
 ---
 USERFUNC1 (0x50)
