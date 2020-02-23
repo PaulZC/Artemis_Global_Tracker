@@ -166,16 +166,17 @@ If the number of IDs is expanded beyond 0x5f, MOFIELDS will need to be redefined
 | [0x49](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#txint-0x49) | TXINT | uint16_t | 2 | 4 | Yes | Yes | Yes | Yes | Defines the tracker's normal transmission interval (minutes)  |
 | [0x4a](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#lowbatt-0x4a) | LOWBATT | uint16_t | 2 | 4 | Yes | Yes | Yes | Yes | The low battery limit |
 | [0x4b](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#dynmodel-0x4b) | DYNMODEL | byte | 1 | 2 | Yes | Yes | Yes | Yes | The GNSS dynamic platform model |
-| 0x4c - 0x4f | | | | | | | | | **Currently undefined - do not use** |
-| [0x50](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc1-0x50) | USERFUNC1 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 1 |
-| [0x51](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc2-0x51) | USERFUNC2 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 2 |
-| [0x52](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc3-0x52) | USERFUNC3 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 3 |
-| [0x53](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc4-0x53) | USERFUNC4 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 4 |
-| [0x54](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc5-0x54) | USERFUNC5 | uint16_t | 2 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 5 |
-| [0x55](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc6-0x55) | USERFUNC6 | uint16_t | 2 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 6 |
-| [0x56](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc7-0x56) | USERFUNC7 | uint32_t | 4 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 7 |
-| [0x57](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc8-0x57) | USERFUNC8 | uint32_t | 4 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 8 |
-| 0x58 - 0x5f | | | | | | | | | **Currently undefined - do not use** |
+| 0x4c - 0x51 | | | | | | | | | **Currently undefined - do not use** |
+| 0x52 | "R" | | 4 | | | | | | ASCII "R" - Reserved for the RockBLOCK gateway header (message forwarding) |
+| 0x53 - 0x57 | | | | | | | | | **Currently undefined - do not use** |
+| [0x58](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc1-0x58) | USERFUNC1 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 1 |
+| [0x59](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc2-0x59) | USERFUNC2 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 2 |
+| [0x5a](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc3-0x5a) | USERFUNC3 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 3 |
+| [0x5b](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc4-0x5b) | USERFUNC4 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 4 |
+| [0x5c](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc5-0x5c) | USERFUNC5 | uint16_t | 2 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 5 |
+| [0x5d](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc6-0x5d) | USERFUNC6 | uint16_t | 2 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 6 |
+| [0x5e](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc7-0x5e) | USERFUNC7 | uint32_t | 4 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 7 |
+| [0x5f](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc8-0x5f) | USERFUNC8 | uint32_t | 4 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 8 |
 
 ---
 ### Field Definition
@@ -921,7 +922,7 @@ DYNMODEL (0x4b)
 | Text example: | 3 |
 
 ---
-USERFUNC1 (0x50)
+USERFUNC1 (0x58)
 ---
 
 Upon receiving this field in an MT message, the tracker will execute user function 1 at the end of the SBD message cycle.
@@ -931,25 +932,25 @@ This could trigger a Qwiic-connected relay for example.
 The field ID is followed by _zero_ data bytes.
 
 ---
-USERFUNC2 (0x51)
+USERFUNC2 (0x59)
 ---
 
 See USERFUNC1
 
 ---
-USERFUNC3 (0x52)
+USERFUNC3 (0x5a)
 ---
 
 See USERFUNC1
 
 ---
-USERFUNC4 (0x53)
+USERFUNC4 (0x5b)
 ---
 
 See USERFUNC1
 
 ---
-USERFUNC5 (0x54)
+USERFUNC5 (0x5c)
 ---
 
 Upon receiving this field in an MT message, the tracker will execute user function 5 at the end of the SBD message cycle.
@@ -957,13 +958,13 @@ Upon receiving this field in an MT message, the tracker will execute user functi
 The field ID is followed by _two_ data bytes (uint16_t, little endian). The uint16_t is passed as a parameter to the user function.
 
 ---
-USERFUNC6 (0x55)
+USERFUNC6 (0x5d)
 ---
 
 See USERFUNC5
 
 ---
-USERFUNC7 (0x56)
+USERFUNC7 (0x5e)
 ---
 
 Upon receiving this field in an MT message, the tracker will execute user function 7 at the end of the SBD message cycle.
@@ -971,7 +972,7 @@ Upon receiving this field in an MT message, the tracker will execute user functi
 The field ID is followed by _four_ data bytes (uint32_t, little endian). The uint32_t is passed as a parameter to the user function.
 
 ---
-USERFUNC8 (0x57)
+USERFUNC8 (0x5f)
 ---
 
 See USERFUNC7
