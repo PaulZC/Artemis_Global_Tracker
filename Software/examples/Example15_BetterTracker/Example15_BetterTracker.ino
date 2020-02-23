@@ -81,18 +81,6 @@
 #define DEF_SOURCE    0 // DEFault SOURCE RockBLOCK serial number (the serial number of the 9603N on this tracker)
 #define DEF_DEST      0 // DEFault DESTination RockBLOCK (the serial number of the desination RockBLOCK)
 
-// Define the struct for the tracker settings (stored in RAM and copied to or loaded from EEPROM)
-typedef struct 
-{
-  byte STX;             // 0x02 - when written to EEPROM, helps indicate if EEPROM contains valid data
-  uint32_t SOURCE;       // The tracker's RockBLOCK serial number
-  uint32_t DEST;         // The destination RockBLOCK serial number for message forwarding
-  uint16_t TXINT;        // The message transmit interval in minutes
-  byte ETX;             // 0x03 - when written to EEPROM, helps indicate if EEPROM contains valid data
-} trackerSettings;
-
-trackerSettings myTrackerSettings; // Define storage for the tracker settings
-
 // Artemis Tracker pin definitions
 #define spiCS1              4  // D4 can be used as an SPI chip select or as a general purpose IO pin
 #define geofencePin         10 // Input for the ZOE-M8Q's PIO14 (geofence) pin
@@ -134,6 +122,9 @@ MS8607 barometricSensor; //Create an instance of the MS8607 object
 
 // Include dtostrf
 #include <avr/dtostrf.h>
+
+#include "Tracker_EEPROM_Storage.h" // Include the trackerSettings
+trackerSettings myTrackerSettings; // Define storage for the tracker settings
 
 // Use this to keep a count of the second alarms from the rtc
 volatile unsigned long seconds_count = 0;
@@ -279,9 +270,9 @@ bool ISBDCallback()
   // If voltage is low, stop Iridium send
   get_vbat(); // Read the battery (bus) voltage
   if (vbat < VBAT_LOW) {
-    Serial.print("***!!! LOW VOLTAGE (ISBDCallback) ");
+    Serial.print(F("***!!! LOW VOLTAGE (ISBDCallback) "));
     Serial.print(vbat,2);
-    Serial.println("V !!!***");
+    Serial.println(F("V !!!***"));
     return false; // Returning false causes IridiumSBD to terminate
   }
   else {     
@@ -376,9 +367,9 @@ void loop()
       // If voltage is low, go to sleep
       get_vbat(); // Get the battery (bus) voltage
       if (vbat < VBAT_LOW) {
-        Serial.print("***!!! LOW VOLTAGE (init) ");
+        Serial.print(F("***!!! LOW VOLTAGE (init) "));
         Serial.print(vbat,2);
-        Serial.println(" !!!***");
+        Serial.println(F(" !!!***"));
         loop_step = zzz; // Go to sleep
       }
       else {
@@ -391,7 +382,7 @@ void loop()
     // Power up the GNSS (ZOE-M8Q)
     case start_GPS:
 
-      Serial.println("Powering up the GNSS...");
+      Serial.println(F("Powering up the GNSS..."));
       Wire1.begin(); // Set up the I2C pins
       digitalWrite(gnssEN, LOW); // Enable GNSS power (HIGH = disable; LOW = enable)
 
@@ -401,9 +392,9 @@ void loop()
       get_vbat(); // Get the battery (bus) voltage
       if (vbat < VBAT_LOW) {
         // If voltage is low, turn off the GNSS and go to sleep
-        Serial.print("***!!! LOW VOLTAGE (start_GPS) ");
+        Serial.print(F("***!!! LOW VOLTAGE (start_GPS) "));
         Serial.print(vbat,2);
-        Serial.println("V !!!***");
+        Serial.println(F("V !!!***"));
         digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
         loop_step = zzz; // Go to sleep
       }
@@ -453,7 +444,7 @@ void loop()
           {
             if (myGPS.setDynamicModel(DYN_MODEL_PORTABLE) == false)
             {
-              Serial.println("***!!! Warning: setDynamicModel may have failed !!!***");
+              Serial.println(F("***!!! Warning: setDynamicModel may have failed !!!***"));
             }
             else
             {
@@ -472,7 +463,7 @@ void loop()
     // Read a fix from the ZOE-M8Q
     case read_GPS:
 
-      Serial.println("Waiting for a 3D GNSS fix...");
+      Serial.println(F("Waiting for a 3D GNSS fix..."));
 
       fixType = 0; // Clear the fix type
       
@@ -505,9 +496,9 @@ void loop()
 
       // If voltage is low then go straight to sleep
       if (vbat < VBAT_LOW) {
-        Serial.print("***!!! LOW VOLTAGE (read_GPS) ");
+        Serial.print(F("***!!! LOW VOLTAGE (read_GPS) "));
         Serial.print(vbat,2);
-        Serial.println("V !!!***");
+        Serial.println(F("V !!!***"));
         
         loop_step = zzz;
       }
@@ -565,7 +556,7 @@ void loop()
       }
 
       // Power down the GNSS
-      Serial.println("Powering down the GNSS...");
+      Serial.println(F("Powering down the GNSS..."));
       digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
 
       break; // End of case read_GPS
@@ -574,7 +565,7 @@ void loop()
     // Read the pressure and temperature from the MS8607
     case read_pressure:
 
-      Serial.println("Getting the pressure and temperature readings...");
+      Serial.println(F("Getting the pressure and temperature readings..."));
 
       bool barometricSensorOK;
 
@@ -602,13 +593,13 @@ void loop()
         tempC = barometricSensor.getTemperature();
         pascals = barometricSensor.getPressure() * 100.0; // Convert pressure from hPa to Pascals
 
-        Serial.print("Temperature=");
+        Serial.print(F("Temperature="));
         Serial.print(tempC, 1);
-        Serial.print("(C)");
+        Serial.print(F("(C)"));
       
-        Serial.print(" Pressure=");
+        Serial.print(F(" Pressure="));
         Serial.print(pascals, 1);
-        Serial.println("(Pa)");
+        Serial.println(F("(Pa)"));
       }
 
       loop_step = start_LTC3225; // Move on, start the super capacitor charger
@@ -657,9 +648,9 @@ void loop()
 
       // If voltage is low then go straight to sleep
       if (vbat < VBAT_LOW) {
-        Serial.print("***!!! LOW VOLTAGE (start_LTC3225) ");
+        Serial.print(F("***!!! LOW VOLTAGE (start_LTC3225) "));
         Serial.print(vbat,2);
-        Serial.println("V !!!***");
+        Serial.println(F("V !!!***"));
         
         loop_step = zzz;
       }
@@ -715,9 +706,9 @@ void loop()
 
       // If voltage is low then go straight to sleep
       if (vbat < VBAT_LOW) {
-        Serial.print("***!!! LOW VOLTAGE (wait_LTC3225) ");
+        Serial.print(F("***!!! LOW VOLTAGE (wait_LTC3225) "));
         Serial.print(vbat,2);
-        Serial.println("V !!!***");
+        Serial.println(F("V !!!***"));
         
         loop_step = zzz;
       }
@@ -750,7 +741,7 @@ void loop()
       delay(1000);
 
       // Enable the 9603N and start talking to it
-      Serial.println("Beginning to talk to the 9603...");
+      Serial.println(F("Beginning to talk to the 9603..."));
 
       // Start the serial port connected to the satellite modem
       iridiumSerial.begin(19200);
@@ -805,9 +796,9 @@ void loop()
         }
 
         // Send the message
-        Serial.print("Transmitting message '");
+        Serial.print(F("Transmitting message '"));
         Serial.print(outBuffer);
-        Serial.println("'");
+        Serial.println(F("'"));
 
         uint8_t mt_buffer[100]; // Buffer to store Mobile Terminated SBD message
         size_t mtBufferSize = sizeof(mt_buffer); // Size of MT buffer
@@ -846,7 +837,7 @@ void loop()
             // Check message content
             mt_buffer[mtBufferSize] = 0; // Make sure message is NULL terminated
             String mt_str = String((char *)mt_buffer); // Convert message into a String
-            Serial.print("Received a MT message: "); Serial.println(mt_str);
+            Serial.print(F("Received a MT message: ")); Serial.println(mt_str);
 
             // Check if the message contains a correctly formatted interval: "[INTERVAL=nnn]"
             int new_interval = 0;
@@ -857,14 +848,14 @@ void loop()
               ends_at = mt_str.indexOf("]", starts_at); // Find the following "]"
               if (ends_at > starts_at) { // If the message contains both "[INTERVAL=" and "]"
                 String new_interval_str = mt_str.substring((starts_at + 10),ends_at); // Extract the value after the "="
-                Serial.print("Extracted an INTERVAL of: "); Serial.println(new_interval_str);
+                Serial.print(F("Extracted an INTERVAL of: ")); Serial.println(new_interval_str);
                 new_interval = (int)new_interval_str.toInt(); // Convert it to int
               }
             }
             if ((new_interval > 0) and (new_interval <= 1440)) { // Check new interval is valid
-              Serial.print("New INTERVAL received. Setting TXINT to ");
+              Serial.print(F("New INTERVAL received. Setting TXINT to "));
               Serial.print(new_interval);
-              Serial.println(" minutes.");
+              Serial.println(F(" minutes."));
               myTrackerSettings.TXINT = new_interval; // Update the transmit interval
               updateTrackerSettings(&myTrackerSettings); // Update flash memory
             }
@@ -878,14 +869,14 @@ void loop()
               ends_at = mt_str.indexOf("]", starts_at); // Find the following "]"
               if (ends_at > starts_at) { // If the message contains both "[RBSOURCE=" and "]"
                 String new_source_str = mt_str.substring((starts_at + 10),ends_at); // Extract the value after the "="
-                Serial.print("Extracted an RBSOURCE of: "); Serial.println(new_source_str);
+                Serial.print(F("Extracted an RBSOURCE of: ")); Serial.println(new_source_str);
                 new_source = (int)new_source_str.toInt(); // Convert it to int
               }
             }
             // toInt returns zero if the conversion fails, so it is not possible to distinguish between a source of zero and an invalid value!
             // An invalid value will cause RBSOURCE to be set to zero
             if (new_source >= 0) { // If new_source was received
-              Serial.print("New RBSOURCE received. Setting SOURCE to ");
+              Serial.print(F("New RBSOURCE received. Setting SOURCE to "));
               Serial.println(new_source);
               myTrackerSettings.SOURCE = new_source; // Update the source RockBLOCK serial number
               updateTrackerSettings(&myTrackerSettings); // Update flash memory
@@ -900,14 +891,14 @@ void loop()
               ends_at = mt_str.indexOf("]", starts_at); // Find the following "]"
               if (ends_at > starts_at) { // If the message contains both "[RBDESTINATION=" and "]"
                 String new_destination_str = mt_str.substring((starts_at + 15),ends_at); // Extract the value after the "="
-                Serial.print("Extracted an RBDESTINATION of: "); Serial.println(new_destination_str);
+                Serial.print(F("Extracted an RBDESTINATION of: ")); Serial.println(new_destination_str);
                 new_destination = (int)new_destination_str.toInt(); // Convert it to int
               }
             }
             // toInt returns zero if the conversion fails, so it is not possible to distinguish between a destination of zero and an invalid value!
             // An invalid value will cause RBDESTINATION to be set to zero
             if (new_destination >= 0) { // If new_destination was received
-              Serial.print("New RBDESTINATION received. Setting DEST to ");
+              Serial.print(F("New RBDESTINATION received. Setting DEST to "));
               Serial.println(new_destination);
               myTrackerSettings.DEST = new_destination; // Update the destination RockBLOCK serial number
               updateTrackerSettings(&myTrackerSettings); // Update flash memory
@@ -946,10 +937,10 @@ void loop()
     // Go to sleep
     case zzz:
     
-      Serial.println("Getting ready to put the Apollo3 into deep sleep...");
+      Serial.println(F("Getting ready to put the Apollo3 into deep sleep..."));
 
       // Power down the GNSS
-      Serial.println("Powering down the GNSS...");
+      Serial.println(F("Powering down the GNSS..."));
       digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
 
       // Disable 9603N power
@@ -974,7 +965,7 @@ void loop()
       digitalWrite(LED, LOW); // Disable the LED
 
       // Close and detach the serial console
-      Serial.println("Going into deep sleep until next TXINT...");
+      Serial.println(F("Going into deep sleep until next TXINT..."));
       delay(1000); // Wait for serial port to clear
       Serial.end(); // Close the serial console
 
@@ -1100,125 +1091,6 @@ void loop()
 
   } // End of switch (loop_step)
 } // End of loop()
-
-// EEPROM storage
-
-// Data type storage lengths when stored in EEPROM
-#define LEN_BYTE    1
-#define LEN_INT16   2
-#define LEN_INT32   4
-#define LEN_FLOAT   4
-
-// Define the storage lengths for the message fields that will be stored in EEPROM
-#define LEN_STX       LEN_BYTE    // STX is byte
-#define LEN_SOURCE    LEN_INT32   // SOURCE is uint32
-#define LEN_DEST      LEN_INT32   // DEST is uint32
-#define LEN_TXINT     LEN_INT16   // TXINT is uint16
-#define LEN_ETX       LEN_BYTE    // ETX is byte
-#define LEN_CSUMA     LEN_BYTE    // ChecksumA is byte
-#define LEN_CSUMB     LEN_BYTE    // ChecksumB is byte
-
-// Define the storage locations for each message field that will be stored in EEPROM
-#define LOC_STX       0 // Change this if you want the data to be stored higher up in the EEPROM
-#define LOC_SOURCE    LOC_STX + LEN_STX
-#define LOC_DEST      LOC_SOURCE + LEN_SOURCE
-#define LOC_TXINT     LOC_DEST + LEN_DEST
-#define LOC_ETX       LOC_TXINT + LEN_TXINT
-#define LOC_CSUMA     LOC_ETX + LEN_ETX
-#define LOC_CSUMB     LOC_CSUMA + LEN_CSUMA
-
-// Define the default value for each message field
-#define DEF_STX       0x02
-#define DEF_ETX       0x03
-
-byte calculateEEPROMchecksumA() // Calculate the RFC 1145 Checksum A for the EEPROM data
-{
-  uint32_t csuma = 0;
-  for (uint16_t x = LOC_STX; x < (LOC_ETX + LEN_ETX); x += 1) // Calculate a sum of every byte from STX to ETX
-  {
-    csuma = csuma + *(byte *)(AP3_FLASH_EEPROM_START + x);
-  }
-  return ((byte)(csuma & 0x000000ff));
-}
-
-byte calculateEEPROMchecksumB() // Calculate the RFC 1145 Checksum B for the EEPROM data
-{
-  uint32_t csuma = 0;
-  uint32_t csumb = 0;
-  for (uint16_t x = LOC_STX; x < (LOC_ETX + LEN_ETX); x += 1) // Calculate a sum of sums for every byte from STX to ETX
-  {
-    csuma = csuma + *(byte *)(AP3_FLASH_EEPROM_START + x);
-    csumb = csumb + csuma;
-  }
-  return ((byte)(csumb & 0x000000ff));
-}
-
-bool checkEEPROM(trackerSettings *myTrackerSettings)
-// Checks if EEPROM data is valid (i.e. has been initialised) by checking that the STX, ETX and the two checksum bytes are valid
-{
-  byte stx;
-  byte etx;
-  EEPROM.get(LOC_STX, stx);
-  EEPROM.get(LOC_ETX, etx);
-  byte eeprom_csuma;
-  byte eeprom_csumb;
-  EEPROM.get(LOC_CSUMA, eeprom_csuma);
-  EEPROM.get(LOC_CSUMB, eeprom_csumb);
-  byte csuma = calculateEEPROMchecksumA();
-  byte csumb = calculateEEPROMchecksumB();
-  bool result = true;
-  result = result && ((stx == myTrackerSettings->STX) && (etx == myTrackerSettings->ETX)); // Check that EEPROM STX and ETX match the values in RAM
-  result = result && ((csuma == eeprom_csuma) && (csumb == eeprom_csumb)); // Check that the EEPROM checksums are valid
-  result = result && ((stx == DEF_STX) && (etx == DEF_ETX)); // Check that EEPROM STX and ETX are actually STX and ETX (not zero!)
-  return (result);
-}
-
-void updateEEPROMchecksum() // Update the two EEPROM checksum bytes
-{
-  byte csuma = calculateEEPROMchecksumA();
-  byte csumb = calculateEEPROMchecksumB();
-  EEPROM.write(LOC_CSUMA, csuma);
-  EEPROM.write(LOC_CSUMB, csumb);
-}
-
-void initTrackerSettings(trackerSettings *myTrackerSettings) // Initialises the trackerSettings in RAM with the default values
-{
-  myTrackerSettings->STX = DEF_STX;
-  myTrackerSettings->SOURCE = DEF_SOURCE;
-  myTrackerSettings->DEST = DEF_DEST;
-  myTrackerSettings->TXINT = DEF_TXINT;
-  myTrackerSettings->ETX = DEF_ETX;
-}
-
-void putTrackerSettings(trackerSettings *myTrackerSettings) // Write the trackerSettings from RAM into EEPROM
-{
-  EEPROM.erase(); // Erase any old data first
-  EEPROM.put(LOC_STX, myTrackerSettings->STX);
-  EEPROM.put(LOC_SOURCE, myTrackerSettings->SOURCE);
-  EEPROM.put(LOC_DEST, myTrackerSettings->DEST);
-  EEPROM.put(LOC_TXINT, myTrackerSettings->TXINT);
-  EEPROM.put(LOC_ETX, myTrackerSettings->ETX);
-  updateEEPROMchecksum();
-}
-
-void updateTrackerSettings(trackerSettings *myTrackerSettings) // Update any changed trackerSettings in EEPROM
-{
-  EEPROM.update(LOC_STX, myTrackerSettings->STX);
-  EEPROM.update(LOC_SOURCE, myTrackerSettings->SOURCE);
-  EEPROM.update(LOC_DEST, myTrackerSettings->DEST);
-  EEPROM.update(LOC_TXINT, myTrackerSettings->TXINT);
-  EEPROM.update(LOC_ETX, myTrackerSettings->ETX);
-  updateEEPROMchecksum();
-}
-
-void getTrackerSettings(trackerSettings *myTrackerSettings) // Read the trackerSettings from EEPROM into RAM
-{
-  EEPROM.get(LOC_STX, myTrackerSettings->STX);
-  EEPROM.get(LOC_SOURCE, myTrackerSettings->SOURCE);
-  EEPROM.get(LOC_DEST, myTrackerSettings->DEST);
-  EEPROM.get(LOC_TXINT, myTrackerSettings->TXINT);
-  EEPROM.get(LOC_ETX, myTrackerSettings->ETX);
-}
 
 // IridiumSBD Callbacks
 

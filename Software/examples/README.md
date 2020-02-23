@@ -4,7 +4,8 @@
 
 These examples demonstrate how to use the Artemis Global Tracker. There are examples showing: how to communicate with the MS8607 PHT sensor;
 how to get a fix from the ZOE-M8Q GNSS; how to set up a geofence and how to wake up the Artemis when the geofence status changes;
-how to send Iridium Short Burst Data (SBD) messages and monitor the ring channel for new messages.
+how to send Iridium Short Burst Data (SBD) messages and monitor the ring channel for new messages. Example16 contains the code
+for the full GlobalTracker.
 
 **Example1** powers up the tracker and blinks the white LED (connected to D19).
 
@@ -56,19 +57,19 @@ If message forwarding is enabled, the message format will be (using the above ex
 
 If message forwarding is enabled, you will be charged twice for each message: once to send it, and once to receive it.
 
-**(Coming soon!)** **Example16** is a full-on Global Tracker which has many settings that can be configured and stored in EEPROM. The GlobalTracker can be configured to transmit:
-on a GeoFence alert; or when Pressure, Temperature or Humidity limits are exceeded; or if the battery voltage is low. All of the settings can be configured via the Arduino Serial Monitor (USB-C)
-or via a binary format Iridium SBD message.
+**(Coming soon!)** **Example16** is the full Global Tracker which has many settings that can be configured and stored in EEPROM. The GlobalTracker can be configured to transmit:
+on a GeoFence alert; or when Pressure, Temperature or Humidity limits are exceeded; or if the battery voltage is low. All of the settings can be configured via USB-C
+or remotely via a binary format Iridium SBD message.
 
 Messages can be sent in text format (human-readable) or binary format (to save messages credits). You can configure which message fields are included in the message so you only send the data you need.
 
 You can trigger user-defined functions e.g. to operate an [external relay](https://www.sparkfun.com/products/15093)
 
-You can also include readings from additional sensors e.g.: [UV](https://www.sparkfun.com/products/15089), [Distance](https://www.sparkfun.com/products/14722),
+You can also include readings from additional external sensors e.g.: [UV](https://www.sparkfun.com/products/15089), [Distance](https://www.sparkfun.com/products/14722),
 [Human Presence](https://www.sparkfun.com/products/14349).
 
-You can have the Iridium 9603N monitor the ring channel continuously for new Mobile Terminated messages but this will increase the current draw considerably (approximately 50mA).
-This is not recommended for battery-powered applications.
+You can have the Iridium 9603N monitor the ring channel continuously for new Mobile Terminated messages so it can respond to them immediately,
+but this will increase the current draw considerably (approximately 50mA). This is not recommended for battery-powered applications.
 
 <br/>
 
@@ -84,7 +85,7 @@ You will also need to install the Qwiic_PHT_MS8607_Library:
 
 You also need the SparkFun Ublox library:
 - https://github.com/sparkfun/SparkFun_Ublox_Arduino_Library
-- (Available trough the Arduino Library Manager: search for Ublox)
+- (Available through the Arduino Library Manager: search for Ublox)
 
 Basic information on how to install an Arduino library is available here:
 - https://learn.sparkfun.com/tutorials/installing-an-arduino-library

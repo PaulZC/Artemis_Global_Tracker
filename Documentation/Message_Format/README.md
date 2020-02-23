@@ -34,11 +34,7 @@ The general format is:
 
 MOFIELDS defines which message fields are to be or are being sent. The fields are sent in ascending ID order.
 
-The length of each field will vary depending on the value it contains. Unnecessary leading or trailing zeros will be removed to help save message credits.
-
-E.g. a longitude 170 degrees West will be sent as "-170.0" not "-170.0000000"; 20 degrees East will be sent as "20.0" not "020.0000000"
-
-By default, float values will always be sent with at least one decimal place (but this can be suppressed too by defining SUPDP in the code).
+The length of each field will vary depending on the value it contains.
 
 ---
 ### Binary
@@ -93,7 +89,7 @@ This table defines the Artemis Global Tracker message fields:
 - Txt_Len: is the _maximum_ field length when sent as a text message (excluding the trailing comma)
 - MO: can this field be sent in a Mobile Originated message?
 - MT: can this field be set remotely by a Mobile Terminated message?
-- USB: can this field be configured via the USB-C serial interface (from the serial monitor)?
+- USB: can this field be configured via the USB-C serial interface?
 - EEPROM: is the data for this field stored in EEPROM?
 - Desc.: a brief description of this field
 

@@ -229,9 +229,9 @@ bool ISBDCallback()
   // If voltage is low, stop Iridium send
   get_vbat(); // Read the battery (bus) voltage
   if (vbat < VBAT_LOW) {
-    Serial.print("***!!! LOW VOLTAGE (ISBDCallback) ");
+    Serial.print(F("***!!! LOW VOLTAGE (ISBDCallback) "));
     Serial.print(vbat,2);
-    Serial.println("V !!!***");
+    Serial.println(F("V !!!***"));
     return false; // Returning false causes IridiumSBD to terminate
   }
   else {     
@@ -304,9 +304,9 @@ void loop()
       // If voltage is low, go to sleep
       get_vbat(); // Get the battery (bus) voltage
       if (vbat < VBAT_LOW) {
-        Serial.print("***!!! LOW VOLTAGE (init) ");
+        Serial.print(F("***!!! LOW VOLTAGE (init) "));
         Serial.print(vbat,2);
-        Serial.println(" !!!***");
+        Serial.println(F(" !!!***"));
         loop_step = zzz; // Go to sleep
       }
       else {
@@ -319,7 +319,7 @@ void loop()
     // Power up the GNSS (ZOE-M8Q)
     case start_GPS:
 
-      Serial.println("Powering up the GNSS...");
+      Serial.println(F("Powering up the GNSS..."));
       Wire1.begin(); // Set up the I2C pins
       digitalWrite(gnssEN, LOW); // Enable GNSS power (HIGH = disable; LOW = enable)
 
@@ -329,9 +329,9 @@ void loop()
       get_vbat(); // Get the battery (bus) voltage
       if (vbat < VBAT_LOW) {
         // If voltage is low, turn off the GNSS and go to sleep
-        Serial.print("***!!! LOW VOLTAGE (start_GPS) ");
+        Serial.print(F("***!!! LOW VOLTAGE (start_GPS) "));
         Serial.print(vbat,2);
-        Serial.println("V !!!***");
+        Serial.println(F("V !!!***"));
         digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
         loop_step = zzz; // Go to sleep
       }
@@ -381,7 +381,7 @@ void loop()
           {
             if (myGPS.setDynamicModel(DYN_MODEL_PORTABLE) == false)
             {
-              Serial.println("***!!! Warning: setDynamicModel may have failed !!!***");
+              Serial.println(F("***!!! Warning: setDynamicModel may have failed !!!***"));
             }
             else
             {
@@ -400,7 +400,7 @@ void loop()
     // Read a fix from the ZOE-M8Q
     case read_GPS:
 
-      Serial.println("Waiting for a 3D GNSS fix...");
+      Serial.println(F("Waiting for a 3D GNSS fix..."));
 
       fixType = 0; // Clear the fix type
       
@@ -433,9 +433,9 @@ void loop()
 
       // If voltage is low then go straight to sleep
       if (vbat < VBAT_LOW) {
-        Serial.print("***!!! LOW VOLTAGE (read_GPS) ");
+        Serial.print(F("***!!! LOW VOLTAGE (read_GPS) "));
         Serial.print(vbat,2);
-        Serial.println("V !!!***");
+        Serial.println(F("V !!!***"));
         
         loop_step = zzz;
       }
@@ -493,7 +493,7 @@ void loop()
       }
 
       // Power down the GNSS
-      Serial.println("Powering down the GNSS...");
+      Serial.println(F("Powering down the GNSS..."));
       digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
 
       break; // End of case read_GPS
@@ -502,7 +502,7 @@ void loop()
     // Read the pressure and temperature from the MS8607
     case read_pressure:
 
-      Serial.println("Getting the pressure and temperature readings...");
+      Serial.println(F("Getting the pressure and temperature readings..."));
 
       bool barometricSensorOK;
 
@@ -530,13 +530,13 @@ void loop()
         tempC = barometricSensor.getTemperature();
         pascals = barometricSensor.getPressure() * 100.0; // Convert pressure from hPa to Pascals
 
-        Serial.print("Temperature=");
+        Serial.print(F("Temperature="));
         Serial.print(tempC, 1);
-        Serial.print("(C)");
+        Serial.print(F("(C)"));
       
-        Serial.print(" Pressure=");
+        Serial.print(F(" Pressure="));
         Serial.print(pascals, 1);
-        Serial.println("(Pa)");
+        Serial.println(F("(Pa)"));
       }
 
       loop_step = start_LTC3225; // Move on, start the super capacitor charger
@@ -585,9 +585,9 @@ void loop()
 
       // If voltage is low then go straight to sleep
       if (vbat < VBAT_LOW) {
-        Serial.print("***!!! LOW VOLTAGE (start_LTC3225) ");
+        Serial.print(F("***!!! LOW VOLTAGE (start_LTC3225) "));
         Serial.print(vbat,2);
-        Serial.println("V !!!***");
+        Serial.println(F("V !!!***"));
         
         loop_step = zzz;
       }
@@ -643,9 +643,9 @@ void loop()
 
       // If voltage is low then go straight to sleep
       if (vbat < VBAT_LOW) {
-        Serial.print("***!!! LOW VOLTAGE (wait_LTC3225) ");
+        Serial.print(F("***!!! LOW VOLTAGE (wait_LTC3225) "));
         Serial.print(vbat,2);
-        Serial.println("V !!!***");
+        Serial.println(F("V !!!***"));
         
         loop_step = zzz;
       }
@@ -678,7 +678,7 @@ void loop()
       delay(1000);
 
       // Enable the 9603N and start talking to it
-      Serial.println("Beginning to talk to the 9603...");
+      Serial.println(F("Beginning to talk to the 9603..."));
 
       // Start the serial port connected to the satellite modem
       iridiumSerial.begin(19200);
@@ -727,9 +727,9 @@ void loop()
           lat_str, lon_str, alt_str, speed_str, course, pdop, satellites, pressure_str, temperature_str, vbat_str, iterationCounter);
 
         // Send the message
-        Serial.print("Transmitting message '");
+        Serial.print(F("Transmitting message '"));
         Serial.print(outBuffer);
-        Serial.println("'");
+        Serial.println(F("'"));
 
 #ifndef noTX
         err = modem.sendSBDText(outBuffer); // This could take many seconds to complete and will call ISBDCallback() periodically
@@ -793,10 +793,10 @@ void loop()
     // Go to sleep
     case zzz:
     
-      Serial.println("Getting ready to put the Apollo3 into deep sleep...");
+      Serial.println(F("Getting ready to put the Apollo3 into deep sleep..."));
 
       // Power down the GNSS
-      Serial.println("Powering down the GNSS...");
+      Serial.println(F("Powering down the GNSS..."));
       digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
 
       // Disable 9603N power
@@ -821,7 +821,7 @@ void loop()
       digitalWrite(LED, LOW); // Disable the LED
 
       // Close and detach the serial console
-      Serial.println("Going into deep sleep until next INTERVAL...");
+      Serial.println(F("Going into deep sleep until next INTERVAL..."));
       delay(1000); // Wait for serial port to clear
       Serial.end(); // Close the serial console
 
