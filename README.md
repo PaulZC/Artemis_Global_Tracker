@@ -1,11 +1,8 @@
 # Artemis Global Tracker
 
-
 An open source global satellite tracker utilising the [SparkFun Artemis module](https://www.sparkfun.com/products/15484),
 [Iridium 9603N satellite transceiver](https://www.iridium.com/products/iridium-9603/) and [u-blox ZOE-M8Q GNSS
 ](https://www.u-blox.com/en/product/zoe-m8-series).
-
-### Work in progress!
 
 ![Top](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/Top.JPG)
 ![Bottom](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/Bottom.JPG)

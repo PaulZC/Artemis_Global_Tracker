@@ -167,7 +167,7 @@ If the number of IDs is expanded beyond 0x5f, MOFIELDS will need to be redefined
 | [0x4a](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#lowbatt-0x4a) | LOWBATT | uint16_t | 2 | 4 | Yes | Yes | Yes | Yes | The low battery limit |
 | [0x4b](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#dynmodel-0x4b) | DYNMODEL | byte | 1 | 2 | Yes | Yes | Yes | Yes | The GNSS dynamic platform model |
 | 0x4c - 0x51 | | | | | | | | | **Currently undefined - do not use** |
-| 0x52 | "R" | | 4 | | | | | | ASCII "R" - Reserved for the RockBLOCK gateway header (message forwarding) |
+| 0x52 | RBHEAD | | 4 | | | | | | **ASCII "R" - Reserved for the RockBLOCK gateway header (message forwarding)** |
 | 0x53 - 0x57 | | | | | | | | | **Currently undefined - do not use** |
 | [0x58](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc1-0x58) | USERFUNC1 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 1 |
 | [0x59](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc2-0x59) | USERFUNC2 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 2 |

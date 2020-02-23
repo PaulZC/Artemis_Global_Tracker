@@ -1,7 +1,5 @@
 # Artemis Global Tracker Examples
 
-### Work in progress!
-
 These examples demonstrate how to use the Artemis Global Tracker. There are examples showing: how to communicate with the MS8607 PHT sensor;
 how to get a fix from the ZOE-M8Q GNSS; how to set up a geofence and how to wake up the Artemis when the geofence status changes;
 how to send Iridium Short Burst Data (SBD) messages and monitor the ring channel for new messages. Example16 contains the code
@@ -57,7 +55,7 @@ If message forwarding is enabled, the message format will be (using the above ex
 
 If message forwarding is enabled, you will be charged twice for each message: once to send it, and once to receive it.
 
-**(Coming soon!)** **Example16** is the full Global Tracker which has many settings that can be configured and stored in EEPROM. The GlobalTracker can be configured to transmit:
+**(WORK IN PROGRESS!)** **Example16** is the full Global Tracker which has many settings that can be configured and stored in EEPROM. The GlobalTracker can be configured to transmit:
 on a GeoFence alert; or when Pressure, Temperature or Humidity limits are exceeded; or if the battery voltage is low. All of the settings can be configured via USB-C
 or remotely via a binary format Iridium SBD message.
 
