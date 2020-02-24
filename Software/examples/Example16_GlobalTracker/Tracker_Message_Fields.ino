@@ -819,30 +819,51 @@ enum tracker_parsing_result parse_data(uint8_t *data_buffer, size_t &data_buffer
       case DYNMODEL:
         myTrackerSettings->DYNMODEL = (dynModel)(data_buffer[++x]);
         x += 1;
+        dynamicModelSet == false; // Clear the flag so the dynamic model will be updated next time around the loop
         break;
       case USERFUNC1:
+        USER_FUNC_1(); // Call the user function
         x += 1;
         break;
       case USERFUNC2:
+        USER_FUNC_2(); // Call the user function
         x += 1;
         break;
       case USERFUNC3:
+        USER_FUNC_3(); // Call the user function
         x += 1;
         break;
       case USERFUNC4:
+        USER_FUNC_4(); // Call the user function
         x += 1;
         break;
       case USERFUNC5:
-        x += 3;
+        uint16t.the_bytes[0] = data_buffer[++x];
+        uint16t.the_bytes[1] = data_buffer[++x];
+        USER_FUNC_5(uint16t.the_data); // Call the user function
+        x += 1;
         break;
       case USERFUNC6:
-        x += 3;
+        uint16t.the_bytes[0] = data_buffer[++x];
+        uint16t.the_bytes[1] = data_buffer[++x];
+        USER_FUNC_6(uint16t.the_data); // Call the user function
+        x += 1;
         break;
       case USERFUNC7:
-        x += 5;
+        uint32t.the_bytes[0] = data_buffer[++x];
+        uint32t.the_bytes[1] = data_buffer[++x];
+        uint32t.the_bytes[2] = data_buffer[++x];
+        uint32t.the_bytes[3] = data_buffer[++x];
+        USER_FUNC_7(uint32t.the_data); // Call the user function
+        x += 1;
         break;
       case USERFUNC8:
-        x += 5;
+        uint32t.the_bytes[0] = data_buffer[++x];
+        uint32t.the_bytes[1] = data_buffer[++x];
+        uint32t.the_bytes[2] = data_buffer[++x];
+        uint32t.the_bytes[3] = data_buffer[++x];
+        USER_FUNC_8(uint32t.the_data); // Call the user function
+        x += 1;
         break;
     }
   }
