@@ -787,7 +787,7 @@ GEOF1RAD (0x3d)
 | Example value: | 100m |
 | Binary example: | 0x3d10270000 (10000 is 0x00002710) |
 | Text example: | 100.0 |
-| Default value: | 100 |
+| Default value: | 0.0 |
 
 ---
 GEOF2LAT (0x3e)
@@ -869,7 +869,7 @@ ALARMINT (0x48)
 | Example value: | 10 minutes |
 | Binary example: | 0x480a00 (10 is 0x000a) |
 | Text example: | 10 |
-| Default value: | 10 |
+| Default value: | 5 |
 
 ---
 TXINT (0x49)
@@ -883,7 +883,7 @@ TXINT (0x49)
 | Example value: | 10 minutes |
 | Binary example: | 0x490a00 (10 is 0x000a) |
 | Text example: | 10 |
-| Default value: | 10 |
+| Default value: | 5 |
 
 ---
 LOWBATT (0x4a)
@@ -897,6 +897,7 @@ LOWBATT (0x4a)
 | Example value: | 3.60V |
 | Binary example: | 0x096801 (360 is 0x0168) |
 | Text example: | 3.6 |
+| Default value: | 3.2 |
 
 ---
 DYNMODEL (0x4b)
@@ -920,6 +921,7 @@ DYNMODEL (0x4b)
 | Example value: | 3 |
 | Binary example: | 0x4b03 (3 is 0x03) |
 | Text example: | 3 |
+| Default value: | 0 |
 
 ---
 USERFUNC1 (0x58)
