@@ -19,6 +19,8 @@ from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, QGridLayout, \
     QPushButton, QApplication, QLineEdit, QFileDialog, QPlainTextEdit, QCheckBox
 from PyQt5.QtGui import QCloseEvent, QTextCursor
 
+import struct
+
 # Setting constants
 SETTING_PORT_NAME = 'COM1'
 SETTING_FILE_LOCATION = 'C:'
@@ -371,6 +373,10 @@ class MainWidget(QWidget):
         # Field Value Labels
 
         Values_label = QLabel(self.tr('Field Values:'))
+        Include_label = QLabel(self.tr('Include'))
+        FLAGS1_val_label = QLabel(self.tr('FLAGS1'))
+        FLAGS2_val_label = QLabel(self.tr('FLAGS2'))
+        MOFIELDS_val_label = QLabel(self.tr('MOFIELDS'))
         SOURCE_val_label = QLabel(self.tr('SOURCE'))
         DEST_val_label = QLabel(self.tr('DEST'))
         HIPRESS_val_label = QLabel(self.tr('HIPRESS'))
@@ -398,7 +404,11 @@ class MainWidget(QWidget):
         LOWBATT_val_label = QLabel(self.tr('LOWBATT'))
         DYNMODEL_val_label = QLabel(self.tr('DYNMODEL'))
 
-        Values_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        Values_label.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+        Include_label.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+        FLAGS1_val_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        FLAGS2_val_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        MOFIELDS_val_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         SOURCE_val_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         DEST_val_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         HIPRESS_val_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
@@ -428,6 +438,9 @@ class MainWidget(QWidget):
 
         # Field Value Checkboxes
 
+        self.checkbox_val_FLAGS1 = QCheckBox()
+        self.checkbox_val_FLAGS2 = QCheckBox()
+        self.checkbox_val_MOFIELDS = QCheckBox()
         self.checkbox_val_SOURCE = QCheckBox()
         self.checkbox_val_DEST = QCheckBox()
         self.checkbox_val_HIPRESS = QCheckBox()
@@ -483,8 +496,71 @@ class MainWidget(QWidget):
         self.val_TXINT = QLineEdit()
         self.val_LOWBATT = QLineEdit()
         self.val_DYNMODEL = QLineEdit()
+
+        # Field Units
+        
+        FLAGS1_units = QLabel(self.tr(''))
+        FLAGS2_units = QLabel(self.tr(''))
+        MOFIELDS_units = QLabel(self.tr(''))
+        SOURCE_units = QLabel(self.tr('(Serial Only)'))
+        DEST_units = QLabel(self.tr(''))
+        HIPRESS_units = QLabel(self.tr('mbar'))
+        LOPRESS_units = QLabel(self.tr('mbar'))
+        HITEMP_units = QLabel(self.tr('C'))
+        LOTEMP_units = QLabel(self.tr('C'))
+        HIHUMID_units = QLabel(self.tr('%RH'))
+        LOHUMID_units = QLabel(self.tr('%RH'))
+        GEOFNUM_units = QLabel(self.tr('Num+Conf: 00 to 44'))
+        GEOF1LAT_units = QLabel(self.tr('Degrees'))
+        GEOF1LON_units = QLabel(self.tr('Degrees'))
+        GEOF1RAD_units = QLabel(self.tr('m'))
+        GEOF2LAT_units = QLabel(self.tr('Degrees'))
+        GEOF2LON_units = QLabel(self.tr('Degrees'))
+        GEOF2RAD_units = QLabel(self.tr('m'))
+        GEOF3LAT_units = QLabel(self.tr('Degrees'))
+        GEOF3LON_units = QLabel(self.tr('Degrees'))
+        GEOF3RAD_units = QLabel(self.tr('m'))
+        GEOF4LAT_units = QLabel(self.tr('Degrees'))
+        GEOF4LON_units = QLabel(self.tr('Degrees'))
+        GEOF4RAD_units = QLabel(self.tr('m'))
+        WAKEINT_units = QLabel(self.tr('seconds'))
+        ALARMINT_units = QLabel(self.tr('minutes'))
+        TXINT_units = QLabel(self.tr('minutes'))
+        LOWBATT_units = QLabel(self.tr('V'))
+        DYNMODEL_units = QLabel(self.tr('0,2-10'))
+        
+        FLAGS1_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        FLAGS2_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        MOFIELDS_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        SOURCE_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        DEST_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        HIPRESS_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        LOPRESS_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        HITEMP_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        LOTEMP_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        HIHUMID_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        LOHUMID_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        GEOFNUM_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        GEOF1LAT_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        GEOF1LON_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        GEOF1RAD_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        GEOF2LAT_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        GEOF2LON_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        GEOF2RAD_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        GEOF3LAT_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        GEOF3LON_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        GEOF3RAD_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        GEOF4LAT_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        GEOF4LON_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        GEOF4RAD_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        WAKEINT_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        ALARMINT_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        TXINT_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        LOWBATT_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        DYNMODEL_units.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         
         # Arrange Layout
+        
         layout = QGridLayout()
         
         layout.addWidget(self.msg_label, 0, 0)
@@ -696,86 +772,123 @@ class MainWidget(QWidget):
         layout.addWidget(self.checkbox_DYNMODEL, 27, 9)
                          
         layout.addWidget(Values_label, 0, 11)
-        layout.addWidget(SOURCE_val_label, 1, 11)
-        layout.addWidget(DEST_val_label, 2, 11)
-        layout.addWidget(HIPRESS_val_label, 3, 11)
-        layout.addWidget(LOPRESS_val_label, 4, 11)
-        layout.addWidget(HITEMP_val_label, 5, 11)
-        layout.addWidget(LOTEMP_val_label, 6, 11)
-        layout.addWidget(HIHUMID_val_label, 7, 11)
-        layout.addWidget(LOHUMID_val_label, 8, 11)
-        layout.addWidget(GEOFNUM_val_label, 9, 11)
-        layout.addWidget(GEOF1LAT_val_label, 10, 11)
-        layout.addWidget(GEOF1LON_val_label, 11, 11)
-        layout.addWidget(GEOF1RAD_val_label, 12, 11)
-        layout.addWidget(GEOF2LAT_val_label, 13, 11)
-        layout.addWidget(GEOF2LON_val_label, 14, 11)
-        layout.addWidget(GEOF2RAD_val_label, 15, 11)
-        layout.addWidget(GEOF3LAT_val_label, 16, 11)
-        layout.addWidget(GEOF3LON_val_label, 17, 11)
-        layout.addWidget(GEOF3RAD_val_label, 18, 11)
-        layout.addWidget(GEOF4LAT_val_label, 19, 11)
-        layout.addWidget(GEOF4LON_val_label, 20, 11)
-        layout.addWidget(GEOF4RAD_val_label, 21, 11)
-        layout.addWidget(WAKEINT_val_label, 22, 11)
-        layout.addWidget(ALARMINT_val_label, 23, 11)
-        layout.addWidget(TXINT_val_label, 24, 11)
-        layout.addWidget(LOWBATT_val_label, 25, 11)
-        layout.addWidget(DYNMODEL_val_label, 26, 11)
+        layout.addWidget(FLAGS1_val_label, 1, 11)
+        layout.addWidget(FLAGS2_val_label, 2, 11)
+        layout.addWidget(MOFIELDS_val_label, 3, 11)
+        layout.addWidget(SOURCE_val_label, 4, 11)
+        layout.addWidget(DEST_val_label, 5, 11)
+        layout.addWidget(HIPRESS_val_label, 6, 11)
+        layout.addWidget(LOPRESS_val_label, 7, 11)
+        layout.addWidget(HITEMP_val_label, 8, 11)
+        layout.addWidget(LOTEMP_val_label, 9, 11)
+        layout.addWidget(HIHUMID_val_label, 10, 11)
+        layout.addWidget(LOHUMID_val_label, 11, 11)
+        layout.addWidget(GEOFNUM_val_label, 12, 11)
+        layout.addWidget(GEOF1LAT_val_label, 13, 11)
+        layout.addWidget(GEOF1LON_val_label, 14, 11)
+        layout.addWidget(GEOF1RAD_val_label, 15, 11)
+        layout.addWidget(GEOF2LAT_val_label, 16, 11)
+        layout.addWidget(GEOF2LON_val_label, 17, 11)
+        layout.addWidget(GEOF2RAD_val_label, 18, 11)
+        layout.addWidget(GEOF3LAT_val_label, 19, 11)
+        layout.addWidget(GEOF3LON_val_label, 20, 11)
+        layout.addWidget(GEOF3RAD_val_label, 21, 11)
+        layout.addWidget(GEOF4LAT_val_label, 22, 11)
+        layout.addWidget(GEOF4LON_val_label, 23, 11)
+        layout.addWidget(GEOF4RAD_val_label, 24, 11)
+        layout.addWidget(WAKEINT_val_label, 25, 11)
+        layout.addWidget(ALARMINT_val_label, 26, 11)
+        layout.addWidget(TXINT_val_label, 27, 11)
+        layout.addWidget(LOWBATT_val_label, 28, 11)
+        layout.addWidget(DYNMODEL_val_label, 29, 11)
 
-        layout.addWidget(self.checkbox_val_SOURCE, 1, 12)
-        layout.addWidget(self.checkbox_val_DEST, 2, 12)
-        layout.addWidget(self.checkbox_val_HIPRESS, 3, 12)
-        layout.addWidget(self.checkbox_val_LOPRESS, 4, 12)
-        layout.addWidget(self.checkbox_val_HITEMP, 5, 12)
-        layout.addWidget(self.checkbox_val_LOTEMP, 6, 12)
-        layout.addWidget(self.checkbox_val_HIHUMID, 7, 12)
-        layout.addWidget(self.checkbox_val_LOHUMID, 8, 12)
-        layout.addWidget(self.checkbox_val_GEOFNUM, 9, 12)
-        layout.addWidget(self.checkbox_val_GEOF1LAT, 10, 12)
-        layout.addWidget(self.checkbox_val_GEOF1LON, 11, 12)
-        layout.addWidget(self.checkbox_val_GEOF1RAD, 12, 12)
-        layout.addWidget(self.checkbox_val_GEOF2LAT, 13, 12)
-        layout.addWidget(self.checkbox_val_GEOF2LON, 14, 12)
-        layout.addWidget(self.checkbox_val_GEOF2RAD, 15, 12)
-        layout.addWidget(self.checkbox_val_GEOF3LAT, 16, 12)
-        layout.addWidget(self.checkbox_val_GEOF3LON, 17, 12)
-        layout.addWidget(self.checkbox_val_GEOF3RAD, 18, 12)
-        layout.addWidget(self.checkbox_val_GEOF4LAT, 19, 12)
-        layout.addWidget(self.checkbox_val_GEOF4LON, 20, 12)
-        layout.addWidget(self.checkbox_val_GEOF4RAD, 21, 12)
-        layout.addWidget(self.checkbox_val_WAKEINT, 22, 12)
-        layout.addWidget(self.checkbox_val_ALARMINT, 23, 12)
-        layout.addWidget(self.checkbox_val_TXINT, 24, 12)
-        layout.addWidget(self.checkbox_val_LOWBATT, 25, 12)
-        layout.addWidget(self.checkbox_val_DYNMODEL, 26, 12)
+        layout.addWidget(Include_label, 0, 12)
+        layout.addWidget(self.checkbox_val_FLAGS1, 1, 12)
+        layout.addWidget(self.checkbox_val_FLAGS2, 2, 12)
+        layout.addWidget(self.checkbox_val_MOFIELDS, 3, 12)
+        layout.addWidget(self.checkbox_val_SOURCE, 4, 12)
+        layout.addWidget(self.checkbox_val_DEST, 5, 12)
+        layout.addWidget(self.checkbox_val_HIPRESS, 6, 12)
+        layout.addWidget(self.checkbox_val_LOPRESS, 7, 12)
+        layout.addWidget(self.checkbox_val_HITEMP, 8, 12)
+        layout.addWidget(self.checkbox_val_LOTEMP, 9, 12)
+        layout.addWidget(self.checkbox_val_HIHUMID, 10, 12)
+        layout.addWidget(self.checkbox_val_LOHUMID, 11, 12)
+        layout.addWidget(self.checkbox_val_GEOFNUM, 12, 12)
+        layout.addWidget(self.checkbox_val_GEOF1LAT, 13, 12)
+        layout.addWidget(self.checkbox_val_GEOF1LON, 14, 12)
+        layout.addWidget(self.checkbox_val_GEOF1RAD, 15, 12)
+        layout.addWidget(self.checkbox_val_GEOF2LAT, 16, 12)
+        layout.addWidget(self.checkbox_val_GEOF2LON, 17, 12)
+        layout.addWidget(self.checkbox_val_GEOF2RAD, 18, 12)
+        layout.addWidget(self.checkbox_val_GEOF3LAT, 19, 12)
+        layout.addWidget(self.checkbox_val_GEOF3LON, 20, 12)
+        layout.addWidget(self.checkbox_val_GEOF3RAD, 21, 12)
+        layout.addWidget(self.checkbox_val_GEOF4LAT, 22, 12)
+        layout.addWidget(self.checkbox_val_GEOF4LON, 23, 12)
+        layout.addWidget(self.checkbox_val_GEOF4RAD, 24, 12)
+        layout.addWidget(self.checkbox_val_WAKEINT, 25, 12)
+        layout.addWidget(self.checkbox_val_ALARMINT, 26, 12)
+        layout.addWidget(self.checkbox_val_TXINT, 27, 12)
+        layout.addWidget(self.checkbox_val_LOWBATT, 28, 12)
+        layout.addWidget(self.checkbox_val_DYNMODEL, 29, 12)
 
-        layout.addWidget(self.val_SOURCE, 1, 13)
-        layout.addWidget(self.val_DEST, 2, 13)
-        layout.addWidget(self.val_HIPRESS, 3, 13)
-        layout.addWidget(self.val_LOPRESS, 4, 13)
-        layout.addWidget(self.val_HITEMP, 5, 13)
-        layout.addWidget(self.val_LOTEMP, 6, 13)
-        layout.addWidget(self.val_HIHUMID, 7, 13)
-        layout.addWidget(self.val_LOHUMID, 8, 13)
-        layout.addWidget(self.val_GEOFNUM, 9, 13)
-        layout.addWidget(self.val_GEOF1LAT, 10, 13)
-        layout.addWidget(self.val_GEOF1LON, 11, 13)
-        layout.addWidget(self.val_GEOF1RAD, 12, 13)
-        layout.addWidget(self.val_GEOF2LAT, 13, 13)
-        layout.addWidget(self.val_GEOF2LON, 14, 13)
-        layout.addWidget(self.val_GEOF2RAD, 15, 13)
-        layout.addWidget(self.val_GEOF3LAT, 16, 13)
-        layout.addWidget(self.val_GEOF3LON, 17, 13)
-        layout.addWidget(self.val_GEOF3RAD, 18, 13)
-        layout.addWidget(self.val_GEOF4LAT, 19, 13)
-        layout.addWidget(self.val_GEOF4LON, 20, 13)
-        layout.addWidget(self.val_GEOF4RAD, 21, 13)
-        layout.addWidget(self.val_WAKEINT, 22, 13)
-        layout.addWidget(self.val_ALARMINT, 23, 13)
-        layout.addWidget(self.val_TXINT, 24, 13)
-        layout.addWidget(self.val_LOWBATT, 25, 13)
-        layout.addWidget(self.val_DYNMODEL, 26, 13)
+        layout.addWidget(self.val_SOURCE, 4, 13)
+        layout.addWidget(self.val_DEST, 5, 13)
+        layout.addWidget(self.val_HIPRESS, 6, 13)
+        layout.addWidget(self.val_LOPRESS, 7, 13)
+        layout.addWidget(self.val_HITEMP, 8, 13)
+        layout.addWidget(self.val_LOTEMP, 9, 13)
+        layout.addWidget(self.val_HIHUMID, 10, 13)
+        layout.addWidget(self.val_LOHUMID, 11, 13)
+        layout.addWidget(self.val_GEOFNUM, 12, 13)
+        layout.addWidget(self.val_GEOF1LAT, 13, 13)
+        layout.addWidget(self.val_GEOF1LON, 14, 13)
+        layout.addWidget(self.val_GEOF1RAD, 15, 13)
+        layout.addWidget(self.val_GEOF2LAT, 16, 13)
+        layout.addWidget(self.val_GEOF2LON, 17, 13)
+        layout.addWidget(self.val_GEOF2RAD, 18, 13)
+        layout.addWidget(self.val_GEOF3LAT, 19, 13)
+        layout.addWidget(self.val_GEOF3LON, 20, 13)
+        layout.addWidget(self.val_GEOF3RAD, 21, 13)
+        layout.addWidget(self.val_GEOF4LAT, 22, 13)
+        layout.addWidget(self.val_GEOF4LON, 23, 13)
+        layout.addWidget(self.val_GEOF4RAD, 24, 13)
+        layout.addWidget(self.val_WAKEINT, 25, 13)
+        layout.addWidget(self.val_ALARMINT, 26, 13)
+        layout.addWidget(self.val_TXINT, 27, 13)
+        layout.addWidget(self.val_LOWBATT, 28, 13)
+        layout.addWidget(self.val_DYNMODEL, 29, 13)
+
+        layout.addWidget(FLAGS1_units, 1, 14)
+        layout.addWidget(FLAGS2_units, 2, 14)
+        layout.addWidget(MOFIELDS_units, 3, 14)
+        layout.addWidget(SOURCE_units, 4, 14)
+        layout.addWidget(DEST_units, 5, 14)
+        layout.addWidget(HIPRESS_units, 6, 14)
+        layout.addWidget(LOPRESS_units, 7, 14)
+        layout.addWidget(HITEMP_units, 8, 14)
+        layout.addWidget(LOTEMP_units, 9, 14)
+        layout.addWidget(HIHUMID_units, 10, 14)
+        layout.addWidget(LOHUMID_units, 11, 14)
+        layout.addWidget(GEOFNUM_units, 12, 14)
+        layout.addWidget(GEOF1LAT_units, 13, 14)
+        layout.addWidget(GEOF1LON_units, 14, 14)
+        layout.addWidget(GEOF1RAD_units, 15, 14)
+        layout.addWidget(GEOF2LAT_units, 16, 14)
+        layout.addWidget(GEOF2LON_units, 17, 14)
+        layout.addWidget(GEOF2RAD_units, 18, 14)
+        layout.addWidget(GEOF3LAT_units, 19, 14)
+        layout.addWidget(GEOF3LON_units, 20, 14)
+        layout.addWidget(GEOF3RAD_units, 21, 14)
+        layout.addWidget(GEOF4LAT_units, 22, 14)
+        layout.addWidget(GEOF4LON_units, 23, 14)
+        layout.addWidget(GEOF4RAD_units, 24, 14)
+        layout.addWidget(WAKEINT_units, 25, 14)
+        layout.addWidget(ALARMINT_units, 26, 14)
+        layout.addWidget(TXINT_units, 27, 14)
+        layout.addWidget(LOWBATT_units, 28, 14)
+        layout.addWidget(DYNMODEL_units, 29, 14)
 
         self.setLayout(layout)
 
@@ -864,16 +977,6 @@ class MainWidget(QWidget):
         event.accept()
 
     def on_load_config_btn_pressed(self) -> None:
-        # Update FLAGS1 CheckBoxes
-        self.checkbox_BINARY.setChecked(True)
-        self.checkbox_DEST.setChecked(True)
-        self.checkbox_HIPRESS.setChecked(True)
-        self.checkbox_LOPRESS.setChecked(True)
-        self.checkbox_HITEMP.setChecked(True)
-        self.checkbox_LOTEMP.setChecked(True)
-        self.checkbox_HIHUMID.setChecked(True)
-        self.checkbox_LOHUMID.setChecked(True)
-
         pass
 
     def on_save_config_btn_pressed(self) -> None:
@@ -912,7 +1015,455 @@ class MainWidget(QWidget):
             self.messages.ensureCursorVisible()
 
     def on_calc_config_btn_pressed(self) -> None:
-        pass
+        self.messages.clear() # Clear the message window
+        config_str = "02" # Add the STX
+        # FLAGS1
+        flags = 0
+        if self.checkbox_F1_BINARY.isChecked(): flags = flags | 0b10000000
+        if self.checkbox_F1_DEST.isChecked(): flags = flags | 0b01000000
+        if self.checkbox_F1_HIPRESS.isChecked(): flags = flags | 0b00100000
+        if self.checkbox_F1_LOPRESS.isChecked(): flags = flags | 0b00010000
+        if self.checkbox_F1_HITEMP.isChecked(): flags = flags | 0b00001000
+        if self.checkbox_F1_LOTEMP.isChecked(): flags = flags | 0b00000100
+        if self.checkbox_F1_HIHUMID.isChecked(): flags = flags | 0b00000010
+        if self.checkbox_F1_LOHUMID.isChecked(): flags = flags | 0b00000001
+        if self.checkbox_val_FLAGS1.isChecked():
+            config_str = config_str + "31{0:0{1}x}".format(flags, 2)
+        elif flags > 0:
+            self.messages.moveCursor(QTextCursor.End)
+            self.messages.appendPlainText("Warning: FLAGS1 has bits set but Include checkbox is not checked")
+            self.messages.ensureCursorVisible()
+        # FLAGS2
+        flags = 0
+        if self.checkbox_F2_GEOFENCE.isChecked(): flags = flags | 0b10000000
+        if self.checkbox_F2_INSIDE.isChecked(): flags = flags | 0b01000000
+        if self.checkbox_F2_LOWBATT.isChecked(): flags = flags | 0b00100000
+        if self.checkbox_F2_RING.isChecked(): flags = flags | 0b00010000
+        if self.checkbox_val_FLAGS2.isChecked():
+            config_str = config_str + "32{0:0{1}x}".format(flags, 2)
+        elif flags > 0:
+            self.messages.moveCursor(QTextCursor.End)
+            self.messages.appendPlainText("Warning: FLAGS2 has bits set but Include checkbox is not checked")
+            self.messages.ensureCursorVisible()
+        # MOFIELDS
+        flags = 0
+        if self.checkbox_SWVER.isChecked():     flags = flags | 0x080000000000000000000000
+        if self.checkbox_SOURCE.isChecked():    flags = flags | 0x008000000000000000000000
+        if self.checkbox_BATTV.isChecked():     flags = flags | 0x004000000000000000000000
+        if self.checkbox_PRESS.isChecked():     flags = flags | 0x002000000000000000000000
+        if self.checkbox_TEMP.isChecked():      flags = flags | 0x001000000000000000000000
+        if self.checkbox_HUMID.isChecked():     flags = flags | 0x000800000000000000000000
+        if self.checkbox_YEAR.isChecked():      flags = flags | 0x000400000000000000000000
+        if self.checkbox_MONTH.isChecked():     flags = flags | 0x000200000000000000000000
+        if self.checkbox_DAY.isChecked():       flags = flags | 0x000100000000000000000000
+        if self.checkbox_HOUR.isChecked():      flags = flags | 0x000080000000000000000000
+        if self.checkbox_MIN.isChecked():       flags = flags | 0x000040000000000000000000
+        if self.checkbox_SEC.isChecked():       flags = flags | 0x000020000000000000000000
+        if self.checkbox_MILLIS.isChecked():    flags = flags | 0x000010000000000000000000
+        if self.checkbox_DATETIME.isChecked():  flags = flags | 0x000008000000000000000000
+        if self.checkbox_LAT.isChecked():       flags = flags | 0x000004000000000000000000
+        if self.checkbox_LON.isChecked():       flags = flags | 0x000002000000000000000000
+        if self.checkbox_ALT.isChecked():       flags = flags | 0x000001000000000000000000
+        if self.checkbox_SPEED.isChecked():     flags = flags | 0x000000800000000000000000
+        if self.checkbox_HEAD.isChecked():      flags = flags | 0x000000400000000000000000
+        if self.checkbox_SATS.isChecked():      flags = flags | 0x000000200000000000000000
+        if self.checkbox_PDOP.isChecked():      flags = flags | 0x000000100000000000000000
+        if self.checkbox_FIX.isChecked():       flags = flags | 0x000000080000000000000000
+        if self.checkbox_USERVAL1.isChecked():  flags = flags | 0x000000008000000000000000
+        if self.checkbox_USERVAL2.isChecked():  flags = flags | 0x000000004000000000000000
+        if self.checkbox_USERVAL3.isChecked():  flags = flags | 0x000000002000000000000000
+        if self.checkbox_USERVAL4.isChecked():  flags = flags | 0x000000001000000000000000
+        if self.checkbox_USERVAL5.isChecked():  flags = flags | 0x000000000800000000000000
+        if self.checkbox_USERVAL6.isChecked():  flags = flags | 0x000000000400000000000000
+        if self.checkbox_USERVAL7.isChecked():  flags = flags | 0x000000000200000000000000
+        if self.checkbox_USERVAL8.isChecked():  flags = flags | 0x000000000100000000000000
+        if self.checkbox_MOFIELDS.isChecked():  flags = flags | 0x000000000000800000000000
+        if self.checkbox_FLAGS1.isChecked():    flags = flags | 0x000000000000400000000000
+        if self.checkbox_FLAGS2.isChecked():    flags = flags | 0x000000000000200000000000
+        if self.checkbox_DEST.isChecked():      flags = flags | 0x000000000000100000000000
+        if self.checkbox_HIPRESS.isChecked():   flags = flags | 0x000000000000080000000000
+        if self.checkbox_LOPRESS.isChecked():   flags = flags | 0x000000000000040000000000
+        if self.checkbox_HITEMP.isChecked():    flags = flags | 0x000000000000020000000000
+        if self.checkbox_LOTEMP.isChecked():    flags = flags | 0x000000000000010000000000
+        if self.checkbox_HIHUMID.isChecked():   flags = flags | 0x000000000000008000000000
+        if self.checkbox_LOHUMID.isChecked():   flags = flags | 0x000000000000004000000000
+        if self.checkbox_GEOFNUM.isChecked():   flags = flags | 0x000000000000002000000000
+        if self.checkbox_GEOF1LAT.isChecked():  flags = flags | 0x000000000000001000000000
+        if self.checkbox_GEOF1LON.isChecked():  flags = flags | 0x000000000000000800000000
+        if self.checkbox_GEOF1RAD.isChecked():  flags = flags | 0x000000000000000400000000
+        if self.checkbox_GEOF2LAT.isChecked():  flags = flags | 0x000000000000000200000000
+        if self.checkbox_GEOF2LON.isChecked():  flags = flags | 0x000000000000000100000000
+        if self.checkbox_GEOF2RAD.isChecked():  flags = flags | 0x000000000000000080000000
+        if self.checkbox_GEOF3LAT.isChecked():  flags = flags | 0x000000000000000040000000
+        if self.checkbox_GEOF3LON.isChecked():  flags = flags | 0x000000000000000020000000
+        if self.checkbox_GEOF3RAD.isChecked():  flags = flags | 0x000000000000000010000000
+        if self.checkbox_GEOF4LAT.isChecked():  flags = flags | 0x000000000000000008000000
+        if self.checkbox_GEOF4LON.isChecked():  flags = flags | 0x000000000000000004000000
+        if self.checkbox_GEOF4RAD.isChecked():  flags = flags | 0x000000000000000002000000
+        if self.checkbox_WAKEINT.isChecked():   flags = flags | 0x000000000000000001000000
+        if self.checkbox_ALARMINT.isChecked():  flags = flags | 0x000000000000000000800000
+        if self.checkbox_TXINT.isChecked():     flags = flags | 0x000000000000000000400000
+        if self.checkbox_LOWBATT.isChecked():   flags = flags | 0x000000000000000000200000
+        if self.checkbox_DYNMODEL.isChecked():  flags = flags | 0x000000000000000000100000
+        if self.checkbox_val_MOFIELDS.isChecked():
+            config_str = config_str + "30{0:0{1}x}".format(flags, 24)
+        elif flags > 0:
+            self.messages.moveCursor(QTextCursor.End)
+            self.messages.appendPlainText("Warning: MOFIELDS has bits set but Include checkbox is not checked")
+            self.messages.ensureCursorVisible()
+        # Fields Values
+        if self.checkbox_val_SOURCE.isChecked():
+            if self.val_SOURCE.text().isdigit():
+                try:
+                    value = int(self.val_SOURCE.text())
+                    if (value < 0) or (value > 9999999):
+                        self.messages.appendPlainText("Error: the value for SOURCE is not valid!")
+                    else:
+                        config_str = config_str + "08" + struct.pack('<I', value).hex() # Little-endian hex
+                except:
+                    self.messages.appendPlainText("Error: the value for SOURCE is not valid!")
+            else:
+                self.messages.appendPlainText("Error: the value for SOURCE is not valid!")
+        if self.checkbox_val_DEST.isChecked():
+            if self.val_DEST.text().isdigit():
+                try:
+                    value = int(self.val_DEST.text())
+                    if (value < 0) or (value > 9999999):
+                        self.messages.appendPlainText("Error: the value for DEST is not valid!")
+                    else:
+                        config_str = config_str + "33" + struct.pack('<I', value).hex() # Little-endian hex
+                except:
+                    self.messages.appendPlainText("Error: the value for DEST is not valid!")
+            else:
+                self.messages.appendPlainText("Error: the value for DEST is not valid!")
+        if self.checkbox_val_HIPRESS.isChecked():
+            if self.val_HIPRESS.text().isdigit():
+                try:
+                    value = int(self.val_HIPRESS.text())
+                    if (value < 0) or (value > 1084):
+                        self.messages.appendPlainText("Error: the value for HIPRESS is not valid!")
+                    else:
+                        config_str = config_str + "34" + struct.pack('<H', value).hex() # Little-endian hex
+                except:
+                    self.messages.appendPlainText("Error: the value for HIPRESS is not valid!")
+            else:
+                self.messages.appendPlainText("Error: the value for HIPRESS is not valid!")
+        if self.checkbox_val_LOPRESS.isChecked():
+            if self.val_LOPRESS.text().isdigit():
+                try:
+                    value = int(self.val_LOPRESS.text())
+                    if (value < 0) or (value > 1084):
+                        self.messages.appendPlainText("Error: the value for LOPRESS is not valid!")
+                    else:
+                        config_str = config_str + "35" + struct.pack('<H', value).hex() # Little-endian hex
+                except:
+                    self.messages.appendPlainText("Error: the value for LOPRESS is not valid!")
+            else:
+                self.messages.appendPlainText("Error: the value for LOPRESS is not valid!")
+        if self.checkbox_val_HITEMP.isChecked():
+            try:
+                value = float(self.val_HITEMP.text())
+                if (value < -40.0) or (value > 85.0):
+                    self.messages.appendPlainText("Error: the value for HITEMP is not valid!")
+                else:
+                    value = int(value * 100.0)
+                    config_str = config_str + "36" + struct.pack('<h', value).hex() # Little-endian hex
+            except:
+                self.messages.appendPlainText("Error: the value for HITEMP is not valid!")
+        if self.checkbox_val_LOTEMP.isChecked():
+            try:
+                value = float(self.val_LOTEMP.text())
+                if (value < -40.0) or (value > 85.0):
+                    self.messages.appendPlainText("Error: the value for LOTEMP is not valid!")
+                else:
+                    value = int(value * 100.0)
+                    config_str = config_str + "37" + struct.pack('<h', value).hex() # Little-endian hex
+            except:
+                self.messages.appendPlainText("Error: the value for LOTEMP is not valid!")
+        if self.checkbox_val_HIHUMID.isChecked():
+            try:
+                value = float(self.val_HIHUMID.text())
+                if (value < 0.0) or (value > 100.0):
+                    self.messages.appendPlainText("Error: the value for HIHUMID is not valid!")
+                else:
+                    value = int(value * 100.0)
+                    config_str = config_str + "38" + struct.pack('<H', value).hex() # Little-endian hex
+            except:
+                self.messages.appendPlainText("Error: the value for HIHUMID is not valid!")
+        if self.checkbox_val_LOHUMID.isChecked():
+            try:
+                value = float(self.val_LOHUMID.text())
+                if (value < 0.0) or (value > 100.0):
+                    self.messages.appendPlainText("Error: the value for LOHUMID is not valid!")
+                else:
+                    value = int(value * 100.0)
+                    config_str = config_str + "39" + struct.pack('<H', value).hex() # Little-endian hex
+            except:
+                self.messages.appendPlainText("Error: the value for LOHUMID is not valid!")
+        if self.checkbox_val_GEOFNUM.isChecked():
+            if self.val_GEOFNUM.text().isdigit():
+                try:
+                    value = float(self.val_GEOFNUM.text())
+                    numf = int(value / 10)
+                    conf = int(value % 10)
+                    if (numf < 0) or (numf > 4) or (conf < 0) or (conf > 4):
+                        self.messages.appendPlainText("Error: the value for GEOFNUM is not valid!")
+                    else:
+                        value = (numf * 16) + conf
+                        config_str = config_str + "3a{0:0{1}x}".format(value, 2)
+                except:
+                    self.messages.appendPlainText("Error: the value for GEOFNUM is not valid!")
+            else:
+                self.messages.appendPlainText("Error: the value for GEOFNUM is not valid!")
+        if self.checkbox_val_GEOF1LAT.isChecked():
+            try:
+                value = float(self.val_GEOF1LAT.text())
+                if (value < -90.0) or (value >= 90.0):
+                    self.messages.appendPlainText("Error: the value for GEOF1LAT is not valid!")
+                else:
+                    value = int(value * 1E7) # Convert to degrees ^ 10-7
+                    config_str = config_str + "3b" + struct.pack('<i', value).hex() # Little-endian hex
+            except:
+                self.messages.appendPlainText("Error: the value for GEOF1LAT is not valid!")
+        if self.checkbox_val_GEOF1LON.isChecked():
+            try:
+                value = float(self.val_GEOF1LON.text())
+                if (value < -180.0) or (value >= 180.0):
+                    self.messages.appendPlainText("Error: the value for GEOF1LON is not valid!")
+                else:
+                    value = int(value * 1E7) # Convert to degrees ^ 10-7
+                    config_str = config_str + "3c" + struct.pack('<i', value).hex() # Little-endian hex
+            except:
+                self.messages.appendPlainText("Error: the value for GEOF1LON is not valid!")
+        if self.checkbox_val_GEOF1RAD.isChecked():
+            try:
+                value = float(self.val_GEOF1RAD.text())
+                if (value < 0.0) or (value > 100000.0):
+                    self.messages.appendPlainText("Error: the value for GEOF1RAD is not valid!")
+                else:
+                    value = int(value * 100.0) # Convert to cm
+                    config_str = config_str + "3d" + struct.pack('<I', value).hex() # Little-endian hex
+            except:
+                self.messages.appendPlainText("Error: the value for GEOF1RAD is not valid!")
+        if self.checkbox_val_GEOF2LAT.isChecked():
+            try:
+                value = float(self.val_GEOF2LAT.text())
+                if (value < -90.0) or (value >= 90.0):
+                    self.messages.appendPlainText("Error: the value for GEOF2LAT is not valid!")
+                else:
+                    value = int(value * 1E7) # Convert to degrees ^ 10-7
+                    config_str = config_str + "3e" + struct.pack('<i', value).hex() # Little-endian hex
+            except:
+                self.messages.appendPlainText("Error: the value for GEOF2LAT is not valid!")
+        if self.checkbox_val_GEOF2LON.isChecked():
+            try:
+                value = float(self.val_GEOF2LON.text())
+                if (value < -180.0) or (value >= 180.0):
+                    self.messages.appendPlainText("Error: the value for GEOF2LON is not valid!")
+                else:
+                    value = int(value * 1E7) # Convert to degrees ^ 10-7
+                    config_str = config_str + "3f" + struct.pack('<i', value).hex() # Little-endian hex
+            except:
+                self.messages.appendPlainText("Error: the value for GEOF2LON is not valid!")
+        if self.checkbox_val_GEOF2RAD.isChecked():
+            try:
+                value = float(self.val_GEOF2RAD.text())
+                if (value < 0.0) or (value > 100000.0):
+                    self.messages.appendPlainText("Error: the value for GEOF2RAD is not valid!")
+                else:
+                    value = int(value * 100.0) # Convert to cm
+                    config_str = config_str + "40" + struct.pack('<I', value).hex() # Little-endian hex
+            except:
+                self.messages.appendPlainText("Error: the value for GEOF2RAD is not valid!")
+        if self.checkbox_val_GEOF3LAT.isChecked():
+            try:
+                value = float(self.val_GEOF3LAT.text())
+                if (value < -90.0) or (value >= 90.0):
+                    self.messages.appendPlainText("Error: the value for GEOF3LAT is not valid!")
+                else:
+                    value = int(value * 1E7) # Convert to degrees ^ 10-7
+                    config_str = config_str + "41" + struct.pack('<i', value).hex() # Little-endian hex
+            except:
+                self.messages.appendPlainText("Error: the value for GEOF3LAT is not valid!")
+        if self.checkbox_val_GEOF3LON.isChecked():
+            try:
+                value = float(self.val_GEOF3LON.text())
+                if (value < -180.0) or (value >= 180.0):
+                    self.messages.appendPlainText("Error: the value for GEOF3LON is not valid!")
+                else:
+                    value = int(value * 1E7) # Convert to degrees ^ 10-7
+                    config_str = config_str + "42" + struct.pack('<i', value).hex() # Little-endian hex
+            except:
+                self.messages.appendPlainText("Error: the value for GEOF3LON is not valid!")
+        if self.checkbox_val_GEOF3RAD.isChecked():
+            try:
+                value = float(self.val_GEOF3RAD.text())
+                if (value < 0.0) or (value > 100000.0):
+                    self.messages.appendPlainText("Error: the value for GEOF3RAD is not valid!")
+                else:
+                    value = int(value * 100.0) # Convert to cm
+                    config_str = config_str + "43" + struct.pack('<I', value).hex() # Little-endian hex
+            except:
+                self.messages.appendPlainText("Error: the value for GEOF3RAD is not valid!")
+        if self.checkbox_val_GEOF4LAT.isChecked():
+            try:
+                value = float(self.val_GEOF4LAT.text())
+                if (value < -90.0) or (value >= 90.0):
+                    self.messages.appendPlainText("Error: the value for GEOF4LAT is not valid!")
+                else:
+                    value = int(value * 1E7) # Convert to degrees ^ 10-7
+                    config_str = config_str + "44" + struct.pack('<i', value).hex() # Little-endian hex
+            except:
+                self.messages.appendPlainText("Error: the value for GEOF4LAT is not valid!")
+        if self.checkbox_val_GEOF4LON.isChecked():
+            try:
+                value = float(self.val_GEOF4LON.text())
+                if (value < -180.0) or (value >= 180.0):
+                    self.messages.appendPlainText("Error: the value for GEOF4LON is not valid!")
+                else:
+                    value = int(value * 1E7) # Convert to degrees ^ 10-7
+                    config_str = config_str + "45" + struct.pack('<i', value).hex() # Little-endian hex
+            except:
+                self.messages.appendPlainText("Error: the value for GEOF4LON is not valid!")
+        if self.checkbox_val_GEOF4RAD.isChecked():
+            try:
+                value = float(self.val_GEOF4RAD.text())
+                if (value < 0.0) or (value > 100000.0):
+                    self.messages.appendPlainText("Error: the value for GEOF4RAD is not valid!")
+                else:
+                    value = int(value * 100.0) # Convert to cm
+                    config_str = config_str + "46" + struct.pack('<I', value).hex() # Little-endian hex
+            except:
+                self.messages.appendPlainText("Error: the value for GEOF4RAD is not valid!")
+        if self.checkbox_val_WAKEINT.isChecked():
+            if self.val_WAKEINT.text().isdigit():
+                try:
+                    value = int(self.val_WAKEINT.text())
+                    if (value < 0) or (value > 3600):
+                        self.messages.appendPlainText("Error: the value for WAKEINT is not valid!")
+                    else:
+                        config_str = config_str + "47" + struct.pack('<H', value).hex() # Little-endian hex
+                except:
+                    self.messages.appendPlainText("Error: the value for WAKEINT is not valid!")
+            else:
+                self.messages.appendPlainText("Error: the value for WAKEINT is not valid!")
+        if self.checkbox_val_ALARMINT.isChecked():
+            if self.val_ALARMINT.text().isdigit():
+                try:
+                    value = int(self.val_ALARMINT.text())
+                    if (value < 0) or (value > 1440):
+                        self.messages.appendPlainText("Error: the value for ALARMINT is not valid!")
+                    else:
+                        config_str = config_str + "48" + struct.pack('<H', value).hex() # Little-endian hex
+                except:
+                    self.messages.appendPlainText("Error: the value for ALARMINT is not valid!")
+            else:
+                self.messages.appendPlainText("Error: the value for ALARMINT is not valid!")
+        if self.checkbox_val_TXINT.isChecked():
+            if self.val_TXINT.text().isdigit():
+                try:
+                    value = int(self.val_TXINT.text())
+                    if (value < 0) or (value > 1440):
+                        self.messages.appendPlainText("Error: the value for TXINT is not valid!")
+                    else:
+                        config_str = config_str + "49" + struct.pack('<H', value).hex() # Little-endian hex
+                except:
+                    self.messages.appendPlainText("Error: the value for TXINT is not valid!")
+            else:
+                self.messages.appendPlainText("Error: the value for TXINT is not valid!")
+        if self.checkbox_val_LOWBATT.isChecked():
+            try:
+                value = float(self.val_LOWBATT.text())
+                if (value < 0.0) or (value > 9.99):
+                    self.messages.appendPlainText("Error: the value for LOWBATT is not valid!")
+                else:
+                    value = int(value * 100.0)
+                    config_str = config_str + "4a" + struct.pack('<H', value).hex() # Little-endian hex
+            except:
+                self.messages.appendPlainText("Error: the value for LOWBATT is not valid!")
+        if self.checkbox_val_DYNMODEL.isChecked():
+            if self.val_DYNMODEL.text().isdigit():
+                try:
+                    value = int(self.val_DYNMODEL.text())
+                    if (value < 0) or (value == 1) or (value > 10):
+                        self.messages.appendPlainText("Error: the value for DYNMODEL is not valid!")
+                    else:
+                        config_str = config_str + "4b{0:0{1}x}".format(value, 2)
+                except:
+                    self.messages.appendPlainText("Error: the value for DYNMODEL is not valid!")
+            else:
+                self.messages.appendPlainText("Error: the value for DYNMODEL is not valid!")
+        # USERFUNCs
+        if self.checkbox_USERFUNC1.isChecked():
+            config_str = config_str + "58"
+        if self.checkbox_USERFUNC2.isChecked():
+            config_str = config_str + "59"
+        if self.checkbox_USERFUNC3.isChecked():
+            config_str = config_str + "5a"
+        if self.checkbox_USERFUNC4.isChecked():
+            config_str = config_str + "5b"
+        if self.checkbox_USERFUNC5.isChecked():
+            if self.USERFUNC5_val.text().isdigit():
+                try:
+                    value = int(self.USERFUNC5_val.text())
+                    if (value < 0) or (value > 65535):
+                        self.messages.appendPlainText("Error: the value for USERFUNC5 is not valid!")
+                    else:
+                        config_str = config_str + "5c" + struct.pack('<H', value).hex() # Little-endian hex
+                except:
+                    self.messages.appendPlainText("Error: the value for USERFUNC5 is not valid!")
+            else:
+                self.messages.appendPlainText("Error: the value for USERFUNC5 is not valid!")
+        if self.checkbox_USERFUNC6.isChecked():
+            if self.USERFUNC6_val.text().isdigit():
+                try:
+                    value = int(self.USERFUNC6_val.text())
+                    if (value < 0) or (value > 65535):
+                        self.messages.appendPlainText("Error: the value for USERFUNC6 is not valid!")
+                    else:
+                        config_str = config_str + "5d" + struct.pack('<H', value).hex() # Little-endian hex
+                except:
+                    self.messages.appendPlainText("Error: the value for USERFUNC6 is not valid!")
+            else:
+                self.messages.appendPlainText("Error: the value for USERFUNC6 is not valid!")
+        if self.checkbox_USERFUNC7.isChecked():
+            if self.USERFUNC7_val.text().isdigit():
+                try:
+                    value = int(self.USERFUNC7_val.text())
+                    if (value < 0) or (value > 4294967295):
+                        self.messages.appendPlainText("Error: the value for USERFUNC7 is not valid!")
+                    else:
+                        config_str = config_str + "5e" + struct.pack('<I', value).hex() # Little-endian hex
+                except:
+                    self.messages.appendPlainText("Error: the value for USERFUNC7 is not valid!")
+            else:
+                self.messages.appendPlainText("Error: the value for USERFUNC7 is not valid!")
+        if self.checkbox_USERFUNC8.isChecked():
+            if self.USERFUNC8_val.text().isdigit():
+                try:
+                    value = int(self.USERFUNC8_val.text())
+                    if (value < 0) or (value > 4294967295):
+                        self.messages.appendPlainText("Error: the value for USERFUNC8 is not valid!")
+                    else:
+                        config_str = config_str + "5f" + struct.pack('<I', value).hex() # Little-endian hex
+                except:
+                    self.messages.appendPlainText("Error: the value for USERFUNC8 is not valid!")
+            else:
+                self.messages.appendPlainText("Error: the value for USERFUNC8 is not valid!")
+        # Add the ETX
+        config_str = config_str + "03"
+        # Calculate and append the checksum bytes
+        csuma = 0
+        csumb = 0
+        for i in range(0, len(config_str), 2):
+            pair = int(config_str[i:i+2], 16) # Grab a pair of hex digits as an int
+            csuma = csuma + pair
+            csumb = csumb + csuma
+        config_str = config_str + "{0:0{1}x}".format((csuma%256), 2) # Add the checksum bytes to the message
+        config_str = config_str + "{0:0{1}x}".format((csumb%256), 2)
+        # Display the message            
+        self.config.clear() # Clear the config window
+        self.config.appendPlainText(config_str) # Display the config message
 
     def on_refresh_btn_pressed(self) -> None:
         self.update_com_ports()
