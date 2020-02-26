@@ -15,18 +15,17 @@ from serial.tools.list_ports import comports
 import serial
 
 from PyQt5.QtCore import QSettings, QProcess, QTimer, Qt
-from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, QGridLayout, \
-    QPushButton, QApplication, QLineEdit, QFileDialog, QPlainTextEdit, QCheckBox
+from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, QGridLayout, QPushButton, \
+    QApplication, QLineEdit, QFileDialog, QPlainTextEdit, QCheckBox, QMessageBox
 from PyQt5.QtGui import QCloseEvent, QTextCursor
 
-import struct
+import struct, pickle
 
 # Setting constants
 SETTING_PORT_NAME = 'COM1'
 SETTING_FILE_LOCATION = 'C:'
 
 guiVersion = 'v1.0'
-
 
 def gen_serial_ports() -> Iterator[Tuple[str, str]]:
     """Return all available serial ports."""
@@ -46,7 +45,7 @@ class MainWidget(QWidget):
         self.msg_label = QLabel(self.tr('Configuration File (.pkl):'))
         self.fileLocation_lineedit = QLineEdit()
         self.msg_label.setBuddy(self.msg_label)
-        self.fileLocation_lineedit.setEnabled(False)
+        #self.fileLocation_lineedit.setEnabled(False)
         self.fileLocation_lineedit.returnPressed.connect(
             self.on_browse_btn_pressed)
 
@@ -80,6 +79,10 @@ class MainWidget(QWidget):
         # Open Port Button
         self.open_port_btn = QPushButton(self.tr('Open Port'))
         self.open_port_btn.pressed.connect(self.on_open_port_btn_pressed)
+
+        # Close Port Button
+        self.close_port_btn = QPushButton(self.tr('Close Port'))
+        self.close_port_btn.pressed.connect(self.on_close_port_btn_pressed)
 
         # Upload Button
         self.upload_btn = QPushButton(self.tr('Upload Config'))
@@ -566,31 +569,20 @@ class MainWidget(QWidget):
         layout.addWidget(self.msg_label, 0, 0)
         layout.addWidget(self.fileLocation_lineedit, 0, 1)
         layout.addWidget(self.browse_btn, 0, 2)
-
         layout.addWidget(self.load_config_btn, 1, 2)
-
         layout.addWidget(self.save_config_btn, 2, 2)
-
         layout.addWidget(self.calc_config_btn, 3, 2)
-
         layout.addWidget(self.port_label, 5, 0)
         layout.addWidget(self.port_combobox, 5, 1)
         layout.addWidget(self.refresh_btn, 5, 2)
-
         layout.addWidget(self.open_port_btn, 6, 2)
-
         layout.addWidget(self.upload_btn, 7, 2)
-
+        layout.addWidget(self.close_port_btn, 8, 2)
         layout.addWidget(self.terminal_label, 8, 0)
-
         layout.addWidget(self.terminal, 9, 0, 9, 3)
-
         layout.addWidget(self.messages_label, 18, 0)
-
         layout.addWidget(self.messages, 19, 0, 5, 3)
-
         layout.addWidget(self.config_label, 24, 0)
-
         layout.addWidget(self.config, 25, 0, 5, 3)
 
         layout.addWidget(FLAGS1_header, 0, 4)
@@ -924,7 +916,7 @@ class MainWidget(QWidget):
             pass
 
     def load_settings(self) -> None:
-        """Load settings on startup."""
+        """Load Qsettings on startup."""
         self.settings = QSettings()
         
         port_name = self.settings.value(SETTING_PORT_NAME)
@@ -938,15 +930,66 @@ class MainWidget(QWidget):
             self.fileLocation_lineedit.setText(msg)
 
     def save_settings(self) -> None:
-        """Save settings on shutdown."""
+        """Save Qsettings on shutdown."""
         self.settings = QSettings()
         self.settings.setValue(SETTING_PORT_NAME, self.port)
         self.settings.setValue(SETTING_FILE_LOCATION,
                           self.fileLocation_lineedit.text())
 
-    def show_error_message(self, msg: str) -> None:
-        """Show a Message Box with the error message."""
-        QMessageBox.critical(self, QApplication.applicationName(), str(msg))
+    def on_browse_btn_pressed(self) -> None:
+        """Open dialog to select bin file."""
+        options = QFileDialog.Options()
+        fileName, _ = QFileDialog.getOpenFileName(
+            None,
+            "Select Configuration File",
+            "",
+            "Configuration Files (*.pkl);;All Files (*)",
+            options=options)
+        if fileName:
+            self.fileLocation_lineedit.setText(fileName)
+     
+    def on_refresh_btn_pressed(self) -> None:
+        """Refresh the list of serial (COM) ports"""
+        self.update_com_ports()
+
+    def on_upload_btn_pressed(self) -> None:
+        """Upload the configuration message to the Tracker"""
+
+        self.messages.clear() # Clear the message window
+
+        portAvailable = False
+        ports = comports()
+        for p in ports:
+            if (p.device == self.port):
+                portAvailable = True
+        if (portAvailable == False):
+            self.messages.moveCursor(QTextCursor.End)
+            self.messages.ensureCursorVisible()
+            self.messages.appendPlainText("Port No Longer Available!")
+            self.messages.ensureCursorVisible()
+            return
+        
+        try:
+            if self.ser.isOpen():
+                pass
+        except:
+            self.messages.moveCursor(QTextCursor.End)
+            self.messages.ensureCursorVisible()
+            self.messages.appendPlainText("Port Is Not Open!")
+            self.messages.ensureCursorVisible()
+            return
+
+        self.messages.moveCursor(QTextCursor.End)
+        self.messages.ensureCursorVisible()
+        self.messages.appendPlainText("Sending configuration message...")
+        self.messages.ensureCursorVisible()
+
+        self.ser.write(bytes(self.config.toPlainText(),'utf-8')) # Send the config message
+
+        self.messages.moveCursor(QTextCursor.End)
+        self.messages.ensureCursorVisible()
+        self.messages.appendPlainText("Configuration message sent.")
+        self.messages.ensureCursorVisible()
 
     def update_com_ports(self) -> None:
         """Update COM Port list in GUI."""
@@ -976,14 +1019,11 @@ class MainWidget(QWidget):
         
         event.accept()
 
-    def on_load_config_btn_pressed(self) -> None:
-        pass
-
-    def on_save_config_btn_pressed(self) -> None:
-        pass
-
     def on_open_port_btn_pressed(self) -> None:
-        """Check if port is available"""
+        """Check if port is available and open it"""
+
+        self.messages.clear() # Clear the message window
+        
         portAvailable = False
         ports = comports()
         for p in ports:
@@ -1013,8 +1053,388 @@ class MainWidget(QWidget):
             self.messages.ensureCursorVisible()
             self.messages.appendPlainText("Could Not Open The Port!")
             self.messages.ensureCursorVisible()
+            return
+
+        self.messages.moveCursor(QTextCursor.End)
+        self.messages.ensureCursorVisible()
+        self.messages.appendPlainText("Port is now open.")
+        self.messages.ensureCursorVisible()
+
+    def on_close_port_btn_pressed(self) -> None:
+        """Close the port"""
+
+        self.messages.clear() # Clear the message window
+        
+        portAvailable = False
+        ports = comports()
+        for p in ports:
+            if (p.device == self.port):
+                portAvailable = True
+        if (portAvailable == False):
+            self.messages.moveCursor(QTextCursor.End)
+            self.messages.ensureCursorVisible()
+            self.messages.appendPlainText("Port No Longer Available!")
+            self.messages.ensureCursorVisible()
+            return
+
+        try:
+            if self.ser.isOpen() == False:
+                self.messages.moveCursor(QTextCursor.End)
+                self.messages.ensureCursorVisible()
+                self.messages.appendPlainText("Port Is Already Closed!")
+                self.messages.ensureCursorVisible()
+                return
+        except:
+            pass
+        
+        try:
+            self.ser.close()
+        except:
+            self.messages.moveCursor(QTextCursor.End)
+            self.messages.ensureCursorVisible()
+            self.messages.appendPlainText("Could Not Close The Port!")
+            self.messages.ensureCursorVisible()
+            return
+
+        self.messages.moveCursor(QTextCursor.End)
+        self.messages.ensureCursorVisible()
+        self.messages.appendPlainText("Port is now closed.")
+        self.messages.ensureCursorVisible()
+
+    def on_load_config_btn_pressed(self) -> None:
+        """Load a configuration for a pickle (.pkl) file"""
+        fileExists = False
+        try:
+            f = open(self.fileLocation_lineedit.text())
+            fileExists = True
+            f.close()
+        except IOError:
+            fileExists = False
+        if (fileExists == False):
+            self.messages.moveCursor(QTextCursor.End)
+            self.messages.ensureCursorVisible()
+            self.messages.appendPlainText("File Not Found!")
+            self.messages.ensureCursorVisible()
+            return
+
+        try:
+            fp = open(self.fileLocation_lineedit.text(),"rb")
+            self.the_settings = pickle.load(fp)
+            fp.close()
+        except:
+            self.messages.moveCursor(QTextCursor.End)
+            self.messages.ensureCursorVisible()
+            self.messages.appendPlainText("Load config failed!")
+            self.messages.ensureCursorVisible()
+            return
+
+        self.checkbox_F1_BINARY.setChecked(self.the_settings["F1_BINARY"])
+        self.checkbox_F1_DEST.setChecked(self.the_settings["F1_DEST"])
+        self.checkbox_F1_HIPRESS.setChecked(self.the_settings["F1_HIPRESS"])
+        self.checkbox_F1_LOPRESS.setChecked(self.the_settings["F1_LOPRESS"])
+        self.checkbox_F1_HITEMP.setChecked(self.the_settings["F1_HITEMP"])
+        self.checkbox_F1_LOTEMP.setChecked(self.the_settings["F1_LOTEMP"])
+        self.checkbox_F1_HIHUMID.setChecked(self.the_settings["F1_HIHUMID"])
+        self.checkbox_F1_LOHUMID.setChecked(self.the_settings["F1_LOHUMID"])
+        self.checkbox_F2_GEOFENCE.setChecked(self.the_settings["F2_GEOFENCE"])
+        self.checkbox_F2_INSIDE.setChecked(self.the_settings["F2_INSIDE"])
+        self.checkbox_F2_LOWBATT.setChecked(self.the_settings["F2_LOWBATT"])
+        self.checkbox_F2_RING.setChecked(self.the_settings["F2_RING"])
+        self.checkbox_USERFUNC1.setChecked(self.the_settings["USERFUNC1"])
+        self.checkbox_USERFUNC2.setChecked(self.the_settings["USERFUNC2"])
+        self.checkbox_USERFUNC3.setChecked(self.the_settings["USERFUNC3"])
+        self.checkbox_USERFUNC4.setChecked(self.the_settings["USERFUNC4"])
+        self.checkbox_USERFUNC5.setChecked(self.the_settings["USERFUNC5"])
+        self.checkbox_USERFUNC6.setChecked(self.the_settings["USERFUNC6"])
+        self.checkbox_USERFUNC7.setChecked(self.the_settings["USERFUNC7"])
+        self.checkbox_USERFUNC8.setChecked(self.the_settings["USERFUNC8"])
+        self.checkbox_SWVER.setChecked(self.the_settings["SWVER"])
+        self.checkbox_SOURCE.setChecked(self.the_settings["SOURCE"])
+        self.checkbox_BATTV.setChecked(self.the_settings["BATTV"])
+        self.checkbox_PRESS.setChecked(self.the_settings["PRESS"])
+        self.checkbox_TEMP.setChecked(self.the_settings["TEMP"])
+        self.checkbox_HUMID.setChecked(self.the_settings["HUMID"])
+        self.checkbox_YEAR.setChecked(self.the_settings["YEAR"])
+        self.checkbox_MONTH.setChecked(self.the_settings["MONTH"])
+        self.checkbox_DAY.setChecked(self.the_settings["DAY"])
+        self.checkbox_HOUR.setChecked(self.the_settings["HOUR"])
+        self.checkbox_MIN.setChecked(self.the_settings["MIN"])
+        self.checkbox_SEC.setChecked(self.the_settings["SEC"])
+        self.checkbox_MILLIS.setChecked(self.the_settings["MILLIS"])
+        self.checkbox_DATETIME.setChecked(self.the_settings["DATETIME"])
+        self.checkbox_LAT.setChecked(self.the_settings["LAT"])
+        self.checkbox_LON.setChecked(self.the_settings["LON"])
+        self.checkbox_ALT.setChecked(self.the_settings["ALT"])
+        self.checkbox_SPEED.setChecked(self.the_settings["SPEED"])
+        self.checkbox_HEAD.setChecked(self.the_settings["HEAD"])
+        self.checkbox_SATS.setChecked(self.the_settings["SATS"])
+        self.checkbox_PDOP.setChecked(self.the_settings["PDOP"])
+        self.checkbox_FIX.setChecked(self.the_settings["FIX"])
+        self.checkbox_USERVAL1.setChecked(self.the_settings["USERVAL1"])
+        self.checkbox_USERVAL2.setChecked(self.the_settings["USERVAL2"])
+        self.checkbox_USERVAL3.setChecked(self.the_settings["USERVAL3"])
+        self.checkbox_USERVAL4.setChecked(self.the_settings["USERVAL4"])
+        self.checkbox_USERVAL5.setChecked(self.the_settings["USERVAL5"])
+        self.checkbox_USERVAL6.setChecked(self.the_settings["USERVAL6"])
+        self.checkbox_USERVAL7.setChecked(self.the_settings["USERVAL7"])
+        self.checkbox_USERVAL8.setChecked(self.the_settings["USERVAL8"])
+        self.checkbox_MOFIELDS.setChecked(self.the_settings["MOFIELDS"])
+        self.checkbox_FLAGS1.setChecked(self.the_settings["FLAGS1"])
+        self.checkbox_FLAGS2.setChecked(self.the_settings["FLAGS2"])
+        self.checkbox_DEST.setChecked(self.the_settings["DEST"])
+        self.checkbox_HIPRESS.setChecked(self.the_settings["HIPRESS"])
+        self.checkbox_LOPRESS.setChecked(self.the_settings["LOPRESS"])
+        self.checkbox_HITEMP.setChecked(self.the_settings["HITEMP"])
+        self.checkbox_LOTEMP.setChecked(self.the_settings["LOTEMP"])
+        self.checkbox_HIHUMID.setChecked(self.the_settings["HIHUMID"])
+        self.checkbox_LOHUMID.setChecked(self.the_settings["LOHUMID"])
+        self.checkbox_GEOFNUM.setChecked(self.the_settings["GEOFNUM"])
+        self.checkbox_GEOF1LAT.setChecked(self.the_settings["GEOF1LAT"])
+        self.checkbox_GEOF1LON.setChecked(self.the_settings["GEOF1LON"])
+        self.checkbox_GEOF1RAD.setChecked(self.the_settings["GEOF1RAD"])
+        self.checkbox_GEOF2LAT.setChecked(self.the_settings["GEOF2LAT"])
+        self.checkbox_GEOF2LON.setChecked(self.the_settings["GEOF2LON"])
+        self.checkbox_GEOF2RAD.setChecked(self.the_settings["GEOF2RAD"])
+        self.checkbox_GEOF3LAT.setChecked(self.the_settings["GEOF3LAT"])
+        self.checkbox_GEOF3LON.setChecked(self.the_settings["GEOF3LON"])
+        self.checkbox_GEOF3RAD.setChecked(self.the_settings["GEOF3RAD"])
+        self.checkbox_GEOF4LAT.setChecked(self.the_settings["GEOF4LAT"])
+        self.checkbox_GEOF4LON.setChecked(self.the_settings["GEOF4LON"])
+        self.checkbox_GEOF4RAD.setChecked(self.the_settings["GEOF4RAD"])
+        self.checkbox_WAKEINT.setChecked(self.the_settings["WAKEINT"])
+        self.checkbox_ALARMINT.setChecked(self.the_settings["ALARMINT"])
+        self.checkbox_TXINT.setChecked(self.the_settings["TXINT"])
+        self.checkbox_LOWBATT.setChecked(self.the_settings["LOWBATT"])
+        self.checkbox_DYNMODEL.setChecked(self.the_settings["DYNMODEL"])
+        self.checkbox_val_FLAGS1.setChecked(self.the_settings["val_FLAGS1"])
+        self.checkbox_val_FLAGS2.setChecked(self.the_settings["val_FLAGS2"])
+        self.checkbox_val_MOFIELDS.setChecked(self.the_settings["val_MOFIELDS"])
+        self.checkbox_val_SOURCE.setChecked(self.the_settings["val_SOURCE"])
+        self.checkbox_val_DEST.setChecked(self.the_settings["val_DEST"])
+        self.checkbox_val_HIPRESS.setChecked(self.the_settings["val_HIPRESS"])
+        self.checkbox_val_LOPRESS.setChecked(self.the_settings["val_LOPRESS"])
+        self.checkbox_val_HITEMP.setChecked(self.the_settings["val_HITEMP"])
+        self.checkbox_val_LOTEMP.setChecked(self.the_settings["val_LOTEMP"])
+        self.checkbox_val_HIHUMID.setChecked(self.the_settings["val_HIHUMID"])
+        self.checkbox_val_LOHUMID.setChecked(self.the_settings["val_LOHUMID"])
+        self.checkbox_val_GEOFNUM.setChecked(self.the_settings["val_GEOFNUM"])
+        self.checkbox_val_GEOF1LAT.setChecked(self.the_settings["val_GEOF1LAT"])
+        self.checkbox_val_GEOF1LON.setChecked(self.the_settings["val_GEOF1LON"])
+        self.checkbox_val_GEOF1RAD.setChecked(self.the_settings["val_GEOF1RAD"])
+        self.checkbox_val_GEOF2LAT.setChecked(self.the_settings["val_GEOF2LAT"])
+        self.checkbox_val_GEOF2LON.setChecked(self.the_settings["val_GEOF2LON"])
+        self.checkbox_val_GEOF2RAD.setChecked(self.the_settings["val_GEOF2RAD"])
+        self.checkbox_val_GEOF3LAT.setChecked(self.the_settings["val_GEOF3LAT"])
+        self.checkbox_val_GEOF3LON.setChecked(self.the_settings["val_GEOF3LON"])
+        self.checkbox_val_GEOF3RAD.setChecked(self.the_settings["val_GEOF3RAD"])
+        self.checkbox_val_GEOF4LAT.setChecked(self.the_settings["val_GEOF4LAT"])
+        self.checkbox_val_GEOF4LON.setChecked(self.the_settings["val_GEOF4LON"])
+        self.checkbox_val_GEOF4RAD.setChecked(self.the_settings["val_GEOF4RAD"])
+        self.checkbox_val_WAKEINT.setChecked(self.the_settings["val_WAKEINR"])
+        self.checkbox_val_ALARMINT.setChecked(self.the_settings["val_ALARMINT"])
+        self.checkbox_val_TXINT.setChecked(self.the_settings["val_TXINT"])
+        self.checkbox_val_LOWBATT.setChecked(self.the_settings["val_LOWBATT"])
+        self.checkbox_val_DYNMODEL.setChecked(self.the_settings["val_DYNMODEL"])
+        self.val_SOURCE.setText(self.the_settings["value_SOURCE"])
+        self.val_DEST.setText(self.the_settings["value_DEST"])
+        self.val_HIPRESS.setText(self.the_settings["value_HIPRESS"])
+        self.val_LOPRESS.setText(self.the_settings["value_LOPRESS"])
+        self.val_HITEMP.setText(self.the_settings["value_HITEMP"])
+        self.val_LOTEMP.setText(self.the_settings["value_LOTEMP"])
+        self.val_HIHUMID.setText(self.the_settings["value_HIHUMID"])
+        self.val_LOHUMID.setText(self.the_settings["value_LOHUMID"])
+        self.val_GEOFNUM.setText(self.the_settings["value_GEOFNUM"])
+        self.val_GEOF1LAT.setText(self.the_settings["value_GEOF1LAT"])
+        self.val_GEOF1LON.setText(self.the_settings["value_GEOF1LON"])
+        self.val_GEOF1RAD.setText(self.the_settings["value_GEOF1RAD"])
+        self.val_GEOF2LAT.setText(self.the_settings["value_GEOF2LAT"])
+        self.val_GEOF2LON.setText(self.the_settings["value_GEOF2LON"])
+        self.val_GEOF2RAD.setText(self.the_settings["value_GEOF2RAD"])
+        self.val_GEOF3LAT.setText(self.the_settings["value_GEOF3LAT"])
+        self.val_GEOF3LON.setText(self.the_settings["value_GEOF3LON"])
+        self.val_GEOF3RAD.setText(self.the_settings["value_GEOF3RAD"])
+        self.val_GEOF4LAT.setText(self.the_settings["value_GEOF4LAT"])
+        self.val_GEOF4LON.setText(self.the_settings["value_GEOF4LON"])
+        self.val_GEOF4RAD.setText(self.the_settings["value_GEOF4RAD"])
+        self.val_WAKEINT.setText(self.the_settings["value_WAKEINT"])
+        self.val_ALARMINT.setText(self.the_settings["value_ALARMINT"])
+        self.val_TXINT.setText(self.the_settings["value_TXINT"])
+        self.val_LOWBATT.setText(self.the_settings["value_LOWBATT"])
+        self.val_DYNMODEL.setText(self.the_settings["value_DYNMODEL"])
+        
+        self.messages.moveCursor(QTextCursor.End)
+        self.messages.ensureCursorVisible()
+        self.messages.appendPlainText("Configuration loaded.")
+        self.messages.ensureCursorVisible()
+
+    def on_save_config_btn_pressed(self) -> None:
+        """Save the configuration to a pickle (.pkl) file"""
+        fileExists = False
+        try:
+            f = open(self.fileLocation_lineedit.text())
+            fileExists = True
+            f.close()
+        except IOError:
+            fileExists = False
+        if (fileExists == True):
+            buttonReply = QMessageBox.question(self, '', "The file already exists. Do you want to replace it?", QMessageBox.Yes | QMessageBox.Cancel, QMessageBox.Cancel)
+            if buttonReply == QMessageBox.Cancel:
+                self.messages.moveCursor(QTextCursor.End)
+                self.messages.ensureCursorVisible()
+                self.messages.appendPlainText("File save cancelled!")
+                self.messages.ensureCursorVisible()
+                return
+        self.the_settings = {
+            "F1_BINARY": self.checkbox_F1_BINARY.isChecked(),
+            "F1_DEST": self.checkbox_F1_DEST.isChecked(),
+            "F1_HIPRESS": self.checkbox_F1_HIPRESS.isChecked(),
+            "F1_LOPRESS": self.checkbox_F1_LOPRESS.isChecked(),
+            "F1_HITEMP": self.checkbox_F1_HITEMP.isChecked(),
+            "F1_LOTEMP": self.checkbox_F1_LOTEMP.isChecked(),
+            "F1_HIHUMID": self.checkbox_F1_HIHUMID.isChecked(),
+            "F1_LOHUMID": self.checkbox_F1_LOHUMID.isChecked(),
+            "F2_GEOFENCE": self.checkbox_F2_GEOFENCE.isChecked(),
+            "F2_INSIDE": self.checkbox_F2_INSIDE.isChecked(),
+            "F2_LOWBATT": self.checkbox_F2_LOWBATT.isChecked(),
+            "F2_RING": self.checkbox_F2_RING.isChecked(),
+            "USERFUNC1": self.checkbox_USERFUNC1.isChecked(),
+            "USERFUNC2": self.checkbox_USERFUNC2.isChecked(),
+            "USERFUNC3": self.checkbox_USERFUNC3.isChecked(),
+            "USERFUNC4": self.checkbox_USERFUNC4.isChecked(),
+            "USERFUNC5": self.checkbox_USERFUNC5.isChecked(),
+            "USERFUNC6": self.checkbox_USERFUNC6.isChecked(),
+            "USERFUNC7": self.checkbox_USERFUNC7.isChecked(),
+            "USERFUNC8": self.checkbox_USERFUNC8.isChecked(),
+            "SWVER": self.checkbox_SWVER.isChecked(),
+            "SOURCE": self.checkbox_SOURCE.isChecked(),
+            "BATTV": self.checkbox_BATTV.isChecked(),
+            "PRESS": self.checkbox_PRESS.isChecked(),
+            "TEMP": self.checkbox_TEMP.isChecked(),
+            "HUMID": self.checkbox_HUMID.isChecked(),
+            "YEAR": self.checkbox_YEAR.isChecked(),
+            "MONTH": self.checkbox_MONTH.isChecked(),
+            "DAY": self.checkbox_DAY.isChecked(),
+            "HOUR": self.checkbox_HOUR.isChecked(),
+            "MIN": self.checkbox_MIN.isChecked(),
+            "SEC": self.checkbox_SEC.isChecked(),
+            "MILLIS": self.checkbox_MILLIS.isChecked(),
+            "DATETIME": self.checkbox_DATETIME.isChecked(),
+            "LAT": self.checkbox_LAT.isChecked(),
+            "LON": self.checkbox_LON.isChecked(),
+            "ALT": self.checkbox_ALT.isChecked(),
+            "SPEED": self.checkbox_SPEED.isChecked(),
+            "HEAD": self.checkbox_HEAD.isChecked(),
+            "SATS": self.checkbox_SATS.isChecked(),
+            "PDOP": self.checkbox_PDOP.isChecked(),
+            "FIX": self.checkbox_FIX.isChecked(),
+            "USERVAL1": self.checkbox_USERVAL1.isChecked(),
+            "USERVAL2": self.checkbox_USERVAL2.isChecked(),
+            "USERVAL3": self.checkbox_USERVAL3.isChecked(),
+            "USERVAL4": self.checkbox_USERVAL4.isChecked(),
+            "USERVAL5": self.checkbox_USERVAL5.isChecked(),
+            "USERVAL6": self.checkbox_USERVAL6.isChecked(),
+            "USERVAL7": self.checkbox_USERVAL7.isChecked(),
+            "USERVAL8": self.checkbox_USERVAL8.isChecked(),
+            "MOFIELDS": self.checkbox_MOFIELDS.isChecked(),
+            "FLAGS1": self.checkbox_FLAGS1.isChecked(),
+            "FLAGS2": self.checkbox_FLAGS2.isChecked(),
+            "DEST": self.checkbox_DEST.isChecked(),
+            "HIPRESS": self.checkbox_HIPRESS.isChecked(),
+            "LOPRESS": self.checkbox_LOPRESS.isChecked(),
+            "HITEMP": self.checkbox_HITEMP.isChecked(),
+            "LOTEMP": self.checkbox_LOTEMP.isChecked(),
+            "HIHUMID": self.checkbox_HIHUMID.isChecked(),
+            "LOHUMID": self.checkbox_LOHUMID.isChecked(),
+            "GEOFNUM": self.checkbox_GEOFNUM.isChecked(),
+            "GEOF1LAT": self.checkbox_GEOF1LAT.isChecked(),
+            "GEOF1LON": self.checkbox_GEOF1LON.isChecked(),
+            "GEOF1RAD": self.checkbox_GEOF1RAD.isChecked(),
+            "GEOF2LAT": self.checkbox_GEOF2LAT.isChecked(),
+            "GEOF2LON": self.checkbox_GEOF2LON.isChecked(),
+            "GEOF2RAD": self.checkbox_GEOF2RAD.isChecked(),
+            "GEOF3LAT": self.checkbox_GEOF3LAT.isChecked(),
+            "GEOF3LON": self.checkbox_GEOF3LON.isChecked(),
+            "GEOF3RAD": self.checkbox_GEOF3RAD.isChecked(),
+            "GEOF4LAT": self.checkbox_GEOF4LAT.isChecked(),
+            "GEOF4LON": self.checkbox_GEOF4LON.isChecked(),
+            "GEOF4RAD": self.checkbox_GEOF4RAD.isChecked(),
+            "WAKEINT": self.checkbox_WAKEINT.isChecked(),
+            "ALARMINT": self.checkbox_ALARMINT.isChecked(),
+            "TXINT": self.checkbox_TXINT.isChecked(),
+            "LOWBATT": self.checkbox_LOWBATT.isChecked(),
+            "DYNMODEL": self.checkbox_DYNMODEL.isChecked(),
+            "val_FLAGS1": self.checkbox_val_FLAGS1.isChecked(),
+            "val_FLAGS2": self.checkbox_val_FLAGS2.isChecked(),
+            "val_MOFIELDS": self.checkbox_val_MOFIELDS.isChecked(),
+            "val_SOURCE": self.checkbox_val_SOURCE.isChecked(),
+            "val_DEST": self.checkbox_val_DEST.isChecked(),
+            "val_HIPRESS": self.checkbox_val_HIPRESS.isChecked(),
+            "val_LOPRESS": self.checkbox_val_LOPRESS.isChecked(),
+            "val_HITEMP": self.checkbox_val_HITEMP.isChecked(),
+            "val_LOTEMP": self.checkbox_val_LOTEMP.isChecked(),
+            "val_HIHUMID": self.checkbox_val_HIHUMID.isChecked(),
+            "val_LOHUMID": self.checkbox_val_LOHUMID.isChecked(),
+            "val_GEOFNUM": self.checkbox_val_GEOFNUM.isChecked(),
+            "val_GEOF1LAT": self.checkbox_val_GEOF1LAT.isChecked(),
+            "val_GEOF1LON": self.checkbox_val_GEOF1LON.isChecked(),
+            "val_GEOF1RAD": self.checkbox_val_GEOF1RAD.isChecked(),
+            "val_GEOF2LAT": self.checkbox_val_GEOF2LAT.isChecked(),
+            "val_GEOF2LON": self.checkbox_val_GEOF2LON.isChecked(),
+            "val_GEOF2RAD": self.checkbox_val_GEOF2RAD.isChecked(),
+            "val_GEOF3LAT": self.checkbox_val_GEOF3LAT.isChecked(),
+            "val_GEOF3LON": self.checkbox_val_GEOF3LON.isChecked(),
+            "val_GEOF3RAD": self.checkbox_val_GEOF3RAD.isChecked(),
+            "val_GEOF4LAT": self.checkbox_val_GEOF4LAT.isChecked(),
+            "val_GEOF4LON": self.checkbox_val_GEOF4LON.isChecked(),
+            "val_GEOF4RAD": self.checkbox_val_GEOF4RAD.isChecked(),
+            "val_WAKEINR": self.checkbox_val_WAKEINT.isChecked(),
+            "val_ALARMINT": self.checkbox_val_ALARMINT.isChecked(),
+            "val_TXINT": self.checkbox_val_TXINT.isChecked(),
+            "val_LOWBATT": self.checkbox_val_LOWBATT.isChecked(),
+            "val_DYNMODEL": self.checkbox_val_DYNMODEL.isChecked(),
+            "value_SOURCE": self.val_SOURCE.text(),
+            "value_DEST": self.val_DEST.text(),
+            "value_HIPRESS": self.val_HIPRESS.text(),
+            "value_LOPRESS": self.val_LOPRESS.text(),
+            "value_HITEMP": self.val_HITEMP.text(),
+            "value_LOTEMP": self.val_LOTEMP.text(),
+            "value_HIHUMID": self.val_HIHUMID.text(),
+            "value_LOHUMID": self.val_LOHUMID.text(),
+            "value_GEOFNUM": self.val_GEOFNUM.text(),
+            "value_GEOF1LAT": self.val_GEOF1LAT.text(),
+            "value_GEOF1LON": self.val_GEOF1LON.text(),
+            "value_GEOF1RAD": self.val_GEOF1RAD.text(),
+            "value_GEOF2LAT": self.val_GEOF2LAT.text(),
+            "value_GEOF2LON": self.val_GEOF2LON.text(),
+            "value_GEOF2RAD": self.val_GEOF2RAD.text(),
+            "value_GEOF3LAT": self.val_GEOF3LAT.text(),
+            "value_GEOF3LON": self.val_GEOF3LON.text(),
+            "value_GEOF3RAD": self.val_GEOF3RAD.text(),
+            "value_GEOF4LAT": self.val_GEOF4LAT.text(),
+            "value_GEOF4LON": self.val_GEOF4LON.text(),
+            "value_GEOF4RAD": self.val_GEOF4RAD.text(),
+            "value_WAKEINT": self.val_WAKEINT.text(),
+            "value_ALARMINT": self.val_ALARMINT.text(),
+            "value_TXINT": self.val_TXINT.text(),
+            "value_LOWBATT": self.val_LOWBATT.text(),
+            "value_DYNMODEL": self.val_DYNMODEL.text()
+        }
+        try:
+            fp = open(self.fileLocation_lineedit.text(),"wb")
+            pickle.dump(self.the_settings, fp)
+            fp.close()
+            self.messages.moveCursor(QTextCursor.End)
+            self.messages.ensureCursorVisible()
+            self.messages.appendPlainText("Configuration saved.")
+            self.messages.ensureCursorVisible()
+        except:
+            self.messages.moveCursor(QTextCursor.End)
+            self.messages.ensureCursorVisible()
+            self.messages.appendPlainText("File save failed!")
+            self.messages.ensureCursorVisible()
 
     def on_calc_config_btn_pressed(self) -> None:
+        """Calculate the configuration message"""
         self.messages.clear() # Clear the message window
         config_str = "02" # Add the STX
         # FLAGS1
@@ -1031,7 +1451,7 @@ class MainWidget(QWidget):
             config_str = config_str + "31{0:0{1}x}".format(flags, 2)
         elif flags > 0:
             self.messages.moveCursor(QTextCursor.End)
-            self.messages.appendPlainText("Warning: FLAGS1 has bits set but Include checkbox is not checked")
+            self.messages.appendPlainText("Warning: FLAGS1 has bits set but the FLAGS1 Include checkbox is not checked")
             self.messages.ensureCursorVisible()
         # FLAGS2
         flags = 0
@@ -1043,73 +1463,195 @@ class MainWidget(QWidget):
             config_str = config_str + "32{0:0{1}x}".format(flags, 2)
         elif flags > 0:
             self.messages.moveCursor(QTextCursor.End)
-            self.messages.appendPlainText("Warning: FLAGS2 has bits set but Include checkbox is not checked")
+            self.messages.appendPlainText("Warning: FLAGS2 has bits set but the FLAGS2 Include checkbox is not checked")
             self.messages.ensureCursorVisible()
         # MOFIELDS
         flags = 0
-        if self.checkbox_SWVER.isChecked():     flags = flags | 0x080000000000000000000000
-        if self.checkbox_SOURCE.isChecked():    flags = flags | 0x008000000000000000000000
-        if self.checkbox_BATTV.isChecked():     flags = flags | 0x004000000000000000000000
-        if self.checkbox_PRESS.isChecked():     flags = flags | 0x002000000000000000000000
-        if self.checkbox_TEMP.isChecked():      flags = flags | 0x001000000000000000000000
-        if self.checkbox_HUMID.isChecked():     flags = flags | 0x000800000000000000000000
-        if self.checkbox_YEAR.isChecked():      flags = flags | 0x000400000000000000000000
-        if self.checkbox_MONTH.isChecked():     flags = flags | 0x000200000000000000000000
-        if self.checkbox_DAY.isChecked():       flags = flags | 0x000100000000000000000000
-        if self.checkbox_HOUR.isChecked():      flags = flags | 0x000080000000000000000000
-        if self.checkbox_MIN.isChecked():       flags = flags | 0x000040000000000000000000
-        if self.checkbox_SEC.isChecked():       flags = flags | 0x000020000000000000000000
-        if self.checkbox_MILLIS.isChecked():    flags = flags | 0x000010000000000000000000
-        if self.checkbox_DATETIME.isChecked():  flags = flags | 0x000008000000000000000000
-        if self.checkbox_LAT.isChecked():       flags = flags | 0x000004000000000000000000
-        if self.checkbox_LON.isChecked():       flags = flags | 0x000002000000000000000000
-        if self.checkbox_ALT.isChecked():       flags = flags | 0x000001000000000000000000
-        if self.checkbox_SPEED.isChecked():     flags = flags | 0x000000800000000000000000
-        if self.checkbox_HEAD.isChecked():      flags = flags | 0x000000400000000000000000
-        if self.checkbox_SATS.isChecked():      flags = flags | 0x000000200000000000000000
-        if self.checkbox_PDOP.isChecked():      flags = flags | 0x000000100000000000000000
-        if self.checkbox_FIX.isChecked():       flags = flags | 0x000000080000000000000000
-        if self.checkbox_USERVAL1.isChecked():  flags = flags | 0x000000008000000000000000
-        if self.checkbox_USERVAL2.isChecked():  flags = flags | 0x000000004000000000000000
-        if self.checkbox_USERVAL3.isChecked():  flags = flags | 0x000000002000000000000000
-        if self.checkbox_USERVAL4.isChecked():  flags = flags | 0x000000001000000000000000
-        if self.checkbox_USERVAL5.isChecked():  flags = flags | 0x000000000800000000000000
-        if self.checkbox_USERVAL6.isChecked():  flags = flags | 0x000000000400000000000000
-        if self.checkbox_USERVAL7.isChecked():  flags = flags | 0x000000000200000000000000
-        if self.checkbox_USERVAL8.isChecked():  flags = flags | 0x000000000100000000000000
-        if self.checkbox_MOFIELDS.isChecked():  flags = flags | 0x000000000000800000000000
-        if self.checkbox_FLAGS1.isChecked():    flags = flags | 0x000000000000400000000000
-        if self.checkbox_FLAGS2.isChecked():    flags = flags | 0x000000000000200000000000
-        if self.checkbox_DEST.isChecked():      flags = flags | 0x000000000000100000000000
-        if self.checkbox_HIPRESS.isChecked():   flags = flags | 0x000000000000080000000000
-        if self.checkbox_LOPRESS.isChecked():   flags = flags | 0x000000000000040000000000
-        if self.checkbox_HITEMP.isChecked():    flags = flags | 0x000000000000020000000000
-        if self.checkbox_LOTEMP.isChecked():    flags = flags | 0x000000000000010000000000
-        if self.checkbox_HIHUMID.isChecked():   flags = flags | 0x000000000000008000000000
-        if self.checkbox_LOHUMID.isChecked():   flags = flags | 0x000000000000004000000000
-        if self.checkbox_GEOFNUM.isChecked():   flags = flags | 0x000000000000002000000000
-        if self.checkbox_GEOF1LAT.isChecked():  flags = flags | 0x000000000000001000000000
-        if self.checkbox_GEOF1LON.isChecked():  flags = flags | 0x000000000000000800000000
-        if self.checkbox_GEOF1RAD.isChecked():  flags = flags | 0x000000000000000400000000
-        if self.checkbox_GEOF2LAT.isChecked():  flags = flags | 0x000000000000000200000000
-        if self.checkbox_GEOF2LON.isChecked():  flags = flags | 0x000000000000000100000000
-        if self.checkbox_GEOF2RAD.isChecked():  flags = flags | 0x000000000000000080000000
-        if self.checkbox_GEOF3LAT.isChecked():  flags = flags | 0x000000000000000040000000
-        if self.checkbox_GEOF3LON.isChecked():  flags = flags | 0x000000000000000020000000
-        if self.checkbox_GEOF3RAD.isChecked():  flags = flags | 0x000000000000000010000000
-        if self.checkbox_GEOF4LAT.isChecked():  flags = flags | 0x000000000000000008000000
-        if self.checkbox_GEOF4LON.isChecked():  flags = flags | 0x000000000000000004000000
-        if self.checkbox_GEOF4RAD.isChecked():  flags = flags | 0x000000000000000002000000
-        if self.checkbox_WAKEINT.isChecked():   flags = flags | 0x000000000000000001000000
-        if self.checkbox_ALARMINT.isChecked():  flags = flags | 0x000000000000000000800000
-        if self.checkbox_TXINT.isChecked():     flags = flags | 0x000000000000000000400000
-        if self.checkbox_LOWBATT.isChecked():   flags = flags | 0x000000000000000000200000
-        if self.checkbox_DYNMODEL.isChecked():  flags = flags | 0x000000000000000000100000
+        maxTxtLen = 0 # Keep a running total of the maximum text message length
+        if self.checkbox_F1_DEST.isChecked(): maxTxtLen += 10 # Include the RockBLOCK header
+        if self.checkbox_SWVER.isChecked():
+            flags = flags | 0x080000000000000000000000
+            maxTxtLen += 6
+        if self.checkbox_SOURCE.isChecked():
+            flags = flags | 0x008000000000000000000000
+            maxTxtLen += 8
+        if self.checkbox_BATTV.isChecked():
+            flags = flags | 0x004000000000000000000000
+            maxTxtLen += 5
+        if self.checkbox_PRESS.isChecked():
+            flags = flags | 0x002000000000000000000000
+            maxTxtLen += 5
+        if self.checkbox_TEMP.isChecked():
+            flags = flags | 0x001000000000000000000000
+            maxTxtLen += 7
+        if self.checkbox_HUMID.isChecked():
+            flags = flags | 0x000800000000000000000000
+            maxTxtLen += 7
+        if self.checkbox_YEAR.isChecked():
+            flags = flags | 0x000400000000000000000000
+            maxTxtLen += 5
+        if self.checkbox_MONTH.isChecked():
+            flags = flags | 0x000200000000000000000000
+            maxTxtLen += 3
+        if self.checkbox_DAY.isChecked():
+            flags = flags | 0x000100000000000000000000
+            maxTxtLen += 3
+        if self.checkbox_HOUR.isChecked():
+            flags = flags | 0x000080000000000000000000
+            maxTxtLen += 3
+        if self.checkbox_MIN.isChecked():
+            flags = flags | 0x000040000000000000000000
+            maxTxtLen += 3
+        if self.checkbox_SEC.isChecked():
+            flags = flags | 0x000020000000000000000000
+            maxTxtLen += 3
+        if self.checkbox_MILLIS.isChecked():
+            flags = flags | 0x000010000000000000000000
+            maxTxtLen += 4
+        if self.checkbox_DATETIME.isChecked():
+            flags = flags | 0x000008000000000000000000
+            maxTxtLen += 15
+        if self.checkbox_LAT.isChecked():
+            flags = flags | 0x000004000000000000000000
+            maxTxtLen += 12
+        if self.checkbox_LON.isChecked():
+            flags = flags | 0x000002000000000000000000
+            maxTxtLen += 13
+        if self.checkbox_ALT.isChecked():
+            flags = flags | 0x000001000000000000000000
+            maxTxtLen += 10
+        if self.checkbox_SPEED.isChecked():
+            flags = flags | 0x000000800000000000000000
+            maxTxtLen += 8
+        if self.checkbox_HEAD.isChecked():
+            flags = flags | 0x000000400000000000000000
+            maxTxtLen += 7
+        if self.checkbox_SATS.isChecked():
+            flags = flags | 0x000000200000000000000000
+            maxTxtLen += 3
+        if self.checkbox_PDOP.isChecked():
+            flags = flags | 0x000000100000000000000000
+            maxTxtLen += 7
+        if self.checkbox_FIX.isChecked():
+            flags = flags | 0x000000080000000000000000
+            maxTxtLen += 2
+        if self.checkbox_USERVAL1.isChecked():
+            flags = flags | 0x000000008000000000000000
+            maxTxtLen += 4
+        if self.checkbox_USERVAL2.isChecked():
+            flags = flags | 0x000000004000000000000000
+            maxTxtLen += 4
+        if self.checkbox_USERVAL3.isChecked():
+            flags = flags | 0x000000002000000000000000
+            maxTxtLen += 6
+        if self.checkbox_USERVAL4.isChecked():
+            flags = flags | 0x000000001000000000000000
+            maxTxtLen += 6
+        if self.checkbox_USERVAL5.isChecked():
+            flags = flags | 0x000000000800000000000000
+            maxTxtLen += 11
+        if self.checkbox_USERVAL6.isChecked():
+            flags = flags | 0x000000000400000000000000
+            maxTxtLen += 11
+        if self.checkbox_USERVAL7.isChecked():
+            flags = flags | 0x000000000200000000000000
+            maxTxtLen += 15
+        if self.checkbox_USERVAL8.isChecked():
+            flags = flags | 0x000000000100000000000000
+            maxTxtLen += 15
+        if self.checkbox_MOFIELDS.isChecked():
+            flags = flags | 0x000000000000800000000000
+            maxTxtLen += 25
+        if self.checkbox_FLAGS1.isChecked():
+            flags = flags | 0x000000000000400000000000
+            maxTxtLen += 3
+        if self.checkbox_FLAGS2.isChecked():
+            flags = flags | 0x000000000000200000000000
+            maxTxtLen += 3
+        if self.checkbox_DEST.isChecked():
+            flags = flags | 0x000000000000100000000000
+            maxTxtLen += 8
+        if self.checkbox_HIPRESS.isChecked():
+            flags = flags | 0x000000000000080000000000
+            maxTxtLen += 5
+        if self.checkbox_LOPRESS.isChecked():
+            flags = flags | 0x000000000000040000000000
+            maxTxtLen += 5
+        if self.checkbox_HITEMP.isChecked():
+            flags = flags | 0x000000000000020000000000
+            maxTxtLen += 7
+        if self.checkbox_LOTEMP.isChecked():
+            flags = flags | 0x000000000000010000000000
+            maxTxtLen += 7
+        if self.checkbox_HIHUMID.isChecked():
+            flags = flags | 0x000000000000008000000000
+            maxTxtLen += 7
+        if self.checkbox_LOHUMID.isChecked():
+            flags = flags | 0x000000000000004000000000
+            maxTxtLen += 7
+        if self.checkbox_GEOFNUM.isChecked():
+            flags = flags | 0x000000000000002000000000
+            maxTxtLen += 3
+        if self.checkbox_GEOF1LAT.isChecked():
+            flags = flags | 0x000000000000001000000000
+            maxTxtLen += 12
+        if self.checkbox_GEOF1LON.isChecked():
+            flags = flags | 0x000000000000000800000000
+            maxTxtLen += 13
+        if self.checkbox_GEOF1RAD.isChecked():
+            flags = flags | 0x000000000000000400000000
+            maxTxtLen += 10
+        if self.checkbox_GEOF2LAT.isChecked():
+            flags = flags | 0x000000000000000200000000
+            maxTxtLen += 12
+        if self.checkbox_GEOF2LON.isChecked():
+            flags = flags | 0x000000000000000100000000
+            maxTxtLen += 13
+        if self.checkbox_GEOF2RAD.isChecked():
+            flags = flags | 0x000000000000000080000000
+            maxTxtLen += 10
+        if self.checkbox_GEOF3LAT.isChecked():
+            flags = flags | 0x000000000000000040000000
+            maxTxtLen += 12
+        if self.checkbox_GEOF3LON.isChecked():
+            flags = flags | 0x000000000000000020000000
+            maxTxtLen += 13
+        if self.checkbox_GEOF3RAD.isChecked():
+            flags = flags | 0x000000000000000010000000
+            maxTxtLen += 10
+        if self.checkbox_GEOF4LAT.isChecked():
+            flags = flags | 0x000000000000000008000000
+            maxTxtLen += 12
+        if self.checkbox_GEOF4LON.isChecked():
+            flags = flags | 0x000000000000000004000000
+            maxTxtLen += 13
+        if self.checkbox_GEOF4RAD.isChecked():
+            flags = flags | 0x000000000000000002000000
+            maxTxtLen += 10
+        if self.checkbox_WAKEINT.isChecked():
+            flags = flags | 0x000000000000000001000000
+            maxTxtLen += 5
+        if self.checkbox_ALARMINT.isChecked():
+            flags = flags | 0x000000000000000000800000
+            maxTxtLen += 5
+        if self.checkbox_TXINT.isChecked():
+            flags = flags | 0x000000000000000000400000
+            maxTxtLen += 5
+        if self.checkbox_LOWBATT.isChecked():
+            flags = flags | 0x000000000000000000200000
+            maxTxtLen += 5
+        if self.checkbox_DYNMODEL.isChecked():
+            flags = flags | 0x000000000000000000100000
+            maxTxtLen += 3
+        if (self.checkbox_F1_BINARY.isChecked() == False) and (maxTxtLen > 340):
+            self.messages.moveCursor(QTextCursor.End)
+            self.messages.appendPlainText("Error: The text message sent by the Tracker will exceed 340 bytes! You need to select fewer MOFIELDS.")
+            self.messages.ensureCursorVisible()
         if self.checkbox_val_MOFIELDS.isChecked():
             config_str = config_str + "30{0:0{1}x}".format(flags, 24)
         elif flags > 0:
             self.messages.moveCursor(QTextCursor.End)
-            self.messages.appendPlainText("Warning: MOFIELDS has bits set but Include checkbox is not checked")
+            self.messages.appendPlainText("Warning: MOFIELDS has bits set but the MOFIELDS Include checkbox is not checked")
             self.messages.ensureCursorVisible()
         # Fields Values
         if self.checkbox_val_SOURCE.isChecked():
@@ -1465,53 +2007,6 @@ class MainWidget(QWidget):
         self.config.clear() # Clear the config window
         self.config.appendPlainText(config_str) # Display the config message
 
-    def on_refresh_btn_pressed(self) -> None:
-        self.update_com_ports()
-
-    def on_upload_btn_pressed(self) -> None:
-        """Check if port is available"""
-        portAvailable = False
-        ports = comports()
-        for p in ports:
-            if (p.device == self.port):
-                portAvailable = True
-        if (portAvailable == False):
-            self.messages.moveCursor(QTextCursor.End)
-            self.messages.ensureCursorVisible()
-            self.messages.appendPlainText("Port No Longer Available!")
-            self.messages.ensureCursorVisible()
-            return
-
-        """Check if file exists"""
-        fileExists = False
-        try:
-            f = open(self.fileLocation_lineedit.text())
-            fileExists = True
-        except IOError:
-            fileExists = False
-        finally:
-            if (fileExists == False):
-                self.messages.moveCursor(QTextCursor.End)
-                self.messages.ensureCursorVisible()
-                self.messages.appendPlainText("File Not Found!")
-                self.messages.ensureCursorVisible()
-                return
-            f.close()
-
-        self.messages.appendPlainText("Boo!\n")
-
-    def on_browse_btn_pressed(self) -> None:
-        """Open dialog to select bin file."""
-        options = QFileDialog.Options()
-        fileName, _ = QFileDialog.getOpenFileName(
-            None,
-            "Select Configuration File",
-            "",
-            "Configuration Files (*.pkl);;All Files (*)",
-            options=options)
-        if fileName:
-            self.fileLocation_lineedit.setText(fileName)
-     
 if __name__ == '__main__':
     from sys import exit as sysExit
     app = QApplication([])
