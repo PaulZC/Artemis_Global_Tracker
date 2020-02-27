@@ -128,7 +128,8 @@ If the number of IDs is expanded beyond 0x5f, MOFIELDS will need to be redefined
 | [0x1a](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#sats-0x1a) | SATS | byte | 1 | 2 | Yes | No | No | No | The number of satellites (space vehicles) used in the solution | 
 | [0x1b](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#pdop-0x1b) | PDOP | uint16_t | 2 | 6 | Yes | No | No | No | The positional dilution of precision |
 | [0x1c](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#fix-0x1c) | FIX | byte | 1 | 1 | Yes | No | No | No | The GNSS fix type |
-| 0x1d - 0x1f | | | | | | | | | **Currently undefined - do not use** |
+| [0x1d](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geofstat-0x1d) | GEOFSTAT | 5 x byte | 5 | 5 | Yes | No | No | No | The geofence status |
+| 0x1e - 0x1f | | | | | | | | | **Currently undefined - do not use** |
 | [0x20](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userval1-0x20) | USERVAL1 | byte | 1 | 3 | Yes | No | No | No | User value 1 (e.g. from an external sensor) |
 | [0x21](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userval2-0x21) | USERVAL2 | byte | 1 | 3 |Yes | No | No | No | User value 2 |
 | [0x22](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userval3-0x22) | USERVAL3 | uint16_t | 2 | 5 |Yes | No | No | No | User value 3 |
@@ -470,7 +471,7 @@ PDOP (0x1b)
 | Binary: | uint16_t, 2 bytes, little endian, in **cm**. |
 | Text: | Sent as **m**, with cm resolution, in the format m.m with 1 or 2 decimal places _without preceding or trailing zeroes_ |
 | Example value: | 1.02m |
-| Binary example: | 0x1c6600 (102 is 0x0066) |
+| Binary example: | 0x1b6600 (102 is 0x0066) |
 | Text example: | 1.02 |
 
 ---
@@ -483,8 +484,26 @@ FIX (0x1c)
 | Binary: | byte. |
 | Text: | Sent in the format n in the range 0 to 5 |
 | Example value: | 3 |
-| Binary example: | 0x1d03 (3 is 0x03) |
+| Binary example: | 0x1c03 (3 is 0x03) |
 | Text example: | 3 |
+
+---
+GEOFSTAT (0x1d)
+---
+
+| []() | |
+|---|---|
+| Description: | The geofence status as defined in the u-blox UBX-NAV-GEOFENCE message |
+| Binary: | 5 x byte: |
+| | Byte 0 : combState: ombined (logical OR) state of all geofences: 0 - Unknown; 1 - Inside; 2 - Outside |
+| | Byte 1 : GeoFence1 state: 0 - Unknown; 1 - Inside; 2 - Outside |
+| | Byte 2 : GeoFence2 state: 0 - Unknown; 1 - Inside; 2 - Outside |
+| | Byte 3 : GeoFence3 state: 0 - Unknown; 1 - Inside; 2 - Outside |
+| | Byte 4 : GeoFence4 state: 0 - Unknown; 1 - Inside; 2 - Outside |
+| Text: | Sent as five ASCII digits: 00000 to 22222 |
+| Example value: | The tracker is inside all four geofences |
+| Binary example: | 0x1d0101010101 (1 is 0x01) |
+| Text example: | 11111 |
 
 ---
 USERVAL1 (0x20)
