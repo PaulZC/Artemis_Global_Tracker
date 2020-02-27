@@ -111,6 +111,7 @@
 #define DEF_SATS      0
 #define DEF_PDOP      0
 #define DEF_FIX       0
+#define DEF_GEOFSTAT  0
 #define DEF_USERVAL1  0
 #define DEF_USERVAL2  0
 #define DEF_USERVAL3  0
@@ -193,7 +194,9 @@
 #define MOFIELDS0_SATS      0x00000020
 #define MOFIELDS0_PDOP      0x00000010
 #define MOFIELDS0_FIX       0x00000008
+#define MOFIELDS0_GEOFSTAT  0x00000004
 
+// Define the bits for MOFIELDS[1]
 #define MOFIELDS1_USERVAL1  0x80000000
 #define MOFIELDS1_USERVAL2  0x40000000
 #define MOFIELDS1_USERVAL3  0x20000000
@@ -219,6 +222,7 @@
 #define MOFIELDS1_GEOF2LAT  0x00000002
 #define MOFIELDS1_GEOF2LON  0x00000001
 
+// Define the bits for MOFIELDS[2]
 #define MOFIELDS2_GEOF2RAD  0x80000000
 #define MOFIELDS2_GEOF3LAT  0x40000000
 #define MOFIELDS2_GEOF3LON  0x20000000
@@ -281,6 +285,7 @@ enum tracker_message_fields
   SATS      = 0x1a,
   PDOP      = 0x1b,
   FIX       = 0x1c,
+  GEOFSTAT  = 0x1d,
   USERVAL1  = 0x20,
   USERVAL2  = 0x21,
   USERVAL3  = 0x22,
@@ -384,6 +389,7 @@ typedef struct
   byte SATS;                  // The number of satellites (space vehicles) used in the solution
   union_uint16t PDOP;         // The Positional Dilution of Precision in cm
   byte FIX;                   // The GNSS fix type as defined in the u-blox PVT message
+  byte GEOFSTAT[3];           // The geofence status as defined in the u-blox UBX-NAV-GEOFENCE message
   byte USERVAL1;              // User value 1
   byte USERVAL2;              // User value 2
   union_uint16t USERVAL3;     // User value 3
@@ -424,7 +430,7 @@ typedef struct
 } trackerSettings;
 
 // Define the binary data widths for _all_ IDs
-#define NUM_ID_WIDTHS 69
+#define NUM_ID_WIDTHS 70
 ID_width ID_widths[NUM_ID_WIDTHS] = {
   {STX       , 0 },
   {ETX       , 0 },
@@ -450,6 +456,7 @@ ID_width ID_widths[NUM_ID_WIDTHS] = {
   {SATS      , 1 },
   {PDOP      , 2 },
   {FIX       , 1 },
+  {GEOFSTAT  , 3 },
   {USERVAL1  , 1 },
   {USERVAL2  , 1 },
   {USERVAL3  , 2 },

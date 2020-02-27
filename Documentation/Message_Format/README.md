@@ -128,7 +128,7 @@ If the number of IDs is expanded beyond 0x5f, MOFIELDS will need to be redefined
 | [0x1a](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#sats-0x1a) | SATS | byte | 1 | 2 | Yes | No | No | No | The number of satellites (space vehicles) used in the solution | 
 | [0x1b](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#pdop-0x1b) | PDOP | uint16_t | 2 | 6 | Yes | No | No | No | The positional dilution of precision |
 | [0x1c](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#fix-0x1c) | FIX | byte | 1 | 1 | Yes | No | No | No | The GNSS fix type |
-| [0x1d](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geofstat-0x1d) | GEOFSTAT | 5 x byte | 5 | 5 | Yes | No | No | No | The geofence status |
+| [0x1d](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geofstat-0x1d) | GEOFSTAT | 3 x byte | 3 | 6 | Yes | No | No | No | The geofence status |
 | 0x1e - 0x1f | | | | | | | | | **Currently undefined - do not use** |
 | [0x20](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userval1-0x20) | USERVAL1 | byte | 1 | 3 | Yes | No | No | No | User value 1 (e.g. from an external sensor) |
 | [0x21](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userval2-0x21) | USERVAL2 | byte | 1 | 3 |Yes | No | No | No | User value 2 |
@@ -494,16 +494,17 @@ GEOFSTAT (0x1d)
 | []() | |
 |---|---|
 | Description: | The geofence status as defined in the u-blox UBX-NAV-GEOFENCE message |
-| Binary: | 5 x byte: |
-| | Byte 0 : combState: ombined (logical OR) state of all geofences: 0 - Unknown; 1 - Inside; 2 - Outside |
-| | Byte 1 : GeoFence1 state: 0 - Unknown; 1 - Inside; 2 - Outside |
-| | Byte 2 : GeoFence2 state: 0 - Unknown; 1 - Inside; 2 - Outside |
-| | Byte 3 : GeoFence3 state: 0 - Unknown; 1 - Inside; 2 - Outside |
-| | Byte 4 : GeoFence4 state: 0 - Unknown; 1 - Inside; 2 - Outside |
-| Text: | Sent as five ASCII digits: 00000 to 22222 |
-| Example value: | The tracker is inside all four geofences |
-| Binary example: | 0x1d0101010101 (1 is 0x01) |
-| Text example: | 11111 |
+| Binary: | 3 x byte: |
+| | Byte 0 Bits 7-4: status: 0x0 - Geofencing not available or not reliable; 0x1 - Geofencing active |
+| | Byte 0 Bits 3-0: combState: combined (logical OR) state of all geofences: 0x0 - Unknown; 0x1 - Inside; 0x2 - Outside |
+| | Byte 1 Bits 7-4: geofence 1 state: 0x0 - Unknown; 0x1 - Inside; 0x2 - Outside |
+| | Byte 1 Bits 3-0: geofence 2 state: 0x0 - Unknown; 0x1 - Inside; 0x2 - Outside |
+| | Byte 2 Bits 7-4: geofence 3 state: 0x0 - Unknown; 0x1 - Inside; 0x2 - Outside |
+| | Byte 2 Bits 3-0: geofence 4 state: 0x0 - Unknown; 0x1 - Inside; 0x2 - Outside |
+| Text: | Sent as six ASCII digits: 000000 to 122222 |
+| Example value: | Geofencing is active and the tracker is inside all four geofences |
+| Binary example: | 0x1d111111 |
+| Text example: | 111111 |
 
 ---
 USERVAL1 (0x20)

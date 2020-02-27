@@ -119,6 +119,9 @@ void initTrackerSettings(trackerSettings *myTrackerSettings) // Initialises the 
   myTrackerSettings->SATS = DEF_SATS;
   myTrackerSettings->PDOP.the_data = DEF_PDOP;
   myTrackerSettings->FIX = DEF_FIX;
+  myTrackerSettings->GEOFSTAT[0] = DEF_GEOFSTAT;
+  myTrackerSettings->GEOFSTAT[1] = DEF_GEOFSTAT;
+  myTrackerSettings->GEOFSTAT[2] = DEF_GEOFSTAT;
   myTrackerSettings->MOFIELDS[0].the_data = DEF_MOFIELDS0;
   myTrackerSettings->MOFIELDS[1].the_data = DEF_MOFIELDS1;
   myTrackerSettings->MOFIELDS[2].the_data = DEF_MOFIELDS2;
@@ -608,6 +611,9 @@ enum tracker_parsing_result parse_data(uint8_t *data_buffer, size_t &data_buffer
       case FIX:
         x += 2;
         break;
+      case GEOFSTAT:
+        x += 4;
+        break;
       case USERVAL1:
       case USERVAL2:
         x += 2;
@@ -920,6 +926,13 @@ void printTrackerSettings(trackerSettings *myTrackerSettings)
     _debugSerial->println(((float)myTrackerSettings->PDOP.the_data / 100),2);
     _debugSerial->print("FIX: ");
     _debugSerial->println(myTrackerSettings->FIX);
+    _debugSerial->print("GEOFSTAT: ");
+    _debugSerial->print((myTrackerSettings->GEOFSTAT[0] & 0xf0) >> 4);
+    _debugSerial->print(myTrackerSettings->GEOFSTAT[0] & 0x0f);
+    _debugSerial->print((myTrackerSettings->GEOFSTAT[1] & 0xf0) >> 4);
+    _debugSerial->print(myTrackerSettings->GEOFSTAT[1] & 0x0f);
+    _debugSerial->print((myTrackerSettings->GEOFSTAT[2] & 0xf0) >> 4);
+    _debugSerial->println(myTrackerSettings->GEOFSTAT[2] & 0x0f);
     _debugSerial->print("USERVAL1: ");
     _debugSerial->println(myTrackerSettings->USERVAL1);
     _debugSerial->print("USERVAL2: ");

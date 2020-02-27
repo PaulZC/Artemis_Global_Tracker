@@ -2,13 +2,13 @@
   Artemis Global Tracker
   
   Written by Paul Clark (PaulZC)
-  24th February 2020
+  27th February 2020
 
   *** WORK IN PROGRESS! ***
   * Still to do:
   * Implement WAKEINT, ALARMINT
   * Implement Geofences
-  * Implement PHT limit and LOWBATT alerts
+  * Implement PHT limits and LOWBATT alerts
   * Remove trailing zeros from the text message fields to save credits
 
   This example builds on the BetterTracker example. Many settings are stored in EEPROM (Flash) and can be configured
@@ -342,6 +342,9 @@ void loop()
           myTrackerSettings.SATS = DEF_SATS;
           myTrackerSettings.PDOP.the_data = DEF_PDOP;
           myTrackerSettings.FIX = DEF_FIX;
+          myTrackerSettings.GEOFSTAT[0] = DEF_GEOFSTAT;
+          myTrackerSettings.GEOFSTAT[1] = DEF_GEOFSTAT;
+          myTrackerSettings.GEOFSTAT[2] = DEF_GEOFSTAT;
   
           // Power down the GNSS
           digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
@@ -447,6 +450,11 @@ void loop()
         myTrackerSettings.SATS = myGPS.getSIV(); // Get the number of satellites used in the fix
         myTrackerSettings.HEAD.the_data = myGPS.getHeading(); // Get the heading in degrees * 10^-7
         myTrackerSettings.PDOP.the_data = myGPS.getPDOP(); // Get the PDOP in cm
+        geofenceState currentGeofenceState; // Create storage for the geofence state
+        myGPS.getGeofenceState(currentGeofenceState); // Get the geofence state
+        myTrackerSettings.GEOFSTAT[0] = (currentGeofenceState.status << 4) | currentGeofenceState.combState; // Store the status and the combined state
+        myTrackerSettings.GEOFSTAT[1] = (currentGeofenceState.states[0] << 4) | currentGeofenceState.states[1]; // Store the individual geofence states
+        myTrackerSettings.GEOFSTAT[2] = (currentGeofenceState.states[2] << 4) | currentGeofenceState.states[3];
 
         Serial.println(F("A 3D fix was found!"));
         Serial.print(F("Latitude (degrees * 10^-7): ")); Serial.println(myTrackerSettings.LAT.the_data);
@@ -475,6 +483,9 @@ void loop()
         myTrackerSettings.SATS = DEF_SATS;
         myTrackerSettings.PDOP.the_data = DEF_PDOP;
         myTrackerSettings.FIX = DEF_FIX;
+        myTrackerSettings.GEOFSTAT[0] = DEF_GEOFSTAT;
+        myTrackerSettings.GEOFSTAT[1] = DEF_GEOFSTAT;
+        myTrackerSettings.GEOFSTAT[2] = DEF_GEOFSTAT;
 
         Serial.println(F("A 3D fix was NOT found!"));
         Serial.println(F("Using default values..."));
@@ -879,6 +890,15 @@ void loop()
             sprintf(outBuffer+outBufferPtr, "%1d,", myTrackerSettings.FIX); // Add the field to outBuffer
             outBufferPtr += 2; // increment the pointer
           }
+          if ((myTrackerSettings.MOFIELDS[0].the_data & MOFIELDS0_GEOFSTAT) == MOFIELDS0_GEOFSTAT) // If the bit is set
+          {
+            sprintf(outBuffer+outBufferPtr, "%02X", myTrackerSettings.GEOFSTAT[0]); // Add the field to outBuffer
+            outBufferPtr += 2; // increment the pointer
+            sprintf(outBuffer+outBufferPtr, "%02X", myTrackerSettings.GEOFSTAT[1]); // Add the field to outBuffer
+            outBufferPtr += 2; // increment the pointer
+            sprintf(outBuffer+outBufferPtr, "%02X,", myTrackerSettings.GEOFSTAT[2]); // Add the field to outBuffer
+            outBufferPtr += 3; // increment the pointer
+          }
 
           // ---------- MOFIELDS1 ----------
 
@@ -1145,7 +1165,7 @@ void loop()
 
         else // we are sending binary
         {
-          
+                    
           // Check if we need to include a RockBLOCK gateway header (DEST)
           if ((myTrackerSettings.FLAGS1 & FLAGS1_DEST) == FLAGS1_DEST) // if bit 6 of FLAGS1 is set we need to add RB DEST first
           {
@@ -1155,6 +1175,9 @@ void loop()
             outBufferBinary[outBufferPtr++] = myTrackerSettings.DEST.the_bytes[1];
             outBufferBinary[outBufferPtr++] = myTrackerSettings.DEST.the_bytes[0];
           }
+
+          size_t stxLoc = outBufferPtr; // Use this to record the location of the STX
+          outBufferBinary[outBufferPtr++] = STX; // Add the STX
 
           // ---------- MOFIELDS0 ----------
           
@@ -1299,6 +1322,13 @@ void loop()
           {
             outBufferBinary[outBufferPtr++] = FIX; // Add the field ID
             outBufferBinary[outBufferPtr++] = myTrackerSettings.FIX; // Add the data
+          }
+          if ((myTrackerSettings.MOFIELDS[0].the_data & MOFIELDS0_GEOFSTAT) == MOFIELDS0_GEOFSTAT) // If the bit is set
+          {
+            outBufferBinary[outBufferPtr++] = GEOFSTAT; // Add the field ID
+            outBufferBinary[outBufferPtr++] = myTrackerSettings.GEOFSTAT[0]; // Add the data
+            outBufferBinary[outBufferPtr++] = myTrackerSettings.GEOFSTAT[1];
+            outBufferBinary[outBufferPtr++] = myTrackerSettings.GEOFSTAT[2];
           }
 
           // ---------- MOFIELDS1 ----------
@@ -1586,7 +1616,22 @@ void loop()
             outBufferBinary[outBufferPtr++] = DYNMODEL; // Add the field ID
             outBufferBinary[outBufferPtr++] = myTrackerSettings.DYNMODEL; // Add the data
           }
+
+          outBufferBinary[outBufferPtr++] = ETX; // Add the ETX
+
+          // Calculate the RFC 1145 Checksum bytes
+          uint32_t csuma = 0;
+          uint32_t csumb = 0;
+          for (size_t x = stxLoc; x < outBufferPtr; x++) // Calculate a sum of sums for every byte from STX to ETX
+          {
+            csuma = csuma + outBufferBinary[x];
+            csumb = csumb + csuma;
+          }
           
+          // Add the two checksum bytes to the message
+          outBufferBinary[outBufferPtr++] = (byte)(csuma & 0x000000ff);          
+          outBufferBinary[outBufferPtr++] = (byte)(csumb & 0x000000ff);
+                  
           // Print the message
           Serial.print(F("Binary message is '"));
           for (size_t i = 0; i < outBufferPtr; i++)
