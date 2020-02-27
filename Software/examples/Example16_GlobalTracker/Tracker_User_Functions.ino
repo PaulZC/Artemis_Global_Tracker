@@ -4,41 +4,49 @@
 
 void USER_FUNC_1()
 {
+  debugPrintln("Executing USERFUNC1...");
   // Add your own code here - it will be executed when the Tracker receives a "USERFUNC1" (0x50) message field
 }
 
 void USER_FUNC_2()
 {
+  debugPrintln("Executing USERFUNC2...");
   // Add your own code here - it will be executed when the Tracker receives a "USERFUNC2" (0x51) message field
 }
 
 void USER_FUNC_3()
 {
+  debugPrintln("Executing USERFUNC3...");
   // Add your own code here - it will be executed when the Tracker receives a "USERFUNC3" (0x52) message field
 }
 
 void USER_FUNC_4()
 {
+  debugPrintln("Executing USERFUNC4...");
   // Add your own code here - it will be executed when the Tracker receives a "USERFUNC4" (0x53) message field
 }
 
 void USER_FUNC_5(uint16_t myVar)
 {
+  debugPrintln("Executing USERFUNC5...");
   // Add your own code here - it will be executed when the Tracker receives a "USERFUNC5" (0x54) message field
 }
 
 void USER_FUNC_6(uint16_t myVar)
 {
+  debugPrintln("Executing USERFUNC6...");
   // Add your own code here - it will be executed when the Tracker receives a "USERFUNC6" (0x55) message field
 }
 
 void USER_FUNC_7(uint32_t myVar)
 {
+  debugPrintln("Executing USERFUNC7...");
   // Add your own code here - it will be executed when the Tracker receives a "USERFUNC7" (0x56) message field
 }
 
 void USER_FUNC_8(uint32_t myVar)
 {
+  debugPrintln("Executing USERFUNC8...");
   // Add your own code here - it will be executed when the Tracker receives a "USERFUNC8" (0x57) message field
 }
 

@@ -82,7 +82,7 @@ SFE_UBLOX_GPS myGPS;
 #include "Tracker_Message_Fields.h" // Include the message field and storage definitions
 trackerSettings myTrackerSettings; // Create storage for the tracker settings in RAM
 
-//#define noTX // Uncomment this line to disable the Iridium SBD transmit if you want to test the code without using message credits
+#define noTX // Uncomment this line to disable the Iridium SBD transmit if you want to test the code without using message credits
 
 #include <EEPROM.h> // Needed for EEPROM storage on the Artemis
 
@@ -118,6 +118,7 @@ volatile bool interval_alarm = false;
 bool PGOOD = false; // Flag to indicate if LTC3225 PGOOD is HIGH
 int err; // Error value returned by IridiumSBD.begin
 bool dynamicModelSet = false; // Flag to indicate if the ZOE-M8Q dynamic model has been set
+bool geofencesSet = false; // Flag to indicate if the ZOE-M8Q geofences been set
 
 uint8_t tracker_serial_rx_buffer[1024]; // Define tracker_serial_rx_buffer which will store the incoming serial configuration data
 size_t tracker_serial_rx_buffer_size; // The size of the buffer
@@ -243,7 +244,7 @@ void loop()
     // ************************************************************************************************
     // Initialise things
     case loop_init:
-    
+    {
       // Start the console serial port and send the welcome message
       Serial.begin(115200);
       delay(1000); // Wait for the user to open the serial monitor (extend this delay if you need more time)
@@ -253,7 +254,7 @@ void loop()
       Serial.println();
       Serial.println();
 
-      //enableDebugging(Serial); // Uncomment this line to enable extra debug messages to Serial
+      enableDebugging(Serial); // Uncomment this line to enable extra debug messages to Serial
 
       if (_printDebug == true)
       {
@@ -268,7 +269,7 @@ void loop()
       printTrackerSettings(&myTrackerSettings);
 
       // Make sure the serial Rx buffer is empty - keep reading characters until available is false
-      while (Serial.available() == true)
+      while (Serial.available() > 0)
       {
         Serial.read(); // Read a single character from the buffer and discard it
       }
@@ -293,19 +294,24 @@ void loop()
       else {
         loop_step = start_GPS; // Move on, start the GNSS
       }
-      
-      break; // End of case loop_init
+    }  
+    break; // End of case loop_init
 
     // ************************************************************************************************
     // Power up the GNSS (ZOE-M8Q)
     case start_GPS:
-
+    {
       Serial.println(F("Powering up the GNSS..."));
       Wire1.begin(); // Set up the I2C pins
       digitalWrite(gnssEN, LOW); // Enable GNSS power (HIGH = disable; LOW = enable)
 
-      delay(2000); // Give it time to power up
-    
+      // Give the GNSS 2secs to power up in a non-blocking way (so we can respond to config serial data as soon as it arrives)
+      int count = 0;
+      while ((count < 2000) && (Serial.available() == 0))
+      {
+        delay(1);
+        count++;
+      }
       // Check battery voltage now we are drawing current for the GPS
       get_vbat(); // Get the battery (bus) voltage
       if (battVlow() == true) {
@@ -373,33 +379,73 @@ void loop()
               dynamicModelSet = true; // Set the flag so we don't try to set the dynamic model again
             }
           }
-          
+
+          // If we are going to set the geofences, let's do it here.
+
+          if (geofencesSet == false) // If we have not set the geofences already
+          {
+            byte numf = (myTrackerSettings.GEOFNUM & 0xf0) >> 4; // Extract the number of geofences
+            byte conf = myTrackerSettings.GEOFNUM & 0x0f; // Extract the confidence level
+            // Always call clearGeofences() to clear all existing geofences.
+            // We need to do this if numf is greater than zero to be able to define new geofences,
+            // but we also want to do it if numf is zero to erase any previous geofences.
+            Serial.print(F("Clearing any existing geofences. clearGeofences returned: "));
+            Serial.println(myGPS.clearGeofences());              
+            if (numf > 0) // If the number of geofences is not zero
+            {
+              if (numf >= 1)
+              {
+                // It is possible to define up to four geofences.
+                // Call addGeofence up to four times to define them.
+                Serial.println(F("Setting the geofences:"));
+    
+                Serial.print(F("addGeofence for geofence 1 returned: "));
+                Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF1LAT.the_data, myTrackerSettings.GEOF1LON.the_data, myTrackerSettings.GEOF1RAD.the_data, conf));
+              }
+              if (numf >= 2)
+              {
+                Serial.print(F("addGeofence for geofence 2 returned: "));
+                Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF2LAT.the_data, myTrackerSettings.GEOF2LON.the_data, myTrackerSettings.GEOF2RAD.the_data, conf));
+              }            
+              if (numf >= 3)
+              {
+                Serial.print(F("addGeofence for geofence 3 returned: "));
+                Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF3LAT.the_data, myTrackerSettings.GEOF3LON.the_data, myTrackerSettings.GEOF3RAD.the_data, conf));
+              }            
+              if (numf >= 4)
+              {
+                Serial.print(F("addGeofence for geofence 4 returned: "));
+                Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF4LAT.the_data, myTrackerSettings.GEOF4LON.the_data, myTrackerSettings.GEOF4RAD.the_data, conf));
+              }            
+            }
+          }
+          geofencesSet = true; // Set the flag so we don't try to set the geofences again
           loop_step = read_GPS; // Move on, read the GNSS fix
         }
         
       }
 
       // Check if any serial data has arrived telling us to go into configure
-      if (Serial.available() == true) // Has any serial data arrived?
+      if (Serial.available() > 0) // Has any serial data arrived?
       {
         digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
         last_loop_step = start_GPS; // Let's start the GPS again when leaving configure
         loop_step = configure; // Start the configure
       }
-
-      break; // End of case start_GPS
+    }
+    break; // End of case start_GPS
 
     // ************************************************************************************************
     // Read a fix from the ZOE-M8Q
     case read_GPS:
-
+    {
       Serial.println(F("Waiting for a 3D GNSS fix..."));
 
       myTrackerSettings.FIX = 0; // Clear the fix type
       
       // Look for GPS signal for up to GNSS_timeout minutes
       // Stop when we get a 3D fix, or we timeout, or if any serial data arrives (telling us to go into configure)
-      for (unsigned long tnow = millis(); (myTrackerSettings.FIX != 3) && (millis() - tnow < GNSS_timeout * 60UL * 1000UL) && (Serial.available() == false);)
+      for (unsigned long tnow = millis(); (myTrackerSettings.FIX != 3) && (millis() - tnow < GNSS_timeout * 60UL * 1000UL) && (Serial.available() == 0);)
       {
       
         myTrackerSettings.FIX = myGPS.getFixType(); // Get the GNSS fix type
@@ -419,7 +465,13 @@ void loop()
           digitalWrite(LED, LOW);
         }
 
-        delay(100); // Don't pound the I2C bus too hard!
+        // Delay for 100msec in a non-blocking way so we don't pound the I2C bus too hard!
+        byte count = 0;
+        while ((count < 100) && (Serial.available() == 0))
+        {
+          delay(1);
+          count++;
+        }
 
       }
 
@@ -498,18 +550,18 @@ void loop()
       digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
 
       // Check if any serial data has arrived telling us to go into configure
-      if (Serial.available() == true) // Has any serial data arrived?
+      if (Serial.available() > 0) // Has any serial data arrived?
       {
         last_loop_step = start_GPS; // Let's read the GPS again when leaving configure
         loop_step = configure; // Start the configure
       }
-
-      break; // End of case read_GPS
+    }
+    break; // End of case read_GPS
 
     // ************************************************************************************************
     // Read the pressure and temperature from the MS8607
     case read_pressure:
-
+    {
       Serial.println(F("Getting the PHT readings..."));
 
       bool barometricSensorOK;
@@ -549,25 +601,31 @@ void loop()
       }
 
       loop_step = start_LTC3225; // Move on, start the super capacitor charger
-
-      break; // End of case read_pressure
+    }
+    break; // End of case read_pressure
 
     // ************************************************************************************************
     // Start the LTC3225 supercapacitor charger
     case start_LTC3225:
-
+    {
       // Enable the supercapacitor charger
       Serial.println(F("Enabling the supercapacitor charger..."));
       digitalWrite(superCapChgEN, HIGH); // Enable the super capacitor charger
 
       Serial.println(F("Waiting for supercapacitors to charge..."));
-      delay(2000);
+      // Give the supercap charger 2secs to power up in a non-blocking way (so we can respond to config serial data as soon as it arrives)
+      int count = 0;
+      while ((count < 2000) && (Serial.available() == 0))
+      {
+        delay(1);
+        count++;
+      }
 
       PGOOD = false; // Flag to show if PGOOD is HIGH
       
       // Wait for PGOOD to go HIGH for up to CHG_timeout minutes
       // Stop when PGOOD goes high, or we timeout, or if any serial data arrives (telling us to go into configure)
-      for (unsigned long tnow = millis(); (!PGOOD) && (millis() - tnow < CHG_timeout * 60UL * 1000UL) && (Serial.available() == false);)
+      for (unsigned long tnow = millis(); (!PGOOD) && (millis() - tnow < CHG_timeout * 60UL * 1000UL) && (Serial.available() == 0);)
       {
       
         PGOOD = digitalRead(superCapPGOOD); // Read the PGOOD pin
@@ -587,7 +645,13 @@ void loop()
           digitalWrite(LED, LOW);
         }
 
-        delay(100); // Let's not pound the bus voltage monitor too hard!
+        // Delay for 100msec in a non-blocking way so we don't pound the I2C bus too hard!
+        byte count = 0;
+        while ((count < 100) && (Serial.available() == 0))
+        {
+          delay(1);
+          count++;
+        }
 
       }
 
@@ -617,23 +681,23 @@ void loop()
       }
   
       // Check if any serial data has arrived telling us to go into configure
-      if (Serial.available() == true) // Has any serial data arrived?
+      if (Serial.available() > 0) // Has any serial data arrived?
       {
         digitalWrite(superCapChgEN, LOW); // Disable the super capacitor charger
         last_loop_step = start_LTC3225; // Let's charge the capacitors again when leaving configure
         loop_step = configure; // Start the configure
       }
-
-      break; // End of case start_LTC3225
+    }
+    break; // End of case start_LTC3225
 
     // ************************************************************************************************
     // Give the super capacitors some extra time to charge
     case wait_LTC3225:
-    
+    {
       Serial.println(F("Giving the supercapacitors extra time to charge..."));
  
       // Wait for TOPUP_timeout seconds, keep checking PGOOD and the battery voltage
-      for (unsigned long tnow = millis(); (millis() - tnow < TOPUP_timeout * 1000UL) && (Serial.available() == false);)
+      for (unsigned long tnow = millis(); (millis() - tnow < TOPUP_timeout * 1000UL) && (Serial.available() == 0);)
       {
       
         // Check battery voltage now we are drawing current for the LTC3225
@@ -651,7 +715,13 @@ void loop()
           digitalWrite(LED, LOW);
         }
 
-        delay(100); // Let's not pound the bus voltage monitor too hard!
+        // Delay for 100msec in a non-blocking way so we don't pound the I2C bus too hard!
+        byte count = 0;
+        while ((count < 100) && (Serial.available() == 0))
+        {
+          delay(1);
+          count++;
+        }
 
       }
 
@@ -682,19 +752,19 @@ void loop()
   
       // Check if any serial data has arrived telling us to go into configure
       // (This is the last time we'll do this. We'll ignore any serial data once the 9603 is enabled.)
-      if (Serial.available() == true) // Has any serial data arrived?
+      if (Serial.available() > 0) // Has any serial data arrived?
       {
         digitalWrite(superCapChgEN, LOW); // Disable the super capacitor charger
         last_loop_step = start_LTC3225; // Let's charge the capacitors again when leaving configure
         loop_step = configure; // Start the configure
       }
-
-      break; // End of case wait_LTC3225
+    }
+    break; // End of case wait_LTC3225
       
     // ************************************************************************************************
     // Enable the 9603N and attempt to send a message
     case start_9603:
-    
+    {
       // Enable power for the 9603N
       Serial.println(F("Enabling 9603N power..."));
       digitalWrite(iridiumPwrEN, HIGH); // Enable Iridium Power
@@ -1758,30 +1828,30 @@ void loop()
           loop_step = sleep_9603; // Put the modem to sleep
         }
       }
-
-      break; // End of case start_9603
+    }
+    break; // End of case start_9603
       
     // ************************************************************************************************
     // Put the modem to sleep
     case sleep_9603: 
-    
-        Serial.println(F("Putting the 9603N to sleep."));
-        err = modem.sleep();
-        if (err != ISBD_SUCCESS)
-        {
-          Serial.print(F("***!!! modem.sleep failed with error "));
-          Serial.print(err);
-          Serial.println(F(" !!!***"));
-        }
+    {
+      Serial.println(F("Putting the 9603N to sleep."));
+      err = modem.sleep();
+      if (err != ISBD_SUCCESS)
+      {
+        Serial.print(F("***!!! modem.sleep failed with error "));
+        Serial.print(err);
+        Serial.println(F(" !!!***"));
+      }
 
-        loop_step = zzz; // Now go to sleep
-
-        break; // End of case sleep_9603
+      loop_step = zzz; // Now go to sleep
+    }
+    break; // End of case sleep_9603
 
     // ************************************************************************************************
     // Go to sleep
     case zzz:
-    
+    {
       Serial.println(F("Getting ready to put the Apollo3 into deep sleep..."));
 
       // Power down the GNSS
@@ -1882,13 +1952,13 @@ void loop()
 
       // Wake up!
       loop_step = wake;
-
-      break; // End of case zzz
+    }
+    break; // End of case zzz
       
     // ************************************************************************************************
     // Wake from sleep
     case wake:
-
+    {
       // Set the clock frequency. (redundant?)
       am_hal_clkgen_control(AM_HAL_CLKGEN_CONTROL_SYSCLK_MAX, 0);
   
@@ -1933,13 +2003,13 @@ void loop()
       
       // Do it all again!
       loop_step = loop_init;
-
-      break; // End of case wake
+    }
+    break; // End of case wake
 
     // ************************************************************************************************
     // Leave the 9603N powered up and monitor the ring indicator continuously
     case wait_for_ring:
-
+    {
       Serial.println(F("Waiting for Ring Indication..."));
 
       while ((interval_alarm == false) && (modem.hasRingAsserted() == false)) // Exit every TXINT minutes or when we see a ring indication
@@ -1982,56 +2052,56 @@ void loop()
 
       // Do it all again!
       loop_step = loop_init;
-    
-      break; // End of case wait_for_ring
+    }
+    break; // End of case wait_for_ring
 
     // ************************************************************************************************
     // Configure the tracker settings via Serial (USB)
     case configure:
+    {
+      Serial.println(F("*** Tracker Configuration ***"));
+      Serial.println(F("Waiting for data..."));
+
+      tracker_serial_rx_status stat = check_for_serial_data(true); // Start checking for the arrival of new serial data
+
+      while ((stat != DATA_RECEIVED) && (stat != DATA_TIMEOUT))
       {
-        Serial.println(F("*** Tracker Configuration ***"));
-        Serial.println(F("Waiting for data..."));
-  
-        tracker_serial_rx_status stat = check_for_serial_data(true); // Start checking for the arrival of new serial data
-  
-        while ((stat != DATA_RECEIVED) && (stat != DATA_TIMEOUT))
-        {
-          stat = check_for_serial_data(false); // Keep checking for the arrival of serial data
-        }
-      
-        if (stat == DATA_RECEIVED) // If we received some data then parse it
-        {
-          Serial.println(F("Data received! Checking if it is valid..."));
-          tracker_parsing_result presult = check_data(tracker_serial_rx_buffer, tracker_serial_rx_buffer_size);
-          if (presult == DATA_VALID) // If the data is valid, parse it (and update the values in RAM)
-          {
-            Serial.println(F("Data is valid! Parsing it..."));
-            // Parse the data with the serial flag set to true so SOURCE can be changed
-            parse_data(tracker_serial_rx_buffer, tracker_serial_rx_buffer_size, &myTrackerSettings, true);
-            Serial.println(F("Parsing complete. Updating values in EEPROM."));
-            updateTrackerSettings(&myTrackerSettings); // Update the settings in EEPROM
-          }
-        }
-      
-        if (_printDebug == true)
-        {
-          // If debugging is enabled: print the tracker EEPROM contents as text
-          Serial.println(F("EEPROM contents (remember that data is little endian!):"));
-          displayEEPROMcontents();
-          Serial.println();
-          Serial.println();
-        }
-      
-        printTrackerSettings(&myTrackerSettings); // Print the tracker settings (if debug is enabled)
-      
-        Serial.println(F("Done!"));
-        Serial.println();
-        Serial.println();
-        
-        // Go back where we came from...
-        loop_step = last_loop_step;
+        stat = check_for_serial_data(false); // Keep checking for the arrival of serial data
       }
-      break; // End of case configure
+    
+      if (stat == DATA_RECEIVED) // If we received some data then parse it
+      {
+        Serial.println(F("Data received! Checking if it is valid..."));
+        tracker_parsing_result presult = check_data(tracker_serial_rx_buffer, tracker_serial_rx_buffer_size);
+        if (presult == DATA_VALID) // If the data is valid, parse it (and update the values in RAM)
+        {
+          Serial.println(F("Data is valid! Parsing it..."));
+          // Parse the data with the serial flag set to true so SOURCE can be changed
+          parse_data(tracker_serial_rx_buffer, tracker_serial_rx_buffer_size, &myTrackerSettings, true);
+          Serial.println(F("Parsing complete. Updating values in EEPROM."));
+          updateTrackerSettings(&myTrackerSettings); // Update the settings in EEPROM
+        }
+      }
+    
+      if (_printDebug == true)
+      {
+        // If debugging is enabled: print the tracker EEPROM contents as text
+        Serial.println(F("EEPROM contents (remember that data is little endian!):"));
+        displayEEPROMcontents();
+        Serial.println();
+        Serial.println();
+      }
+    
+      printTrackerSettings(&myTrackerSettings); // Print the tracker settings (if debug is enabled)
+    
+      Serial.println(F("Done!"));
+      Serial.println();
+      Serial.println();
+      
+      // Go back where we came from...
+      loop_step = last_loop_step;
+    }
+    break; // End of case configure
 
   } // End of switch (loop_step)
 } // End of loop()

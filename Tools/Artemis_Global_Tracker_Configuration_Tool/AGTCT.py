@@ -25,7 +25,7 @@ import struct, pickle
 SETTING_PORT_NAME = 'COM1'
 SETTING_FILE_LOCATION = 'C:'
 
-guiVersion = 'v1.0'
+guiVersion = 'V1.0'
 
 def gen_serial_ports() -> Iterator[Tuple[str, str]]:
     """Return all available serial ports."""
@@ -1028,6 +1028,7 @@ class MainWidget(QWidget):
         """Check if port is available and open it"""
 
         self.messages.clear() # Clear the message window
+        self.terminal.clear() # Clear the serial terminal window
         
         portAvailable = False
         ports = comports()
@@ -1753,6 +1754,8 @@ class MainWidget(QWidget):
             except:
                 self.messages.appendPlainText("Error: the value for LOHUMID is not valid!")
         if self.checkbox_val_GEOFNUM.isChecked():
+            numf = 0 # The number of geofences
+            conf = 0 # The confidence level
             if self.val_GEOFNUM.text().isdigit():
                 try:
                     value = float(self.val_GEOFNUM.text())
@@ -1767,6 +1770,27 @@ class MainWidget(QWidget):
                     self.messages.appendPlainText("Error: the value for GEOFNUM is not valid!")
             else:
                 self.messages.appendPlainText("Error: the value for GEOFNUM is not valid!")
+                return
+            if numf < 4: # De-select the LAT/LON/RAD for unused geofences
+                self.checkbox_val_GEOF4LAT.setChecked(False)
+                self.checkbox_val_GEOF4LON.setChecked(False)
+                self.checkbox_val_GEOF4RAD.setChecked(False)
+                self.messages.appendPlainText("Warning: unchecking the GEOF4 settings to match GEOFNUM")
+            if numf < 3:
+                self.checkbox_val_GEOF3LAT.setChecked(False)
+                self.checkbox_val_GEOF3LON.setChecked(False)
+                self.checkbox_val_GEOF3RAD.setChecked(False)
+                self.messages.appendPlainText("Warning: unchecking the GEOF3 settings to match GEOFNUM")
+            if numf < 2:
+                self.checkbox_val_GEOF2LAT.setChecked(False)
+                self.checkbox_val_GEOF2LON.setChecked(False)
+                self.checkbox_val_GEOF2RAD.setChecked(False)
+                self.messages.appendPlainText("Warning: unchecking the GEOF2 settings to match GEOFNUM")
+            if numf < 1:
+                self.checkbox_val_GEOF1LAT.setChecked(False)
+                self.checkbox_val_GEOF1LON.setChecked(False)
+                self.checkbox_val_GEOF1RAD.setChecked(False)
+                self.messages.appendPlainText("Warning: unchecking the GEOF1 settings to match GEOFNUM")
         if self.checkbox_val_GEOF1LAT.isChecked():
             try:
                 value = float(self.val_GEOF1LAT.text())
@@ -2021,7 +2045,7 @@ if __name__ == '__main__':
     from sys import exit as sysExit
     app = QApplication([])
     app.setOrganizationName('SparkX')
-    app.setApplicationName('Artemis Global Tracker Configuration Tool')
+    app.setApplicationName('Artemis Global Tracker Configuration Tool ' + guiVersion)
     w = MainWidget()
     w.show()
     sysExit(app.exec_())
