@@ -114,6 +114,9 @@ volatile unsigned long seconds_count = 0;
 // This flag indicates an interval alarm has occurred
 volatile bool interval_alarm = false;
 
+// This flag indicates the geofence pin has changed state
+volatile bool geofence_alarm = false;
+
 // More global variables
 bool PGOOD = false; // Flag to indicate if LTC3225 PGOOD is HIGH
 int err; // Error value returned by IridiumSBD.begin
@@ -184,6 +187,14 @@ extern "C" void am_rtc_isr(void)
   }
 }
 
+// geofencePin Interrupt Service Routine
+// (Always keep ISRs as short as possible, don't do anything clever in them,
+//  and always use volatile variables if the main loop needs to access them too.)
+void geofenceISR(void)
+{
+  geofence_alarm = true; // Set the flag
+}
+
 void setup()
 {
   // Let's begin by setting up the I/O pins
@@ -193,6 +204,8 @@ void setup()
   pinMode(gnssEN, OUTPUT); // Configure the pin which enables power for the ZOE-M8Q GNSS
   digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
   pinMode(geofencePin, INPUT); // Configure the geofence pin as an input
+
+  attachInterrupt(digitalPinToInterrupt(geofencePin), geofenceISR, FALLING); // Call geofenceISR whenever geofencePin goes low
 
   pinMode(iridiumPwrEN, OUTPUT); // Configure the Iridium Power Pin (connected to the ADM4210 ON pin)
   digitalWrite(iridiumPwrEN, LOW); // Disable Iridium Power (HIGH = enable; LOW = disable)
@@ -214,6 +227,7 @@ void setup()
   seconds_count = 0; // Make sure seconds_count is reset
   interval_alarm = false; // Make sure the interval alarm flag is clear
   dynamicModelSet = false; // Make sure the dynamicModelSet flag is clear
+  geofence_alarm = false; // Make sure the geofence alarm flag is clear
 
   disableDebugging(); // Make sure the serial debug messages are disabled until the Serial port is open!
 
@@ -391,6 +405,17 @@ void loop()
             // but we also want to do it if numf is zero to erase any previous geofences.
             Serial.print(F("Clearing any existing geofences. clearGeofences returned: "));
             Serial.println(myGPS.clearGeofences());              
+            byte pinPolarity; // Define the pin polarity depending on whether FLAGS2_INSIDE is set
+            if ((myTrackerSettings.FLAGS2 & FLAGS2_INSIDE) == FLAGS2_INSIDE) // If the INSIDE bit is set
+            {
+              pinPolarity = 0; // Set the PIO pin polarity to 0: the PIO pin will be low when inside the combined geofence; unknown state is always high
+            }
+            else
+            {
+              pinPolarity = 1; // Set the PIO pin polarity to 1: the PIO pin will be low when outside the combined geofence; unknown state is always high
+            }
+            byte pin = 14; // ZOE-M8Q PIO14 is connected to the geofencePin
+
             if (numf > 0) // If the number of geofences is not zero
             {
               if (numf >= 1)
@@ -400,22 +425,22 @@ void loop()
                 Serial.println(F("Setting the geofences:"));
     
                 Serial.print(F("addGeofence for geofence 1 returned: "));
-                Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF1LAT.the_data, myTrackerSettings.GEOF1LON.the_data, myTrackerSettings.GEOF1RAD.the_data, conf));
+                Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF1LAT.the_data, myTrackerSettings.GEOF1LON.the_data, myTrackerSettings.GEOF1RAD.the_data, conf, pinPolarity, pin));
               }
               if (numf >= 2)
               {
                 Serial.print(F("addGeofence for geofence 2 returned: "));
-                Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF2LAT.the_data, myTrackerSettings.GEOF2LON.the_data, myTrackerSettings.GEOF2RAD.the_data, conf));
+                Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF2LAT.the_data, myTrackerSettings.GEOF2LON.the_data, myTrackerSettings.GEOF2RAD.the_data, conf, pinPolarity, pin));
               }            
               if (numf >= 3)
               {
                 Serial.print(F("addGeofence for geofence 3 returned: "));
-                Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF3LAT.the_data, myTrackerSettings.GEOF3LON.the_data, myTrackerSettings.GEOF3RAD.the_data, conf));
+                Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF3LAT.the_data, myTrackerSettings.GEOF3LON.the_data, myTrackerSettings.GEOF3RAD.the_data, conf, pinPolarity, pin));
               }            
               if (numf >= 4)
               {
                 Serial.print(F("addGeofence for geofence 4 returned: "));
-                Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF4LAT.the_data, myTrackerSettings.GEOF4LON.the_data, myTrackerSettings.GEOF4RAD.the_data, conf));
+                Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF4LAT.the_data, myTrackerSettings.GEOF4LON.the_data, myTrackerSettings.GEOF4RAD.the_data, conf, pinPolarity, pin));
               }            
             }
           }
@@ -1742,8 +1767,8 @@ void loop()
             err = modem.sendReceiveSBDText(NULL, mt_buffer, mtBufferSize); // Send a NULL message
           }
 #else
-          err = ISBD_SUCCESS; // Fake success
-          mtBufferSize = 0;
+          err = ISBD_SUCCESS; // Fake successful transmit
+          mtBufferSize = 0; // and with no MT message received
 #endif
 
           // Check if the message sent OK
@@ -1854,10 +1879,6 @@ void loop()
     {
       Serial.println(F("Getting ready to put the Apollo3 into deep sleep..."));
 
-      // Power down the GNSS
-      Serial.println(F("Powering down the GNSS..."));
-      digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
-
       // Disable 9603N power
       Serial.println(F("Disabling 9603N power..."));
       digitalWrite(iridiumSleep, LOW); // Disable 9603N via its ON/OFF pin (modem.sleep should have done this already)
@@ -1871,6 +1892,104 @@ void loop()
 
       // Close the Iridium serial port
       iridiumSerial.end();
+
+      // Check if we should leave the GNSS powered up if geofence alerts are enabled
+      if ((myTrackerSettings.FLAGS2 & FLAGS2_GEOFENCE) == FLAGS2_GEOFENCE)
+      {
+        // The FLAGS2_GEOFENCE bit is set so we should power up the GNSS, wait for a 3D fix,
+        // wait for the geofence status to go active, put the ZOE into powersave mode
+        // and then put the Artemis into deep sleep. If the geofence pin changes state,
+        // it will wake the Artemis and cause it to send a message.
+
+        Serial.println(F("Powering up the GNSS for geofence monitoring..."));
+        digitalWrite(gnssEN, LOW); // Enable GNSS power (HIGH = disable; LOW = enable)
+        delay(2000); // Give the GNSS time to power up
+        if (myGPS.begin(Wire1) == true) //Connect to the Ublox module using Wire port
+        {
+          Serial.println(F("Waiting for a 3D GNSS fix..."));
+    
+          myTrackerSettings.FIX = 0; // Clear the fix type
+          
+          // Look for GPS signal for up to GNSS_timeout minutes
+          // Stop when we get a 3D fix, or we timeout
+          for (unsigned long tnow = millis(); (myTrackerSettings.FIX != 3) && (millis() - tnow < GNSS_timeout * 60UL * 1000UL);)
+          {
+          
+            myTrackerSettings.FIX = myGPS.getFixType(); // Get the GNSS fix type
+            
+            // Check battery voltage now we are drawing current for the GPS
+            // If voltage is lower than 0.2V below LOWBATT, stop looking for GNSS and go to sleep
+            get_vbat();
+            if (battVlow() == true) {
+              break; // Exit the for loop now
+            }
+    
+            // Flash the LED at 1Hz
+            if ((millis() / 1000) % 2 == 1) {
+              digitalWrite(LED, HIGH);
+            }
+            else {
+              digitalWrite(LED, LOW);
+            }
+    
+            // Delay for 100msec so we don't pound the I2C bus too hard!
+            delay(100);
+          }
+  
+          Serial.println(F("Waiting for the geofence status to go active..."));
+          byte geofenceStatus = 0; // Use this to hold the geofence status
+  
+          // Wait for the geofence status to go active for up to GNSS_timeout minutes
+          // Stop when it goes active, or we timeout
+          for (unsigned long tnow = millis(); (geofenceStatus != 1) && (millis() - tnow < GNSS_timeout * 60UL * 1000UL);)
+          {
+          
+            geofenceState currentGeofenceState; // Create storage for the geofence state
+            myGPS.getGeofenceState(currentGeofenceState); // Get the geofence state
+            geofenceStatus = currentGeofenceState.status; // Get the status
+                    
+            // Check battery voltage now we are drawing current for the GPS
+            // If voltage is lower than 0.2V below LOWBATT, stop looking for GNSS and go to sleep
+            get_vbat();
+            if (battVlow() == true) {
+              break; // Exit the for loop now
+            }
+    
+            // Flash the LED at 1Hz
+            if ((millis() / 1000) % 2 == 1) {
+              digitalWrite(LED, HIGH);
+            }
+            else {
+              digitalWrite(LED, LOW);
+            }
+    
+            // Delay for 100msec so we don't pound the I2C bus too hard!
+            delay(100);
+          }
+          // Put the ZOE-M8Q into power save mode
+          if (myGPS.powerSaveMode() == true)
+          {
+            Serial.println(F("GNSS Power Save Mode enabled."));
+          }
+          else
+          {
+            Serial.println(F("***!!! GNSS Power Save Mode may have FAILED !!!***"));
+          }
+
+        }
+        else
+        {
+          // GNSS failed to start so power it off again
+        Serial.println(F("The GNSS failed to start. Powering it down again..."));
+        digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
+        }
+      }
+      else
+      {
+      // Make sure the GNSS is powered off
+      Serial.println(F("Powering down the GNSS..."));
+      digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
+      }
 
       // Close the I2C port
       Wire1.end();
@@ -1940,14 +2059,15 @@ void loop()
       // am_hal_pwrctrl_memory_deepsleep_retain. I wonder why?
       PWRCTRL->MEMPWDINSLEEP_b.SRAMPWDSLP = PWRCTRL_MEMPWDINSLEEP_SRAMPWDSLP_ALLBUTLOWER64K;
 
+      geofence_alarm = false; // Clear the geofence alarm flag
 
       // This while loop keeps the processor asleep until TXINT minutes have passed
-      while (!interval_alarm) // Wake up every TXINT minutes
+      while ((interval_alarm == false) && (geofence_alarm == false)) // Wake up every TXINT minutes or when a geofence alarm happens
       {
         // Go to Deep Sleep.
         am_hal_sysctrl_sleep(AM_HAL_SYSCTRL_SLEEP_DEEP);
       }
-      interval_alarm = false; // Clear the alarm flag now
+      interval_alarm = false; // Clear the interval alarm flag now
 
 
       // Wake up!
