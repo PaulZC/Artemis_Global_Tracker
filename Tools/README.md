@@ -36,8 +36,6 @@ You can update a Tracker remotely by:
 A set of Python tools which will allow you to: download messages from the Tracker via a GMail account; stitch the messages together into a single .csv file;
 convert the .csv file into .kml files for Google Earth; and display the real-time paths and locations of up to eight Trackers using the Google Static Maps API.
 
-![Google_Earth](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/Google_Earth.JPG)
-
 ![Mapper](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/Mapper.JPG)
 
 The tools are very similar to those written for the
@@ -62,12 +60,14 @@ For full instructions, please refer to the [Iridium_9603_Beacon repo](https://gi
 
 The _Stitcher_ tool can be used to combine multiple .bin messages from multiple Trackers into individual .csv files.
 The DATETIME field can be changed to a more user-friendly YY/MM/DD HH:MM:SS second format using the _CSV DateTime_ tool.
-The CSV DateTime file can then be converted into .kml format using the _DateTime CSV to KML_ tool so the complete route
-that the Tracker followed displayed in Google Earth.
+The CSV DateTime file can then be converted into .kml format using the _DateTime CSV to KML_ tool so that the complete route
+the Tracker followed can be displayed in Google Earth.
 
 Also included is a _Flight Simulator_ tool which will generate fake messages for eight virtual Trackers travelling from
 St. James' Park (Newcastle, UK) to The Stadium of Light (Sunderland, UK) and reaching an altitude of 30km along the way.
 You can use this tool to test both the Mapper and the Stitcher / CSV / KML converters.
+
+![Google_Earth](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/Google_Earth.JPG)
 
 Enjoy!
 

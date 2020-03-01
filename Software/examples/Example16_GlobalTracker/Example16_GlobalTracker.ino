@@ -2,13 +2,11 @@
   Artemis Global Tracker
   
   Written by Paul Clark (PaulZC)
-  27th February 2020
+  1st March 2020
 
   *** WORK IN PROGRESS! ***
   * Still to do:
-  * Implement WAKEINT, ALARMINT
-  * Implement Geofences
-  * Implement PHT limits and LOWBATT alerts
+  * Figure out why the code does not start cleanly after an Upload
   * Remove trailing zeros from the text message fields to save credits
 
   This example builds on the BetterTracker example. Many settings are stored in EEPROM (Flash) and can be configured
@@ -108,8 +106,10 @@ MS8607 barometricSensor; //Create an instance of the MS8607 object
 // It also indicates if the tracker has been reset (the count will go back to zero).
 long iterationCounter = 0;
 
-// Use this to keep a count of the second alarms from the rtc
-volatile unsigned long seconds_count = 0;
+// Use these to keep a count of the seconds from the rtc
+volatile unsigned long seconds_since_last_wake = 0;
+volatile unsigned long seconds_since_last_alarmtx = 0;
+volatile unsigned long seconds_since_last_tx = 0;
 
 // This flag indicates an interval alarm has occurred
 volatile bool interval_alarm = false;
@@ -122,6 +122,7 @@ bool PGOOD = false; // Flag to indicate if LTC3225 PGOOD is HIGH
 int err; // Error value returned by IridiumSBD.begin
 bool dynamicModelSet = false; // Flag to indicate if the ZOE-M8Q dynamic model has been set
 bool geofencesSet = false; // Flag to indicate if the ZOE-M8Q geofences been set
+bool firstTime = true; // Flag to indicate if this is the first time around the loop (so we go right round the loop and not just check the PHT)
 
 uint8_t tracker_serial_rx_buffer[1024]; // Define tracker_serial_rx_buffer which will store the incoming serial configuration data
 size_t tracker_serial_rx_buffer_size; // The size of the buffer
@@ -152,9 +153,9 @@ Stream *_debugSerial; //The stream to send debug messages to if enabled
 // Loop Steps - these are used by the switch/case in the main loop
 // This structure makes it easy to go from any of the steps directly to zzz when (e.g.) the batteries are low
 #define loop_init     0 // Send the welcome message, check the battery voltage
-#define start_GPS     1 // Enable the ZOE-M8Q, check the battery voltage
-#define read_GPS      2 // Wait for up to GNSS_timeout minutes for a valid 3D fix, check the battery voltage
-#define read_pressure 3 // Read the pressure and temperature from the MS8607
+#define read_pressure 1 // Read the pressure and temperature from the MS8607
+#define start_GPS     2 // Enable the ZOE-M8Q, check the battery voltage
+#define read_GPS      3 // Wait for up to GNSS_timeout minutes for a valid 3D fix, check the battery voltage
 #define start_LTC3225 4 // Enable the LTC3225 super capacitor charger and wait for up to CHG_timeout minutes for PGOOD to go high
 #define wait_LTC3225  5 // Wait TOPUP_timeout seconds to make sure the capacitors are fully charged
 #define start_9603    6 // Power on the 9603N, send the message, check the battery voltage
@@ -163,12 +164,12 @@ Stream *_debugSerial; //The stream to send debug messages to if enabled
 #define wake          9 // Wake from deep sleep, restore the processor clock speed
 #define wait_for_ring 10 // Keep the 9603N powered up and wait for a ring indication
 #define configure     11 // Configure the tracker settings via USB Serial
-int loop_step = loop_init; // Make sure loop_step is set to loop_init
-int last_loop_step = loop_init; // Go back to this loop_step after doing a configure
+volatile int loop_step = loop_init; // Make sure loop_step is set to loop_init
+volatile int last_loop_step = loop_init; // Go back to this loop_step after doing a configure
 
 // RTC alarm Interrupt Service Routine
-// Clear the interrupt flag and increment seconds_count
-// If TXINT has been reached, set the interval_alarm flag and reset seconds_count
+// Clear the interrupt flag and increment the seconds_since_last_...
+// If WAKEINT has been reached, set the interval_alarm flag and reset seconds_since_last_wake
 // (Always keep ISRs as short as possible, don't do anything clever in them,
 //  and always use volatile variables if the main loop needs to access them too.)
 extern "C" void am_rtc_isr(void)
@@ -176,14 +177,16 @@ extern "C" void am_rtc_isr(void)
   // Clear the RTC alarm interrupt.
   am_hal_rtc_int_clear(AM_HAL_RTC_INT_ALM);
 
-  // Increment seconds_count
-  seconds_count = seconds_count + 1;
+  // Increment seconds_since_last_...
+  seconds_since_last_wake = seconds_since_last_wake + 1;
+  seconds_since_last_alarmtx = seconds_since_last_alarmtx + 1;
+  seconds_since_last_tx = seconds_since_last_tx + 1;
 
   // Check if interval_alarm should be set
-  if (seconds_count >= (myTrackerSettings.TXINT.the_data * 60))
+  if (seconds_since_last_wake >= myTrackerSettings.WAKEINT.the_data)
   {
     interval_alarm = true;
-    seconds_count = 0;
+    seconds_since_last_wake = 0;
   }
 }
 
@@ -224,7 +227,11 @@ void setup()
   // Initialise the globals
   iterationCounter = 0; // Make sure iterationCounter is set to zero (indicating a reset)
   loop_step = loop_init; // Make sure loop_step is set to loop_init
-  seconds_count = 0; // Make sure seconds_count is reset
+  last_loop_step = loop_init; // Make sure last_loop_step is set to loop_init
+  seconds_since_last_wake = 0; // Make sure seconds_since_last_wake is reset
+  seconds_since_last_alarmtx = 0; // Make sure seconds_since_last_alarmtx is reset
+  seconds_since_last_tx = 0; // Make sure seconds_since_last_tx is reset
+  firstTime = true; // Make sure firstTime is set
   interval_alarm = false; // Make sure the interval alarm flag is clear
   dynamicModelSet = false; // Make sure the dynamicModelSet flag is clear
   geofence_alarm = false; // Make sure the geofence alarm flag is clear
@@ -233,8 +240,10 @@ void setup()
 
   // Initialise the tracker settings in RAM - before we enable the RTC
   initTrackerSettings(&myTrackerSettings);
-  
-  //putTrackerSettings(&myTrackerSettings); // Uncomment this line to reset the EEPROM with the default settings
+
+  // If the EEPROM (Flash) already contains valid settings, they will always used - unless you
+  // uncomment this line to reset the EEPROM with the default settings from Tracker_Message_Fields.h:
+  //putTrackerSettings(&myTrackerSettings);
 
   // Check if the EEPROM data is valid (i.e. has already been initialised)
   if (checkEEPROM(&myTrackerSettings))
@@ -259,16 +268,21 @@ void loop()
     // Initialise things
     case loop_init:
     {
+      Wire1.begin(); // Set up the I2C pins
+
       // Start the console serial port and send the welcome message
       Serial.begin(115200);
-      delay(1000); // Wait for the user to open the serial monitor (extend this delay if you need more time)
       Serial.println();
       Serial.println();
       Serial.println(F("Artemis Global Tracker"));
+      Serial.print(F("Software Version: "));
+      Serial.print((DEF_SWVER & 0xf0) >> 4); // DEF_SWVER is defined in Tracker_Message_Fields.h
+      Serial.print(F("."));
+      Serial.println(DEF_SWVER & 0x0f);
       Serial.println();
       Serial.println();
 
-      enableDebugging(Serial); // Uncomment this line to enable extra debug messages to Serial
+      //enableDebugging(Serial); // Uncomment this line to enable extra debug messages to Serial
 
       if (_printDebug == true)
       {
@@ -296,27 +310,137 @@ void loop()
       // Setup the IridiumSBD
       modem.setPowerProfile(IridiumSBD::USB_POWER_PROFILE); // Change power profile to "low current"
 
+      loop_step = read_pressure; // Move on, check the PHT readings (in case we need to send an alarm message)
+    }
+    break; // End of case loop_init
+
+    // ************************************************************************************************
+    // Read the pressure and temperature from the MS8607
+    case read_pressure:
+    {
+      Serial.println(F("Getting the PHT readings..."));
+
+      bool barometricSensorOK;
+
+      barometricSensorOK = barometricSensor.begin(Wire1); // Begin the PHT sensor
+      if (barometricSensorOK == false)
+      {
+        // Send a warning message if we were unable to connect to the MS8607:
+        Serial.println(F("*! Could not detect the MS8607 sensor. Trying again... !*"));
+        barometricSensorOK = barometricSensor.begin(Wire1); // Re-begin the PHT sensor
+        if (barometricSensorOK == false)
+        {
+          // Send a warning message if we were unable to connect to the MS8607:
+          Serial.println(F("***!!! MS8607 sensor not detected at default I2C address !!!***"));
+        }
+      }
+
+      if (barometricSensorOK == false) // If the sensor is not OK
+      {
+        // Set the pressure and temperature to default values
+        myTrackerSettings.PRESS.the_data = DEF_PRESS;
+        myTrackerSettings.TEMP.the_data = DEF_TEMP;
+        myTrackerSettings.HUMID.the_data = DEF_HUMID;
+      }
+      else // The sensor is OK so let's read and print the PHT values
+      {
+        myTrackerSettings.PRESS.the_data = (uint16_t)(barometricSensor.getPressure()); // mbar
+        myTrackerSettings.TEMP.the_data = (uint16_t)(barometricSensor.getTemperature() * 100.0); // Convert to C * 10^-2
+        myTrackerSettings.HUMID.the_data = (uint16_t)(barometricSensor.getHumidity() * 100.0); // Convert to %RH * 10^-2
+
+        Serial.print(F("Pressure (mbar): "));
+        Serial.println(myTrackerSettings.PRESS.the_data);
+        Serial.print(F("Temperature (C * 10^-2): "));
+        Serial.println(myTrackerSettings.TEMP.the_data);
+        Serial.print(F("Humidity (%RH * 10^-2): "));
+        Serial.println(myTrackerSettings.HUMID.the_data);
+      }
+
+      bool alarmState = false; // Use this to keep track of whether we are in an alarm state
+
+      // Check if a PHT alarm has occurred
+      if ((myTrackerSettings.FLAGS1 & FLAGS1_HIPRESS) == FLAGS1_HIPRESS) // If the HIPRESS alarm is enabled
+      {
+        // Check if HIPRESS has been exceeded
+        if (myTrackerSettings.PRESS.the_data > myTrackerSettings.HIPRESS.the_data) alarmState = true;
+      }
+      if ((myTrackerSettings.FLAGS1 & FLAGS1_LOPRESS) == FLAGS1_LOPRESS) // If the LOPRESS alarm is enabled
+      {
+        // Check if LOPRESS has been exceeded
+        if (myTrackerSettings.PRESS.the_data < myTrackerSettings.LOPRESS.the_data) alarmState = true;
+      }
+      if ((myTrackerSettings.FLAGS1 & FLAGS1_HITEMP) == FLAGS1_HITEMP) // If the HITEMP alarm is enabled
+      {
+        // Check if HITEMP has been exceeded
+        if (myTrackerSettings.TEMP.the_data > myTrackerSettings.HITEMP.the_data) alarmState = true;
+      }
+      if ((myTrackerSettings.FLAGS1 & FLAGS1_LOTEMP) == FLAGS1_LOTEMP) // If the LOTEMP alarm is enabled
+      {
+        // Check if LOTEMP has been exceeded
+        if (myTrackerSettings.TEMP.the_data < myTrackerSettings.LOTEMP.the_data) alarmState = true;
+      }
+      if ((myTrackerSettings.FLAGS1 & FLAGS1_HIHUMID) == FLAGS1_HIHUMID) // If the HIHUMID alarm is enabled
+      {
+        // Check if HIHUMID has been exceeded
+        if (myTrackerSettings.HUMID.the_data > myTrackerSettings.HIHUMID.the_data) alarmState = true;
+      }
+      if ((myTrackerSettings.FLAGS1 & FLAGS1_LOHUMID) == FLAGS1_LOHUMID) // If the LOHUMID alarm is enabled
+      {
+        // Check if LOHUMID has been exceeded
+        if (myTrackerSettings.HUMID.the_data < myTrackerSettings.LOHUMID.the_data) alarmState = true;
+      }
       // Check battery voltage
       // If voltage is lower than 0.2V below LOWBATT, go to sleep
       get_vbat(); // Get the battery (bus) voltage
-      if (battVlow() == true) {
-        Serial.print(F("***!!! LOW VOLTAGE (init) "));
+      if (myTrackerSettings.BATTV.the_data < myTrackerSettings.LOWBATT.the_data) {
+        Serial.print(F("***!!! LOW VOLTAGE (read_pressure) "));
         Serial.print((((float)myTrackerSettings.BATTV.the_data)/100.0),2);
         Serial.println(F(" !!!***"));
+        if ((myTrackerSettings.FLAGS2 & FLAGS2_LOWBATT) == FLAGS2_LOWBATT) // If the LOWBATT alarm is enabled
+        {
+          alarmState = true;
+        }
+      }
+
+      loop_step = start_GPS; // Get ready to move on and start the GPS
+
+      // If this is the first time around the loop
+      if (firstTime == true)
+      {
+        firstTime = false; // Clear the firstTime flag
+        seconds_since_last_alarmtx = 0; // Clear the time since the last alarm
+        seconds_since_last_tx = 0; // Clear the time since the last routine transmit too (assumes ALARMINT is < TXINT)
+      }
+      // If a geofence alarm has occurred (but only if geofence alarms are enabled and the alarmtx limit has been reached)
+      else if ((geofence_alarm == true)  && ((myTrackerSettings.FLAGS2 & FLAGS2_GEOFENCE) == FLAGS2_GEOFENCE) && (seconds_since_last_alarmtx >= (myTrackerSettings.ALARMINT.the_data * 60)))
+      {
+        geofence_alarm = false; // Clear the geofence alarm flag
+        seconds_since_last_alarmtx = 0; // Clear the time since the last alarm
+        seconds_since_last_tx = 0; // Clear the time since the last routine transmit too (assumes ALARMINT is < TXINT)
+      }
+      // If we are in an alarm state and it is time for an alarm message
+      else if ((alarmState == true) && (seconds_since_last_alarmtx >= (myTrackerSettings.ALARMINT.the_data * 60)))
+      {
+        seconds_since_last_alarmtx = 0; // Clear the time since the last alarm
+        seconds_since_last_tx = 0; // Clear the time since the last routine transmit too (assumes ALARMINT is < TXINT)
+      }
+      // Or if it is time for a routine transmit
+      else if (seconds_since_last_tx >= (myTrackerSettings.TXINT.the_data * 60))
+      {
+        seconds_since_last_tx = 0; // Clear the time since the last transmit      
+      }
+      else
+      {
         loop_step = zzz; // Go to sleep
       }
-      else {
-        loop_step = start_GPS; // Move on, start the GNSS
-      }
-    }  
-    break; // End of case loop_init
+    }
+    break; // End of case read_pressure
 
     // ************************************************************************************************
     // Power up the GNSS (ZOE-M8Q)
     case start_GPS:
     {
       Serial.println(F("Powering up the GNSS..."));
-      Wire1.begin(); // Set up the I2C pins
       digitalWrite(gnssEN, LOW); // Enable GNSS power (HIGH = disable; LOW = enable)
 
       // Give the GNSS 2secs to power up in a non-blocking way (so we can respond to config serial data as soon as it arrives)
@@ -369,7 +493,7 @@ void loop()
           // Power down the GNSS
           digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
   
-          loop_step = read_pressure; // Move on, skip reading the GNSS fix
+          loop_step = start_LTC3225; // Move on, skip reading the GNSS fix
         }
 
         else { // If the GNSS started up OK
@@ -538,7 +662,7 @@ void loop()
         Serial.print(F("Longitude (degrees * 10^-7): ")); Serial.println(myTrackerSettings.LON.the_data);
         Serial.print(F("Altitude (mm): ")); Serial.println(myTrackerSettings.ALT.the_data);
 
-        loop_step = read_pressure; // Move on, read the pressure and temperature
+        loop_step = start_LTC3225; // Move on, start the supercap charger
       }
       
       else
@@ -567,7 +691,7 @@ void loop()
         Serial.println(F("A 3D fix was NOT found!"));
         Serial.println(F("Using default values..."));
 
-        loop_step = read_pressure; // Move on, read the pressure and temperature
+        loop_step = start_LTC3225; // Move on, start the supercap charger
       }
 
       // Power down the GNSS
@@ -582,52 +706,6 @@ void loop()
       }
     }
     break; // End of case read_GPS
-
-    // ************************************************************************************************
-    // Read the pressure and temperature from the MS8607
-    case read_pressure:
-    {
-      Serial.println(F("Getting the PHT readings..."));
-
-      bool barometricSensorOK;
-
-      barometricSensorOK = barometricSensor.begin(Wire1); // Begin the PHT sensor
-      if (barometricSensorOK == false)
-      {
-        // Send a warning message if we were unable to connect to the MS8607:
-        Serial.println(F("*! Could not detect the MS8607 sensor. Trying again... !*"));
-        barometricSensorOK = barometricSensor.begin(Wire1); // Re-begin the PHT sensor
-        if (barometricSensorOK == false)
-        {
-          // Send a warning message if we were unable to connect to the MS8607:
-          Serial.println(F("***!!! MS8607 sensor not detected at default I2C address !!!***"));
-        }
-      }
-
-      if (barometricSensorOK == false) // If the sensor is not OK
-      {
-        // Set the pressure and temperature to default values
-        myTrackerSettings.PRESS.the_data = DEF_PRESS;
-        myTrackerSettings.TEMP.the_data = DEF_TEMP;
-        myTrackerSettings.HUMID.the_data = DEF_HUMID;
-      }
-      else // The sensor is OK so let's read and print the PHT values
-      {
-        myTrackerSettings.PRESS.the_data = (uint16_t)(barometricSensor.getPressure()); // mbar
-        myTrackerSettings.TEMP.the_data = (uint16_t)(barometricSensor.getTemperature() * 100.0); // Convert to C * 10^-2
-        myTrackerSettings.HUMID.the_data = (uint16_t)(barometricSensor.getHumidity() * 100.0); // Convert to %RH * 10^-2
-
-        Serial.print(F("Pressure (mbar): "));
-        Serial.println(myTrackerSettings.PRESS.the_data);
-        Serial.print(F("Temperature (C * 10^-2): "));
-        Serial.println(myTrackerSettings.TEMP.the_data);
-        Serial.print(F("Humidity (%RH * 10^-2): "));
-        Serial.println(myTrackerSettings.HUMID.the_data);
-      }
-
-      loop_step = start_LTC3225; // Move on, start the super capacitor charger
-    }
-    break; // End of case read_pressure
 
     // ************************************************************************************************
     // Start the LTC3225 supercapacitor charger
@@ -1743,13 +1821,13 @@ void loop()
         mtBufferSize = sizeof(mt_buffer);
 
         int waitingMessages = 1; // Keep sending/receiving until the waiting mesage count is zero
-        bool firstTime = true; // Send the text/binary message the first time, NULL messages thereafter
+        bool firstTX = true; // Send the text/binary message the first time, NULL messages thereafter
 
         while (waitingMessages > 0) // Keep sending/receiving until the waiting mesage count is zero
         {
 
 #ifndef noTX
-          if (firstTime == true) // If this is the first time around the loop, send the message
+          if (firstTX == true) // If this is the first time around the loop, send the message
           {
             // Check if we are sending a text or a binary message
             if ((myTrackerSettings.FLAGS1 & FLAGS1_BINARY) != FLAGS1_BINARY) // if bit 7 of FLAGS1 is clear we are sending text
@@ -1835,7 +1913,7 @@ void loop()
 #else
           waitingMessages = 0; // Fake the remaining message count
 #endif
-          firstTime = false; // Clear the flag so we send NULL messages from now on
+          firstTX = false; // Clear the flag so we send NULL messages from now on
           Serial.print(F("The number of messages in the MT queue is: "));
           Serial.println(waitingMessages);
 
@@ -1882,9 +1960,9 @@ void loop()
       // Disable 9603N power
       Serial.println(F("Disabling 9603N power..."));
       digitalWrite(iridiumSleep, LOW); // Disable 9603N via its ON/OFF pin (modem.sleep should have done this already)
-      delay(1000);
+      delay(1);
       digitalWrite(iridiumPwrEN, LOW); // Disable Iridium Power
-      delay(1000);
+      delay(1);
     
       // Disable the supercapacitor charger
       Serial.println(F("Disabling the supercapacitor charger..."));
@@ -2001,7 +2079,7 @@ void loop()
       disableDebugging(); // Disable the serial debug messages
 
       // Close and detach the serial console
-      Serial.println(F("Going into deep sleep until next TXINT..."));
+      Serial.println(F("Going into deep sleep until next WAKEINT..."));
       delay(1000); // Wait for serial port to clear
       Serial.end(); // Close the serial console
 
@@ -2059,10 +2137,9 @@ void loop()
       // am_hal_pwrctrl_memory_deepsleep_retain. I wonder why?
       PWRCTRL->MEMPWDINSLEEP_b.SRAMPWDSLP = PWRCTRL_MEMPWDINSLEEP_SRAMPWDSLP_ALLBUTLOWER64K;
 
-      geofence_alarm = false; // Clear the geofence alarm flag
-
-      // This while loop keeps the processor asleep until TXINT minutes have passed
-      while ((interval_alarm == false) && (geofence_alarm == false)) // Wake up every TXINT minutes or when a geofence alarm happens
+      // This while loop keeps the processor asleep until WAKEINT seconds have passed
+      // Or a geofence alarm takes place (but only if geofence alarms are enabled)
+      while ((interval_alarm == false) && ((geofence_alarm == false) || ((myTrackerSettings.FLAGS2 & FLAGS2_GEOFENCE) != FLAGS2_GEOFENCE)))
       {
         // Go to Deep Sleep.
         am_hal_sysctrl_sleep(AM_HAL_SYSCTRL_SLEEP_DEEP);
