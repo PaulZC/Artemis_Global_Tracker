@@ -315,9 +315,11 @@ class BeaconMapper(QWidget):
       self.zoom_in_button = QPushButton(self.tr('Zoom +')) # Create the button
       self.zoom_in_button.pressed.connect(self.zoom_map_in) # Connect it to the function
       layout.addWidget(self.zoom_in_button, row, 0) # Add it
+      self.zoom_in_button.setEnabled(False) # Disable it until we have a valid map image
       self.zoom_out_button = QPushButton(self.tr('Zoom -')) # Create the button
       self.zoom_out_button.pressed.connect(self.zoom_map_out) # Connect it to the function
       layout.addWidget(self.zoom_out_button, row + 1, 0) # Add it
+      self.zoom_out_button.setEnabled(False) # Disable it until we have a valid map image
       self.quit_button = QPushButton(self.tr('Quit')) # Create the button
       self.quit_button.pressed.connect(self.close) # Connect it to the function
       layout.addWidget(self.quit_button, row, 1, 2, 1) # Add it
@@ -494,14 +496,15 @@ class BeaconMapper(QWidget):
       center = ("%.6f"%self.map_lat) + ',' + ("%.6f"%self.map_lon)
 
       # Update the Google Maps API StaticMap URL
+      # Assumes Lat and Lon has 7 decimal places
       self.path_url = 'https://maps.googleapis.com/maps/api/staticmap?center=' # 54 chars
-      self.path_url += center # 22 chars
+      self.path_url += center # 24 chars
       if self.beacons > 0: # Do we have any valid beacons?
          for beacon in range(self.beacons):
-            self.path_url += '&markers=color:' + self.beacon_colours[beacon] + '|' # beacons*(15+6+3+22) chars
+            self.path_url += '&markers=color:' + self.beacon_colours[beacon] + '|' # beacons*(15+6+3+24) chars
             self.path_url += self.beacon_locations[beacon]
          # Path 'header' is 29 chars
-         # Minimum length for each waypoint is 18 chars but will grow to 20 when pipe is expanded
+         # Minimum length for each waypoint is 24 chars but will grow to 26 when pipe is expanded
          # This needs to be included in the max_path_length
          for beacon in range(self.beacons): 
             self.path_url += self.beacon_paths[beacon]
@@ -513,6 +516,8 @@ class BeaconMapper(QWidget):
       self.path_url += str(self.frame_height)
       self.path_url += '&maptype=' + self.map_type + '&format=png&key=' # 35 chars
       self.path_url += self.key # 40 chars
+
+      #print(self.path_url) # Print the path URL for diagnostics
 
       # Download the API map image from Google
       filename = "map_image.png" # Download map to this file

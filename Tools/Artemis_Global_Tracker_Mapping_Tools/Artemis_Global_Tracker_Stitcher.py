@@ -94,7 +94,14 @@ for root, dirs, files in os.walk(".", followlinks=False):
 
                 fp = open(csv_filenames[index],'a') # Open the csv file for append
                 fr = open(longfilename,'r') # Open the SBD file for read
-                fp.write(fr.read()) # Copy the SBD data into the csv file
+                the_sbd = fr.read() # Read the SBD data
+                if (ord(the_sbd[-2]) == 13) and (ord(the_sbd[-1]) == 10):
+                   the_sbd = the_sbd[:-2] # Strip CRLF is present
+                if (ord(the_sbd[-1]) == 13):
+                   the_sbd = the_sbd[:-1] # Strip CR is present
+                if (ord(the_sbd[-1]) == 10):
+                   the_sbd = the_sbd[:-1] # Strip LF is present
+                fp.write(the_sbd) # Copy the SBD data into the csv file
                 fp.write(',') # Add a comma
                 fp.write(momsn) # Add the MOMSN
                 fp.write('\n') # Add LF
