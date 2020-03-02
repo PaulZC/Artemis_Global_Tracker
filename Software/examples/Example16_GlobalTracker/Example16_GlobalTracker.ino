@@ -4,9 +4,9 @@
   Written by Paul Clark (PaulZC)
   1st March 2020
 
-  *** WORK IN PROGRESS! ***
+  *** (MINOR) WORK IN PROGRESS! ***
   * Still to do:
-  * Figure out why the code does not start cleanly after an Upload
+  * Full testing with the AGTCT tool
   * Remove trailing zeros from the text message fields to save credits
 
   This example builds on the BetterTracker example. Many settings are stored in EEPROM (Flash) and can be configured
@@ -20,6 +20,8 @@
   Messages can be sent in text format (human-readable) or binary format (to save messages credits).
 
   You can configure which message fields are included in the message so you only send the data you need.
+  You can find a Python3 PyQt5 configuration tool at:
+  https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Tools
 
   You can trigger user-defined functions e.g. to operate an external relay
   https://www.sparkfun.com/products/15093
@@ -117,12 +119,17 @@ volatile bool interval_alarm = false;
 // This flag indicates the geofence pin has changed state
 volatile bool geofence_alarm = false;
 
+// Volatile copy of the WAKEINT (wake up interval)
+volatile uint16_t wake_int;
+
 // More global variables
 bool PGOOD = false; // Flag to indicate if LTC3225 PGOOD is HIGH
 int err; // Error value returned by IridiumSBD.begin
 bool dynamicModelSet = false; // Flag to indicate if the ZOE-M8Q dynamic model has been set
 bool geofencesSet = false; // Flag to indicate if the ZOE-M8Q geofences been set
 bool firstTime = true; // Flag to indicate if this is the first time around the loop (so we go right round the loop and not just check the PHT)
+int delayCount; // General-purpose delay count used by non-blocking delays
+bool alarmState = false; // Use this to keep track of whether we are in an alarm state
 
 uint8_t tracker_serial_rx_buffer[1024]; // Define tracker_serial_rx_buffer which will store the incoming serial configuration data
 size_t tracker_serial_rx_buffer_size; // The size of the buffer
@@ -134,7 +141,7 @@ uint8_t mt_buffer[(MTLIM + 1)]; // Buffer to store a Mobile Terminated SBD messa
 size_t mtBufferSize; // Size of MT buffer
 
 bool _printDebug = false; // Flag to show if message field debug printing is enabled
-Stream *_debugSerial; //The stream to send debug messages to if enabled
+Stream *_debugSerial; //The stream to send debug messages to (if enabled)
 
 // Timeout after this many _minutes_ when waiting for a 3D GNSS fix
 // (UL = unsigned long)
@@ -183,7 +190,7 @@ extern "C" void am_rtc_isr(void)
   seconds_since_last_tx = seconds_since_last_tx + 1;
 
   // Check if interval_alarm should be set
-  if (seconds_since_last_wake >= myTrackerSettings.WAKEINT.the_data)
+  if (seconds_since_last_wake >= wake_int)
   {
     interval_alarm = true;
     seconds_since_last_wake = 0;
@@ -255,8 +262,11 @@ void setup()
     putTrackerSettings(&myTrackerSettings); // EEPROM data is invalid so reset it with the default settings
   }
 
+  wake_int = myTrackerSettings.WAKEINT.the_data; // Copy WAKEINT into wake_int (volatile for the ISR)
+
   // Set up the rtc for 1 second interrupts now that TXINT has been initialized
   setupRTC();
+
 }
 
 void loop()
@@ -267,9 +277,7 @@ void loop()
     // ************************************************************************************************
     // Initialise things
     case loop_init:
-    {
-      Wire1.begin(); // Set up the I2C pins
-
+    
       // Start the console serial port and send the welcome message
       Serial.begin(115200);
       Serial.println();
@@ -311,17 +319,18 @@ void loop()
       modem.setPowerProfile(IridiumSBD::USB_POWER_PROFILE); // Change power profile to "low current"
 
       loop_step = read_pressure; // Move on, check the PHT readings (in case we need to send an alarm message)
-    }
+    
     break; // End of case loop_init
 
     // ************************************************************************************************
     // Read the pressure and temperature from the MS8607
     case read_pressure:
-    {
+    
       Serial.println(F("Getting the PHT readings..."));
 
+      Wire1.begin(); // Set up the I2C pins
+      
       bool barometricSensorOK;
-
       barometricSensorOK = barometricSensor.begin(Wire1); // Begin the PHT sensor
       if (barometricSensorOK == false)
       {
@@ -356,7 +365,7 @@ void loop()
         Serial.println(myTrackerSettings.HUMID.the_data);
       }
 
-      bool alarmState = false; // Use this to keep track of whether we are in an alarm state
+      alarmState = false; // Clear the alarm state
 
       // Check if a PHT alarm has occurred
       if ((myTrackerSettings.FLAGS1 & FLAGS1_HIPRESS) == FLAGS1_HIPRESS) // If the HIPRESS alarm is enabled
@@ -390,7 +399,7 @@ void loop()
         if (myTrackerSettings.HUMID.the_data < myTrackerSettings.LOHUMID.the_data) alarmState = true;
       }
       // Check battery voltage
-      // If voltage is lower than 0.2V below LOWBATT, go to sleep
+      // If voltage is lower than LOWBATT, send an alaem message
       get_vbat(); // Get the battery (bus) voltage
       if (myTrackerSettings.BATTV.the_data < myTrackerSettings.LOWBATT.the_data) {
         Serial.print(F("***!!! LOW VOLTAGE (read_pressure) "));
@@ -433,22 +442,22 @@ void loop()
       {
         loop_step = zzz; // Go to sleep
       }
-    }
+    
     break; // End of case read_pressure
 
     // ************************************************************************************************
     // Power up the GNSS (ZOE-M8Q)
     case start_GPS:
-    {
+    
       Serial.println(F("Powering up the GNSS..."));
       digitalWrite(gnssEN, LOW); // Enable GNSS power (HIGH = disable; LOW = enable)
 
       // Give the GNSS 2secs to power up in a non-blocking way (so we can respond to config serial data as soon as it arrives)
-      int count = 0;
-      while ((count < 2000) && (Serial.available() == 0))
+      delayCount = 0;
+      while ((delayCount < 2000) && (Serial.available() == 0))
       {
         delay(1);
-        count++;
+        delayCount++;
       }
       // Check battery voltage now we are drawing current for the GPS
       get_vbat(); // Get the battery (bus) voltage
@@ -581,13 +590,13 @@ void loop()
         last_loop_step = start_GPS; // Let's start the GPS again when leaving configure
         loop_step = configure; // Start the configure
       }
-    }
+    
     break; // End of case start_GPS
 
     // ************************************************************************************************
     // Read a fix from the ZOE-M8Q
     case read_GPS:
-    {
+    
       Serial.println(F("Waiting for a 3D GNSS fix..."));
 
       myTrackerSettings.FIX = 0; // Clear the fix type
@@ -615,11 +624,11 @@ void loop()
         }
 
         // Delay for 100msec in a non-blocking way so we don't pound the I2C bus too hard!
-        byte count = 0;
-        while ((count < 100) && (Serial.available() == 0))
+        delayCount = 0;
+        while ((delayCount < 100) && (Serial.available() == 0))
         {
           delay(1);
-          count++;
+          delayCount++;
         }
 
       }
@@ -704,24 +713,24 @@ void loop()
         last_loop_step = start_GPS; // Let's read the GPS again when leaving configure
         loop_step = configure; // Start the configure
       }
-    }
+    
     break; // End of case read_GPS
 
     // ************************************************************************************************
     // Start the LTC3225 supercapacitor charger
     case start_LTC3225:
-    {
+    
       // Enable the supercapacitor charger
       Serial.println(F("Enabling the supercapacitor charger..."));
       digitalWrite(superCapChgEN, HIGH); // Enable the super capacitor charger
 
       Serial.println(F("Waiting for supercapacitors to charge..."));
       // Give the supercap charger 2secs to power up in a non-blocking way (so we can respond to config serial data as soon as it arrives)
-      int count = 0;
-      while ((count < 2000) && (Serial.available() == 0))
+      delayCount = 0;
+      while ((delayCount < 2000) && (Serial.available() == 0))
       {
         delay(1);
-        count++;
+        delayCount++;
       }
 
       PGOOD = false; // Flag to show if PGOOD is HIGH
@@ -749,11 +758,11 @@ void loop()
         }
 
         // Delay for 100msec in a non-blocking way so we don't pound the I2C bus too hard!
-        byte count = 0;
-        while ((count < 100) && (Serial.available() == 0))
+        delayCount = 0;
+        while ((delayCount < 100) && (Serial.available() == 0))
         {
           delay(1);
-          count++;
+          delayCount++;
         }
 
       }
@@ -790,13 +799,13 @@ void loop()
         last_loop_step = start_LTC3225; // Let's charge the capacitors again when leaving configure
         loop_step = configure; // Start the configure
       }
-    }
+    
     break; // End of case start_LTC3225
 
     // ************************************************************************************************
     // Give the super capacitors some extra time to charge
     case wait_LTC3225:
-    {
+    
       Serial.println(F("Giving the supercapacitors extra time to charge..."));
  
       // Wait for TOPUP_timeout seconds, keep checking PGOOD and the battery voltage
@@ -819,11 +828,11 @@ void loop()
         }
 
         // Delay for 100msec in a non-blocking way so we don't pound the I2C bus too hard!
-        byte count = 0;
-        while ((count < 100) && (Serial.available() == 0))
+        delayCount = 0;
+        while ((delayCount < 100) && (Serial.available() == 0))
         {
           delay(1);
-          count++;
+          delayCount++;
         }
 
       }
@@ -861,13 +870,13 @@ void loop()
         last_loop_step = start_LTC3225; // Let's charge the capacitors again when leaving configure
         loop_step = configure; // Start the configure
       }
-    }
+    
     break; // End of case wait_LTC3225
       
     // ************************************************************************************************
     // Enable the 9603N and attempt to send a message
     case start_9603:
-    {
+    
       // Enable power for the 9603N
       Serial.println(F("Enabling 9603N power..."));
       digitalWrite(iridiumPwrEN, HIGH); // Enable Iridium Power
@@ -1881,6 +1890,7 @@ void loop()
                 parse_data(mt_buffer, mtBufferSize, &myTrackerSettings, false);
                 Serial.println(F("Parsing complete. Updating values in EEPROM."));
                 updateTrackerSettings(&myTrackerSettings); // Update the settings in EEPROM
+                wake_int = myTrackerSettings.WAKEINT.the_data; // Copy WAKEINT into wake_int in case it has changed
               }
   
               if (_printDebug == true)
@@ -1931,13 +1941,13 @@ void loop()
           loop_step = sleep_9603; // Put the modem to sleep
         }
       }
-    }
+    
     break; // End of case start_9603
       
     // ************************************************************************************************
     // Put the modem to sleep
     case sleep_9603: 
-    {
+    
       Serial.println(F("Putting the 9603N to sleep."));
       err = modem.sleep();
       if (err != ISBD_SUCCESS)
@@ -1948,13 +1958,13 @@ void loop()
       }
 
       loop_step = zzz; // Now go to sleep
-    }
+    
     break; // End of case sleep_9603
 
     // ************************************************************************************************
     // Go to sleep
     case zzz:
-    {
+    
       Serial.println(F("Getting ready to put the Apollo3 into deep sleep..."));
 
       // Disable 9603N power
@@ -2080,7 +2090,7 @@ void loop()
 
       // Close and detach the serial console
       Serial.println(F("Going into deep sleep until next WAKEINT..."));
-      delay(1000); // Wait for serial port to clear
+      delay(100); // Wait for serial port to clear
       Serial.end(); // Close the serial console
 
       // Code taken (mostly) from the LowPower_WithWake example and the and OpenLog_Artemis PowerDownRTC example
@@ -2149,13 +2159,13 @@ void loop()
 
       // Wake up!
       loop_step = wake;
-    }
+    
     break; // End of case zzz
       
     // ************************************************************************************************
     // Wake from sleep
     case wake:
-    {
+    
       // Set the clock frequency. (redundant?)
       am_hal_clkgen_control(AM_HAL_CLKGEN_CONTROL_SYSCLK_MAX, 0);
   
@@ -2200,16 +2210,16 @@ void loop()
       
       // Do it all again!
       loop_step = loop_init;
-    }
+    
     break; // End of case wake
 
     // ************************************************************************************************
     // Leave the 9603N powered up and monitor the ring indicator continuously
     case wait_for_ring:
-    {
+    
       Serial.println(F("Waiting for Ring Indication..."));
 
-      while ((interval_alarm == false) && (modem.hasRingAsserted() == false)) // Exit every TXINT minutes or when we see a ring indication
+      while ((interval_alarm == false) && (modem.hasRingAsserted() == false)) // Exit every WAKEINT seconds or when we see a ring indication
       {
         // Flash the LED for 100msec every 5 seconds
         if (millis() % 5000 < 100) {
@@ -2249,13 +2259,13 @@ void loop()
 
       // Do it all again!
       loop_step = loop_init;
-    }
+    
     break; // End of case wait_for_ring
 
     // ************************************************************************************************
     // Configure the tracker settings via Serial (USB)
     case configure:
-    {
+    
       Serial.println(F("*** Tracker Configuration ***"));
       Serial.println(F("Waiting for data..."));
 
@@ -2277,6 +2287,7 @@ void loop()
           parse_data(tracker_serial_rx_buffer, tracker_serial_rx_buffer_size, &myTrackerSettings, true);
           Serial.println(F("Parsing complete. Updating values in EEPROM."));
           updateTrackerSettings(&myTrackerSettings); // Update the settings in EEPROM
+          wake_int = myTrackerSettings.WAKEINT.the_data; // Copy WAKEINT into wake_int in case it has changed
         }
       }
     
@@ -2297,7 +2308,7 @@ void loop()
       
       // Go back where we came from...
       loop_step = last_loop_step;
-    }
+    
     break; // End of case configure
 
   } // End of switch (loop_step)
