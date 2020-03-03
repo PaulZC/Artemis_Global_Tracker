@@ -82,7 +82,7 @@ SFE_UBLOX_GPS myGPS;
 #include "Tracker_Message_Fields.h" // Include the message field and storage definitions
 trackerSettings myTrackerSettings; // Create storage for the tracker settings in RAM
 
-#define noTX // Uncomment this line to disable the Iridium SBD transmit if you want to test the code without using message credits
+//#define noTX // Uncomment this line to disable the Iridium SBD transmit if you want to test the code without using message credits
 
 #include <EEPROM.h> // Needed for EEPROM storage on the Artemis
 
@@ -205,14 +205,25 @@ void geofenceISR(void)
   geofence_alarm = true; // Set the flag
 }
 
+void gnssON(void) // Enable power for the GNSS
+{
+  digitalWrite(gnssEN, LOW); // Disable GNSS power (HIGH = disable; LOW = enable)
+  pinMode(gnssEN, OUTPUT); // Configure the pin which enables power for the ZOE-M8Q GNSS
+}
+
+void gnssOFF(void) // Disable power for the GNSS
+{
+  pinMode(gnssEN, INPUT_PULLUP); // Configure the pin which enables power for the ZOE-M8Q GNSS
+  digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
+}
+
 void setup()
 {
   // Let's begin by setting up the I/O pins
    
   pinMode(LED, OUTPUT); // Make the LED pin an output
 
-  pinMode(gnssEN, OUTPUT); // Configure the pin which enables power for the ZOE-M8Q GNSS
-  digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
+  gnssOFF(); // Disable power for the GNSS
   pinMode(geofencePin, INPUT); // Configure the geofence pin as an input
 
   attachInterrupt(digitalPinToInterrupt(geofencePin), geofenceISR, FALLING); // Call geofenceISR whenever geofencePin goes low
@@ -450,7 +461,7 @@ void loop()
     case start_GPS:
     
       Serial.println(F("Powering up the GNSS..."));
-      digitalWrite(gnssEN, LOW); // Enable GNSS power (HIGH = disable; LOW = enable)
+      gnssON(); // Enable power for the GNSS
 
       // Give the GNSS 2secs to power up in a non-blocking way (so we can respond to config serial data as soon as it arrives)
       delayCount = 0;
@@ -466,7 +477,7 @@ void loop()
         Serial.print(F("***!!! LOW VOLTAGE (start_GPS) "));
         Serial.print((((float)myTrackerSettings.BATTV.the_data)/100.0),2);
         Serial.println(F("V !!!***"));
-        digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
+        gnssOFF(); // Disable power for the GNSS
         loop_step = zzz; // Go to sleep
       }
       
@@ -500,7 +511,7 @@ void loop()
           myTrackerSettings.GEOFSTAT[2] = DEF_GEOFSTAT;
   
           // Power down the GNSS
-          digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
+          gnssOFF(); // Disable power for the GNSS
   
           loop_step = start_LTC3225; // Move on, skip reading the GNSS fix
         }
@@ -586,7 +597,7 @@ void loop()
       // Check if any serial data has arrived telling us to go into configure
       if (Serial.available() > 0) // Has any serial data arrived?
       {
-        digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
+        gnssOFF(); // Disable power for the GNSS
         last_loop_step = start_GPS; // Let's start the GPS again when leaving configure
         loop_step = configure; // Start the configure
       }
@@ -705,7 +716,7 @@ void loop()
 
       // Power down the GNSS
       Serial.println(F("Powering down the GNSS..."));
-      digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
+      gnssOFF(); // Disable power for the GNSS
 
       // Check if any serial data has arrived telling us to go into configure
       if (Serial.available() > 0) // Has any serial data arrived?
@@ -1990,7 +2001,7 @@ void loop()
         // it will wake the Artemis and cause it to send a message.
 
         Serial.println(F("Powering up the GNSS for geofence monitoring..."));
-        digitalWrite(gnssEN, LOW); // Enable GNSS power (HIGH = disable; LOW = enable)
+        gnssON(); // Enable power for the GNSS
         delay(2000); // Give the GNSS time to power up
         if (myGPS.begin(Wire1) == true) //Connect to the Ublox module using Wire port
         {
@@ -2069,14 +2080,14 @@ void loop()
         {
           // GNSS failed to start so power it off again
         Serial.println(F("The GNSS failed to start. Powering it down again..."));
-        digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
+        gnssOFF(); // Disable power for the GNSS
         }
       }
       else
       {
       // Make sure the GNSS is powered off
       Serial.println(F("Powering down the GNSS..."));
-      digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
+      gnssOFF(); // Disable power for the GNSS
       }
 
       // Close the I2C port

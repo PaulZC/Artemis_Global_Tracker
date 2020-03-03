@@ -280,14 +280,25 @@ bool ISBDCallback()
   }
 }
 
+void gnssON(void) // Enable power for the GNSS
+{
+  digitalWrite(gnssEN, LOW); // Disable GNSS power (HIGH = disable; LOW = enable)
+  pinMode(gnssEN, OUTPUT); // Configure the pin which enables power for the ZOE-M8Q GNSS
+}
+
+void gnssOFF(void) // Disable power for the GNSS
+{
+  pinMode(gnssEN, INPUT_PULLUP); // Configure the pin which enables power for the ZOE-M8Q GNSS
+  digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
+}
+
 void setup()
 {
   // Let's begin by setting up the I/O pins
    
   pinMode(LED, OUTPUT); // Make the LED pin an output
 
-  pinMode(gnssEN, OUTPUT); // Configure the pin which enables power for the ZOE-M8Q GNSS
-  digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
+  gnssOFF(); // Disable power for the GNSS
   pinMode(geofencePin, INPUT); // Configure the geofence pin as an input
 
   pinMode(iridiumPwrEN, OUTPUT); // Configure the Iridium Power Pin (connected to the ADM4210 ON pin)
@@ -384,7 +395,7 @@ void loop()
 
       Serial.println(F("Powering up the GNSS..."));
       Wire1.begin(); // Set up the I2C pins
-      digitalWrite(gnssEN, LOW); // Enable GNSS power (HIGH = disable; LOW = enable)
+      gnssON(); // Enable power for the GNSS
 
       delay(2000); // Give it time to power up
     
@@ -395,7 +406,7 @@ void loop()
         Serial.print(F("***!!! LOW VOLTAGE (start_GPS) "));
         Serial.print(vbat,2);
         Serial.println(F("V !!!***"));
-        digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
+        gnssOFF(); // Disable power for the GNSS
         loop_step = zzz; // Go to sleep
       }
       
@@ -425,7 +436,7 @@ void loop()
           milliseconds = 0; // GNSS milliseconds
   
           // Power down the GNSS
-          digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
+          gnssOFF(); // Disable power for the GNSS
   
           loop_step = read_pressure; // Move on, skip reading the GNSS fix
         }
@@ -557,7 +568,7 @@ void loop()
 
       // Power down the GNSS
       Serial.println(F("Powering down the GNSS..."));
-      digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
+      gnssOFF(); // Disable power for the GNSS
 
       break; // End of case read_GPS
 
@@ -941,7 +952,7 @@ void loop()
 
       // Power down the GNSS
       Serial.println(F("Powering down the GNSS..."));
-      digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
+      gnssOFF(); // Disable power for the GNSS
 
       // Disable 9603N power
       Serial.println(F("Disabling 9603N power..."));

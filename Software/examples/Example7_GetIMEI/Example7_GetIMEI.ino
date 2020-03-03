@@ -61,6 +61,12 @@ Uart iridiumSerial(1, 25, 24);
 // Declare the IridiumSBD object (including the sleep (ON/OFF) and Ring Indicator pins)
 IridiumSBD modem(iridiumSerial, iridiumSleep, iridiumRI);
 
+void gnssOFF(void) // Disable power for the GNSS
+{
+  pinMode(gnssEN, INPUT_PULLUP); // Configure the pin which enables power for the ZOE-M8Q GNSS
+  digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
+}
+
 void setup()
 {
   int signalQuality = -1;
@@ -68,8 +74,7 @@ void setup()
   
   pinMode(LED, OUTPUT); // Make the LED pin an output
 
-  pinMode(gnssEN, OUTPUT); // Configure the pin which enables power for the ZOE-M8Q GNSS
-  digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
+  gnssOFF(); // Disable power for the GNSS
   pinMode(geofencePin, INPUT); // Configure the geofence pin as an input
 
   pinMode(iridiumPwrEN, OUTPUT); // Configure the Iridium Power Pin (connected to the ADM4210 ON pin)

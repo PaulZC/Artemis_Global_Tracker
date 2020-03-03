@@ -115,14 +115,19 @@ extern "C" void am_rtc_isr(void)
   }
 }
 
+void gnssOFF(void) // Disable power for the GNSS
+{
+  pinMode(gnssEN, INPUT_PULLUP); // Configure the pin which enables power for the ZOE-M8Q GNSS
+  digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
+}
+
 void setup()
 {
   // Let's begin by setting up the I/O pins
    
   pinMode(LED, OUTPUT); // Make the LED pin an output
 
-  pinMode(gnssEN, OUTPUT); // Configure the pin which enables power for the ZOE-M8Q GNSS
-  digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
+  gnssOFF(); // Disable power for the GNSS
   pinMode(geofencePin, INPUT); // Configure the geofence pin as an input
 
   pinMode(iridiumPwrEN, OUTPUT); // Configure the Iridium Power Pin (connected to the ADM4210 ON pin)
@@ -272,7 +277,7 @@ void loop()
       // Nathan seems to have gone a little off script here and isn't using
       // am_hal_pwrctrl_memory_deepsleep_powerdown or 
       // am_hal_pwrctrl_memory_deepsleep_retain. I wonder why?
-      PWRCTRL->MEMPWDINSLEEP_b.SRAMPWDSLP = PWRCTRL_MEMPWDINSLEEP_SRAMPWDSLP_ALLBUTLOWER32K;
+      PWRCTRL->MEMPWDINSLEEP_b.SRAMPWDSLP = PWRCTRL_MEMPWDINSLEEP_SRAMPWDSLP_ALLBUTLOWER64K;
 
   
       // This while loop keeps the processor asleep until INTERVAL seconds have passed

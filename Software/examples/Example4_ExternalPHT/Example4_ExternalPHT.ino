@@ -46,6 +46,12 @@ TwoWire myWire(4); //Will use Artemis pads 39/40
 //Create an instance of the MS8607 object
 MS8607 barometricSensor;
 
+void gnssOFF(void) // Disable power for the GNSS
+{
+  pinMode(gnssEN, INPUT_PULLUP); // Configure the pin which enables power for the ZOE-M8Q GNSS
+  digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
+}
+
 void setup()
 {
   // Configure the I/O pins
@@ -55,8 +61,7 @@ void setup()
   digitalWrite(iridiumPwrEN, LOW); // Disable Iridium Power
   pinMode(superCapChgEN, OUTPUT); // Configure the super capacitor charger enable pin (connected to LTC3225 !SHDN)
   digitalWrite(superCapChgEN, LOW); // Disable the super capacitor charger
-  pinMode(gnssEN, OUTPUT); // Configure the pin which enables power for the ZOE-M8Q GNSS
-  digitalWrite(gnssEN, HIGH); // Disable GNSS power until the example starts (HIGH = disable; LOW = enable)
+  gnssOFF(); // Disable power for the GNSS
 
   // Set up the I2C pins
   myWire.begin();

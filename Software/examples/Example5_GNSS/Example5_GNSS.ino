@@ -48,6 +48,18 @@
 #include "SparkFun_Ublox_Arduino_Library.h" //http://librarymanager/All#SparkFun_Ublox_GPS
 SFE_UBLOX_GPS myGPS;
 
+void gnssON(void) // Enable power for the GNSS
+{
+  digitalWrite(gnssEN, LOW); // Disable GNSS power (HIGH = disable; LOW = enable)
+  pinMode(gnssEN, OUTPUT); // Configure the pin which enables power for the ZOE-M8Q GNSS
+}
+
+void gnssOFF(void) // Disable power for the GNSS
+{
+  pinMode(gnssEN, INPUT_PULLUP); // Configure the pin which enables power for the ZOE-M8Q GNSS
+  digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
+}
+
 void setup()
 {
   pinMode(LED, OUTPUT);
@@ -57,8 +69,7 @@ void setup()
   pinMode(superCapChgEN, OUTPUT); // Configure the super capacitor charger enable pin (connected to LTC3225 !SHDN)
   digitalWrite(superCapChgEN, LOW); // Disable the super capacitor charger
 
-  pinMode(gnssEN, OUTPUT); // Configure the pin which enables power for the ZOE-M8Q GNSS
-  digitalWrite(gnssEN, HIGH); // Disable GNSS power until the example starts (HIGH = disable; LOW = enable)
+  gnssOFF(); // Disable power for the GNSS
   pinMode(geofencePin, INPUT); // Configure the geofence pin as an input
 
   // Set up the I2C pins
@@ -87,7 +98,7 @@ void setup()
   while(Serial.available() == 0)
     ;
 
-  digitalWrite(gnssEN, LOW); // Enable GNSS power (HIGH = disable; LOW = enable)
+  gnssON(); // Enable power for the GNSS
   delay(1000); // Let the ZOE power up
 
   if (myGPS.begin(Wire1) == false) //Connect to the Ublox module using Wire port

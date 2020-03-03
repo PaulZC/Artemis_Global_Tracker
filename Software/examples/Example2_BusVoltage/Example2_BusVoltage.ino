@@ -42,6 +42,12 @@
 // Make sure you do not have gnssEN and iridiumPwrEN enabled at the same time!
 // If you do, bad things might happen to the AS179 RF switch!
 
+void gnssOFF(void) // Disable power for the GNSS
+{
+  pinMode(gnssEN, INPUT_PULLUP); // Configure the pin which enables power for the ZOE-M8Q GNSS
+  digitalWrite(gnssEN, HIGH); // Disable GNSS power (HIGH = disable; LOW = enable)
+}
+
 void setup()
 {
   // Configure the I/O pins
@@ -51,8 +57,7 @@ void setup()
   digitalWrite(iridiumPwrEN, LOW); // Disable Iridium Power
   pinMode(superCapChgEN, OUTPUT); // Configure the super capacitor charger enable pin (connected to LTC3225 !SHDN)
   digitalWrite(superCapChgEN, LOW); // Disable the super capacitor charger
-  pinMode(gnssEN, OUTPUT); // Configure the pin which enables power for the ZOE-M8Q GNSS
-  digitalWrite(gnssEN, HIGH); // Disable GNSS power until the example starts (HIGH = disable; LOW = enable)
+  gnssOFF(); // Disable power for the GNSS
 
   pinMode(busVoltageMonEN, OUTPUT); // Make the Bus Voltage Monitor Enable an output
   digitalWrite(busVoltageMonEN, HIGH); // Set it high to enable the measurement

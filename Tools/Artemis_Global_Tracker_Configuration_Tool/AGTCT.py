@@ -20,6 +20,7 @@ from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, QGridLayout, QPushButton
 from PyQt5.QtGui import QCloseEvent, QTextCursor
 
 import struct, pickle
+from time import sleep
 
 # Setting constants
 SETTING_PORT_NAME = 'COM1'
@@ -33,7 +34,6 @@ def gen_serial_ports() -> Iterator[Tuple[str, str]]:
     return ((p.description, p.device) for p in ports)
 
 # noinspection PyArgumentList
-
 
 class MainWidget(QWidget):
     """Main Widget."""
@@ -1017,8 +1017,7 @@ class MainWidget(QWidget):
             pass
 
         try:
-            if self.ser:
-                self.ser.close()
+            self.ser.close()
         except:
             pass
         
@@ -1053,14 +1052,32 @@ class MainWidget(QWidget):
             pass
         
         try:
-            self.ser = serial.Serial(self.port, 115200, timeout=0.01)
+            self.ser = serial.Serial()
+            self.ser.port = self.port
+            self.ser.baudrate = 115200
+            self.ser.timeout = 0.01
+            try:
+                self.ser.rts = False
+            except:
+                pass
+            self.ser.open()
         except:
             self.messages.moveCursor(QTextCursor.End)
             self.messages.ensureCursorVisible()
             self.messages.appendPlainText("Could Not Open The Port!")
             self.messages.ensureCursorVisible()
             return
-
+        
+        try:
+            sleep(0.5) # Pull RTS low for 0.5s to reset the Artemis
+            self.ser.rts = True
+        except:
+            self.messages.moveCursor(QTextCursor.End)
+            self.messages.ensureCursorVisible()
+            self.messages.appendPlainText("Could Not Toggle The RTS Pin!")
+            self.messages.ensureCursorVisible()
+            #return
+        
         self.messages.moveCursor(QTextCursor.End)
         self.messages.ensureCursorVisible()
         self.messages.appendPlainText("Port is now open.")
