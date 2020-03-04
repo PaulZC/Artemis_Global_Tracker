@@ -589,12 +589,12 @@ MOFIELDS (0x30)
 | []() | |
 |---|---|
 | Description: | Defines or shows which fields are included in MO messages. |
-| Binary: | 3 x uint32_t. The most significant bit of the first uint32_t defines if the field 0x00 will be sent. The least significant bit of the third uint32_t defines if field 0x5f will be sent. |
-| Text: | Sent as ASCII-encoded Hex in the range 000000000000000000000000 to ffffffffffffffffffffffff |
+| Binary: | 3 x uint32_t, **little endian**. The most significant bit of the first uint32_t defines if the field 0x00 will be sent. The least significant bit of the third uint32_t defines if field 0x5f will be sent. |
+| Text: | Sent as ASCII-encoded Hex (**little endian**) in the range 000000000000000000000000 to ffffffffffffffffffffffff |
 | Example value: | To send (only) DATETIME (0x14), LAT (0x15), LON (0x16) and ALT (0x17) |
-| Binary example: | 0x3000000f000000000000000000 |
-| Text example: | 00000f000000000000000000 |
-| Default value: | 0x00000f000000000000000000 |
+| Binary example: | 0x30000f00000000000000000000 |
+| Text example: | 000f00000000000000000000 |
+| Default value: | 0x000f00000000000000000000 |
 
 **Notes:**
 

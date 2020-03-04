@@ -628,7 +628,7 @@ enum tracker_parsing_result parse_data(uint8_t *data_buffer, size_t &data_buffer
       case USERVAL8:
         x += 5;
         break;
-      case MOFIELDS:
+      case MOFIELDS: // little endian!
         uint32t.the_bytes[0] = data_buffer[++x];
         uint32t.the_bytes[1] = data_buffer[++x];
         uint32t.the_bytes[2] = data_buffer[++x];
@@ -962,19 +962,19 @@ void printTrackerSettings(trackerSettings *myTrackerSettings)
     _debugSerial->println(myTrackerSettings->USERVAL7.the_data);
     _debugSerial->print("USERVAL8: ");
     _debugSerial->println(myTrackerSettings->USERVAL8.the_data);
-    _debugSerial->print("MOFIELDS[0]: ");
+    _debugSerial->print("MOFIELDS[0] (big endian): ");
     for (uint8_t x = 3; x < 4; x--) // 0-- = 255
     {
       printBinary(myTrackerSettings->MOFIELDS[0].the_bytes[x]);
     }
     _debugSerial->println();
-    _debugSerial->print("MOFIELDS[1]: ");
+    _debugSerial->print("MOFIELDS[1] (big endian): ");
     for (uint8_t x = 3; x < 4; x--) // 0-- = 255
     {
       printBinary(myTrackerSettings->MOFIELDS[1].the_bytes[x]);
     }
     _debugSerial->println();
-    _debugSerial->print("MOFIELDS[2]: ");
+    _debugSerial->print("MOFIELDS[2] (big endian): ");
     for (uint8_t x = 3; x < 4; x--) // 0-- = 255
     {
       printBinary(myTrackerSettings->MOFIELDS[2].the_bytes[x]);

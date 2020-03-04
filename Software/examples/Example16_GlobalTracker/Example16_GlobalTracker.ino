@@ -82,7 +82,8 @@ SFE_UBLOX_GPS myGPS;
 #include "Tracker_Message_Fields.h" // Include the message field and storage definitions
 trackerSettings myTrackerSettings; // Create storage for the tracker settings in RAM
 
-//#define noTX // Uncomment this line to disable the Iridium SBD transmit if you want to test the code without using message credits
+#define noTX // Uncomment this line to disable the Iridium SBD transmit if you want to test the code without using message credits
+#define skipGNSS // Uncomment this line to skip getting a GNSS fix (only valid if noTX is defined too)
 
 #include <EEPROM.h> // Needed for EEPROM storage on the Artemis
 
@@ -301,7 +302,7 @@ void loop()
       Serial.println();
       Serial.println();
 
-      //enableDebugging(Serial); // Uncomment this line to enable extra debug messages to Serial
+      enableDebugging(Serial); // Uncomment this line to enable extra debug messages to Serial
 
       if (_printDebug == true)
       {
@@ -612,6 +613,7 @@ void loop()
 
       myTrackerSettings.FIX = 0; // Clear the fix type
       
+#if !defined(noTX) || !defined(skipGNSS)
       // Look for GPS signal for up to GNSS_timeout minutes
       // Stop when we get a 3D fix, or we timeout, or if any serial data arrives (telling us to go into configure)
       for (unsigned long tnow = millis(); (myTrackerSettings.FIX != 3) && (millis() - tnow < GNSS_timeout * 60UL * 1000UL) && (Serial.available() == 0);)
@@ -643,6 +645,7 @@ void loop()
         }
 
       }
+#endif
 
       // If voltage is low then go straight to sleep
       if (battVlow() == true) {
@@ -958,7 +961,7 @@ void loop()
           if ((myTrackerSettings.MOFIELDS[0].the_data & MOFIELDS0_BATTV) == MOFIELDS0_BATTV) // If the bit is set
           {
             char temp_str[6]; // temporary string
-            dtostrf(((float)myTrackerSettings.BATTV.the_data * 100),4,2,temp_str); // Convert to V
+            dtostrf((((float)myTrackerSettings.BATTV.the_data) / 100.0),4,2,temp_str); // Convert to V
             sprintf(outBuffer+outBufferPtr, "%s,", temp_str); // Add the field to outBuffer
             while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++; // increment the pointer
           }
@@ -970,14 +973,14 @@ void loop()
           if ((myTrackerSettings.MOFIELDS[0].the_data & MOFIELDS0_TEMP) == MOFIELDS0_TEMP) // If the bit is set
           {
             char temp_str[8]; // temporary string
-            dtostrf(((float)myTrackerSettings.TEMP.the_data * 100),4,2,temp_str); // Convert to C
+            dtostrf((((float)myTrackerSettings.TEMP.the_data) / 100.0),4,2,temp_str); // Convert to C
             sprintf(outBuffer+outBufferPtr, "%s,", temp_str); // Add the field to outBuffer
             while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++; // increment the pointer
           }
           if ((myTrackerSettings.MOFIELDS[0].the_data & MOFIELDS0_HUMID) == MOFIELDS0_HUMID) // If the bit is set
           {
             char temp_str[8]; // temporary string
-            dtostrf(((float)myTrackerSettings.HUMID.the_data * 100),4,2,temp_str); // Convert to %RH
+            dtostrf((((float)myTrackerSettings.HUMID.the_data) / 100.0),4,2,temp_str); // Convert to %RH
             sprintf(outBuffer+outBufferPtr, "%s,", temp_str); // Add the field to outBuffer
             while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++; // increment the pointer
           }
@@ -1128,27 +1131,45 @@ void loop()
           }
           if ((myTrackerSettings.MOFIELDS[1].the_data & MOFIELDS1_USERVAL7) == MOFIELDS1_USERVAL7) // If the bit is set
           {
-            char temp_str[16]; // temporary string
-            dtostrf((USER_VAL_7()),9,7,temp_str);
+            char temp_str[20]; // temporary string
+            dtostrf((USER_VAL_7()),5,3,temp_str);
             sprintf(outBuffer+outBufferPtr, "%s,", temp_str); // Add the field to outBuffer
             while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++; // increment the pointer
           }
           if ((myTrackerSettings.MOFIELDS[1].the_data & MOFIELDS1_USERVAL8) == MOFIELDS1_USERVAL8) // If the bit is set
           {
-            char temp_str[16]; // temporary string
-            dtostrf((USER_VAL_8()),9,7,temp_str);
+            char temp_str[20]; // temporary string
+            dtostrf((USER_VAL_8()),5,3,temp_str);
             sprintf(outBuffer+outBufferPtr, "%s,", temp_str); // Add the field to outBuffer
             while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++; // increment the pointer
           }
           
           if ((myTrackerSettings.MOFIELDS[1].the_data & MOFIELDS1_MOFIELDS) == MOFIELDS1_MOFIELDS) // If the bit is set
           {
-            sprintf(outBuffer+outBufferPtr, "%08X,", myTrackerSettings.MOFIELDS[0].the_data); // Add the field to outBuffer
-            while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++; // increment the pointer
-            sprintf(outBuffer+outBufferPtr, "%08X,", myTrackerSettings.MOFIELDS[1].the_data); // Add the field to outBuffer
-            while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++; // increment the pointer
-            sprintf(outBuffer+outBufferPtr, "%08X,", myTrackerSettings.MOFIELDS[2].the_data); // Add the field to outBuffer
-            while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++; // increment the pointer
+            sprintf(outBuffer+outBufferPtr, "%02X", myTrackerSettings.MOFIELDS[0].the_bytes[0]); // Add the field to outBuffer (little endian!)
+            outBufferPtr += 2; // increment the pointer
+            sprintf(outBuffer+outBufferPtr, "%02X", myTrackerSettings.MOFIELDS[0].the_bytes[1]);
+            outBufferPtr += 2; // increment the pointer
+            sprintf(outBuffer+outBufferPtr, "%02X", myTrackerSettings.MOFIELDS[0].the_bytes[2]);
+            outBufferPtr += 2; // increment the pointer
+            sprintf(outBuffer+outBufferPtr, "%02X", myTrackerSettings.MOFIELDS[0].the_bytes[3]);
+            outBufferPtr += 2; // increment the pointer
+            sprintf(outBuffer+outBufferPtr, "%02X", myTrackerSettings.MOFIELDS[1].the_bytes[0]); // Add the field to outBuffer (little endian!)
+            outBufferPtr += 2; // increment the pointer
+            sprintf(outBuffer+outBufferPtr, "%02X", myTrackerSettings.MOFIELDS[1].the_bytes[1]);
+            outBufferPtr += 2; // increment the pointer
+            sprintf(outBuffer+outBufferPtr, "%02X", myTrackerSettings.MOFIELDS[1].the_bytes[2]);
+            outBufferPtr += 2; // increment the pointer
+            sprintf(outBuffer+outBufferPtr, "%02X", myTrackerSettings.MOFIELDS[1].the_bytes[3]);
+            outBufferPtr += 2; // increment the pointer
+            sprintf(outBuffer+outBufferPtr, "%02X", myTrackerSettings.MOFIELDS[2].the_bytes[0]); // Add the field to outBuffer (little endian!)
+            outBufferPtr += 2; // increment the pointer
+            sprintf(outBuffer+outBufferPtr, "%02X", myTrackerSettings.MOFIELDS[2].the_bytes[1]);
+            outBufferPtr += 2; // increment the pointer
+            sprintf(outBuffer+outBufferPtr, "%02X", myTrackerSettings.MOFIELDS[2].the_bytes[2]);
+            outBufferPtr += 2; // increment the pointer
+            sprintf(outBuffer+outBufferPtr, "%02X,", myTrackerSettings.MOFIELDS[2].the_bytes[3]);
+            outBufferPtr += 3; // increment the pointer
           }
           if ((myTrackerSettings.MOFIELDS[1].the_data & MOFIELDS1_FLAGS1) == MOFIELDS1_FLAGS1) // If the bit is set
           {
@@ -1256,7 +1277,7 @@ void loop()
 
           // ---------- MOFIELDS2 ----------
 
-          if ((myTrackerSettings.MOFIELDS[1].the_data & MOFIELDS2_GEOF2RAD) == MOFIELDS2_GEOF2RAD) // If the bit is set
+          if ((myTrackerSettings.MOFIELDS[2].the_data & MOFIELDS2_GEOF2RAD) == MOFIELDS2_GEOF2RAD) // If the bit is set
           {
             char temp_str[16]; // temporary string
             dtostrf((((float)myTrackerSettings.GEOF2RAD.the_data) / 100.0),4,2,temp_str); // Convert to m
@@ -1264,7 +1285,7 @@ void loop()
             if (outBufferPtr < (MOLIM-10)) {while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++;} // increment the pointer if there is room
             else {outBuffer[outBufferPtr] = 0x00;} // if there is not enough room, ignore this message (set the first character to NULL)
           }
-          if ((myTrackerSettings.MOFIELDS[1].the_data & MOFIELDS2_GEOF3LAT) == MOFIELDS2_GEOF3LAT) // If the bit is set
+          if ((myTrackerSettings.MOFIELDS[2].the_data & MOFIELDS2_GEOF3LAT) == MOFIELDS2_GEOF3LAT) // If the bit is set
           {
             char temp_str[16]; // temporary string
             dtostrf((((float)myTrackerSettings.GEOF3LAT.the_data) / 10000000.0),9,7,temp_str); // Convert to degrees
@@ -1272,7 +1293,7 @@ void loop()
             if (outBufferPtr < (MOLIM-12)) {while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++;} // increment the pointer if there is room
             else {outBuffer[outBufferPtr] = 0x00;} // if there is not enough room, ignore this message (set the first character to NULL)
           }
-          if ((myTrackerSettings.MOFIELDS[1].the_data & MOFIELDS2_GEOF3LON) == MOFIELDS2_GEOF3LON) // If the bit is set
+          if ((myTrackerSettings.MOFIELDS[2].the_data & MOFIELDS2_GEOF3LON) == MOFIELDS2_GEOF3LON) // If the bit is set
           {
             char temp_str[16]; // temporary string
             dtostrf((((float)myTrackerSettings.GEOF3LON.the_data) / 10000000.0),9,7,temp_str); // Convert to degrees
@@ -1280,7 +1301,7 @@ void loop()
             if (outBufferPtr < (MOLIM-13)) {while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++;} // increment the pointer if there is room
             else {outBuffer[outBufferPtr] = 0x00;} // if there is not enough room, ignore this message (set the first character to NULL)
           }
-          if ((myTrackerSettings.MOFIELDS[1].the_data & MOFIELDS2_GEOF3RAD) == MOFIELDS2_GEOF3RAD) // If the bit is set
+          if ((myTrackerSettings.MOFIELDS[2].the_data & MOFIELDS2_GEOF3RAD) == MOFIELDS2_GEOF3RAD) // If the bit is set
           {
             char temp_str[16]; // temporary string
             dtostrf((((float)myTrackerSettings.GEOF3RAD.the_data) / 100.0),4,2,temp_str); // Convert to m
@@ -1288,7 +1309,7 @@ void loop()
             if (outBufferPtr < (MOLIM-10)) {while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++;} // increment the pointer if there is room
             else {outBuffer[outBufferPtr] = 0x00;} // if there is not enough room, ignore this message (set the first character to NULL)
           }
-          if ((myTrackerSettings.MOFIELDS[1].the_data & MOFIELDS2_GEOF4LAT) == MOFIELDS2_GEOF4LAT) // If the bit is set
+          if ((myTrackerSettings.MOFIELDS[2].the_data & MOFIELDS2_GEOF4LAT) == MOFIELDS2_GEOF4LAT) // If the bit is set
           {
             char temp_str[16]; // temporary string
             dtostrf((((float)myTrackerSettings.GEOF4LAT.the_data) / 10000000.0),9,7,temp_str); // Convert to degrees
@@ -1296,7 +1317,7 @@ void loop()
             if (outBufferPtr < (MOLIM-12)) {while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++;} // increment the pointer if there is room
             else {outBuffer[outBufferPtr] = 0x00;} // if there is not enough room, ignore this message (set the first character to NULL)
           }
-          if ((myTrackerSettings.MOFIELDS[1].the_data & MOFIELDS2_GEOF4LON) == MOFIELDS2_GEOF4LON) // If the bit is set
+          if ((myTrackerSettings.MOFIELDS[2].the_data & MOFIELDS2_GEOF4LON) == MOFIELDS2_GEOF4LON) // If the bit is set
           {
             char temp_str[16]; // temporary string
             dtostrf((((float)myTrackerSettings.GEOF4LON.the_data) / 10000000.0),9,7,temp_str); // Convert to degrees
@@ -1304,7 +1325,7 @@ void loop()
             if (outBufferPtr < (MOLIM-13)) {while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++;} // increment the pointer if there is room
             else {outBuffer[outBufferPtr] = 0x00;} // if there is not enough room, ignore this message (set the first character to NULL)
           }
-          if ((myTrackerSettings.MOFIELDS[1].the_data & MOFIELDS2_GEOF4RAD) == MOFIELDS2_GEOF4RAD) // If the bit is set
+          if ((myTrackerSettings.MOFIELDS[2].the_data & MOFIELDS2_GEOF4RAD) == MOFIELDS2_GEOF4RAD) // If the bit is set
           {
             char temp_str[16]; // temporary string
             dtostrf((((float)myTrackerSettings.GEOF4RAD.the_data) / 100.0),4,2,temp_str); // Convert to m
@@ -1312,25 +1333,25 @@ void loop()
             if (outBufferPtr < (MOLIM-10)) {while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++;} // increment the pointer if there is room
             else {outBuffer[outBufferPtr] = 0x00;} // if there is not enough room, ignore this message (set the first character to NULL)
           }
-          if ((myTrackerSettings.MOFIELDS[1].the_data & MOFIELDS2_WAKEINT) == MOFIELDS2_WAKEINT) // If the bit is set
+          if ((myTrackerSettings.MOFIELDS[2].the_data & MOFIELDS2_WAKEINT) == MOFIELDS2_WAKEINT) // If the bit is set
           {
             sprintf(outBuffer+outBufferPtr, "%d,", myTrackerSettings.WAKEINT.the_data); // Add the field to outBuffer
             if (outBufferPtr < (MOLIM-5)) {while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++;} // increment the pointer if there is room
             else {outBuffer[outBufferPtr] = 0x00;} // if there is not enough room, ignore this message (set the first character to NULL)
           }
-          if ((myTrackerSettings.MOFIELDS[1].the_data & MOFIELDS2_ALARMINT) == MOFIELDS2_ALARMINT) // If the bit is set
+          if ((myTrackerSettings.MOFIELDS[2].the_data & MOFIELDS2_ALARMINT) == MOFIELDS2_ALARMINT) // If the bit is set
           {
             sprintf(outBuffer+outBufferPtr, "%d,", myTrackerSettings.ALARMINT.the_data); // Add the field to outBuffer
             if (outBufferPtr < (MOLIM-5)) {while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++;} // increment the pointer if there is room
             else {outBuffer[outBufferPtr] = 0x00;} // if there is not enough room, ignore this message (set the first character to NULL)
           }
-          if ((myTrackerSettings.MOFIELDS[1].the_data & MOFIELDS2_TXINT) == MOFIELDS2_TXINT) // If the bit is set
+          if ((myTrackerSettings.MOFIELDS[2].the_data & MOFIELDS2_TXINT) == MOFIELDS2_TXINT) // If the bit is set
           {
             sprintf(outBuffer+outBufferPtr, "%d,", myTrackerSettings.TXINT.the_data); // Add the field to outBuffer
             if (outBufferPtr < (MOLIM-5)) {while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++;} // increment the pointer if there is room
             else {outBuffer[outBufferPtr] = 0x00;} // if there is not enough room, ignore this message (set the first character to NULL)
           }
-          if ((myTrackerSettings.MOFIELDS[1].the_data & MOFIELDS2_LOWBATT) == MOFIELDS2_LOWBATT) // If the bit is set
+          if ((myTrackerSettings.MOFIELDS[2].the_data & MOFIELDS2_LOWBATT) == MOFIELDS2_LOWBATT) // If the bit is set
           {
             char temp_str[8]; // temporary string
             dtostrf((((float)myTrackerSettings.LOWBATT.the_data) / 100.0),4,2,temp_str); // Convert to V
@@ -1338,7 +1359,7 @@ void loop()
             if (outBufferPtr < (MOLIM-5)) {while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++;} // increment the pointer if there is room
             else {outBuffer[outBufferPtr] = 0x00;} // if there is not enough room, ignore this message (set the first character to NULL)
           }
-          if ((myTrackerSettings.MOFIELDS[1].the_data & MOFIELDS2_DYNMODEL) == MOFIELDS2_DYNMODEL) // If the bit is set
+          if ((myTrackerSettings.MOFIELDS[2].the_data & MOFIELDS2_DYNMODEL) == MOFIELDS2_DYNMODEL) // If the bit is set
           {
             sprintf(outBuffer+outBufferPtr, "%d,", myTrackerSettings.DYNMODEL); // Add the field to outBuffer
             if (outBufferPtr < (MOLIM-3)) {while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++;} // increment the pointer if there is room
@@ -1597,18 +1618,18 @@ void loop()
           if ((myTrackerSettings.MOFIELDS[1].the_data & MOFIELDS1_MOFIELDS) == MOFIELDS1_MOFIELDS) // If the bit is set
           {
             outBufferBinary[outBufferPtr++] = MOFIELDS; // Add the field ID
-            outBufferBinary[outBufferPtr++] = myTrackerSettings.MOFIELDS[0].the_bytes[3]; // Add the data
-            outBufferBinary[outBufferPtr++] = myTrackerSettings.MOFIELDS[0].the_bytes[2];
+            outBufferBinary[outBufferPtr++] = myTrackerSettings.MOFIELDS[0].the_bytes[0]; // Add the data (little endian!)
             outBufferBinary[outBufferPtr++] = myTrackerSettings.MOFIELDS[0].the_bytes[1];
-            outBufferBinary[outBufferPtr++] = myTrackerSettings.MOFIELDS[0].the_bytes[0];
-            outBufferBinary[outBufferPtr++] = myTrackerSettings.MOFIELDS[1].the_bytes[3]; // Add the data
-            outBufferBinary[outBufferPtr++] = myTrackerSettings.MOFIELDS[1].the_bytes[2];
+            outBufferBinary[outBufferPtr++] = myTrackerSettings.MOFIELDS[0].the_bytes[2];
+            outBufferBinary[outBufferPtr++] = myTrackerSettings.MOFIELDS[0].the_bytes[3];
+            outBufferBinary[outBufferPtr++] = myTrackerSettings.MOFIELDS[1].the_bytes[0]; // Add the data (little endian!)
             outBufferBinary[outBufferPtr++] = myTrackerSettings.MOFIELDS[1].the_bytes[1];
-            outBufferBinary[outBufferPtr++] = myTrackerSettings.MOFIELDS[1].the_bytes[0];
-            outBufferBinary[outBufferPtr++] = myTrackerSettings.MOFIELDS[2].the_bytes[3]; // Add the data
-            outBufferBinary[outBufferPtr++] = myTrackerSettings.MOFIELDS[2].the_bytes[2];
+            outBufferBinary[outBufferPtr++] = myTrackerSettings.MOFIELDS[1].the_bytes[2];
+            outBufferBinary[outBufferPtr++] = myTrackerSettings.MOFIELDS[1].the_bytes[3];
+            outBufferBinary[outBufferPtr++] = myTrackerSettings.MOFIELDS[2].the_bytes[0]; // Add the data (little endian!)
             outBufferBinary[outBufferPtr++] = myTrackerSettings.MOFIELDS[2].the_bytes[1];
-            outBufferBinary[outBufferPtr++] = myTrackerSettings.MOFIELDS[2].the_bytes[0];
+            outBufferBinary[outBufferPtr++] = myTrackerSettings.MOFIELDS[2].the_bytes[2];
+            outBufferBinary[outBufferPtr++] = myTrackerSettings.MOFIELDS[2].the_bytes[3];
           }
           if ((myTrackerSettings.MOFIELDS[1].the_data & MOFIELDS1_FLAGS1) == MOFIELDS1_FLAGS1) // If the bit is set
           {
@@ -1900,7 +1921,7 @@ void loop()
                 // Parse the data with the serial flag set to false so SOURCE cannot be changed
                 parse_data(mt_buffer, mtBufferSize, &myTrackerSettings, false);
                 Serial.println(F("Parsing complete. Updating values in EEPROM."));
-                updateTrackerSettings(&myTrackerSettings); // Update the settings in EEPROM
+                putTrackerSettings(&myTrackerSettings); // Update the settings in EEPROM
                 wake_int = myTrackerSettings.WAKEINT.the_data; // Copy WAKEINT into wake_int in case it has changed
               }
   
@@ -2297,7 +2318,7 @@ void loop()
           // Parse the data with the serial flag set to true so SOURCE can be changed
           parse_data(tracker_serial_rx_buffer, tracker_serial_rx_buffer_size, &myTrackerSettings, true);
           Serial.println(F("Parsing complete. Updating values in EEPROM."));
-          updateTrackerSettings(&myTrackerSettings); // Update the settings in EEPROM
+          putTrackerSettings(&myTrackerSettings); // Update the settings in EEPROM
           wake_int = myTrackerSettings.WAKEINT.the_data; // Copy WAKEINT into wake_int in case it has changed
         }
       }

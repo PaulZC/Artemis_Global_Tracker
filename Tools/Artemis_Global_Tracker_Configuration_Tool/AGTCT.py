@@ -6,18 +6,19 @@ Send-A-Message feature.
 Based on AFU.py (Artemis Firmware Updater) which is based on gist by Stefan Lehmann:
 https://gist.github.com/stlehmann/bea49796ad47b1e7f658ddde9620dff1
 
+Also based on Srikanth Anantharam's SerialTerminal example
+https://github.com/sria91/SerialTerminal
+
 MIT license
 
 """
 from typing import Iterator, Tuple
 
-from serial.tools.list_ports import comports
-import serial
-
-from PyQt5.QtCore import QSettings, QProcess, QTimer, Qt
+from PyQt5.QtCore import QSettings, QProcess, QTimer, Qt, QIODevice, pyqtSlot
 from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, QGridLayout, QPushButton, \
     QApplication, QLineEdit, QFileDialog, QPlainTextEdit, QCheckBox, QMessageBox
 from PyQt5.QtGui import QCloseEvent, QTextCursor
+from PyQt5.QtSerialPort import QSerialPort, QSerialPortInfo
 
 import struct, pickle
 from time import sleep
@@ -28,10 +29,10 @@ SETTING_FILE_LOCATION = 'C:'
 
 guiVersion = 'V1.0'
 
-def gen_serial_ports() -> Iterator[Tuple[str, str]]:
+def gen_serial_ports() -> Iterator[Tuple[str, str, str]]:
     """Return all available serial ports."""
-    ports = comports()
-    return ((p.description, p.device) for p in ports)
+    ports = QSerialPortInfo.availablePorts()
+    return ((p.description(), p.portName(), p.systemLocation()) for p in ports)
 
 # noinspection PyArgumentList
 
@@ -896,30 +897,6 @@ class MainWidget(QWidget):
         self.messages.setReadOnly(True)
         self.config.setReadOnly(True)
 
-        # Set up a timer to display the incoming serial data
-        self.timer = QTimer()
-        self.timer.setInterval(250)
-        self.timer.timeout.connect(self.recurring_timer)
-        self.timer.start()
-
-    def recurring_timer(self) -> None:
-        """Timer to handle serial data receive"""
-        try:
-            if self.ser.isOpen():
-                if self.ser.inWaiting() > 0:
-                    # Although the text edit window is read-only, the user can still
-                    # click in it and move the (hidden) cursor. New text will be added
-                    # at the cursor position. To prevent this, we need to move the
-                    # cursor to the end of the window first. The ensureCursorVisible
-                    # will make the window scroll automatically so the latest text
-                    # is visible.
-                    self.terminal.moveCursor(QTextCursor.End)
-                    self.terminal.ensureCursorVisible()
-                    self.terminal.insertPlainText(str(self.ser.read(self.ser.inWaiting()),'utf-8'))
-                    self.terminal.ensureCursorVisible()
-        except:
-            pass
-
     def load_settings(self) -> None:
         """Load Qsettings on startup."""
         self.settings = QSettings()
@@ -963,14 +940,13 @@ class MainWidget(QWidget):
         self.messages.clear() # Clear the message window
 
         portAvailable = False
-        ports = comports()
-        for p in ports:
-            if (p.device == self.port):
+        for desc, name, sys in gen_serial_ports():
+            if (sys == self.port):
                 portAvailable = True
         if (portAvailable == False):
             self.messages.moveCursor(QTextCursor.End)
             self.messages.ensureCursorVisible()
-            self.messages.appendPlainText("Port No Longer Available!")
+            self.messages.appendPlainText("Error: Port No Longer Available!")
             self.messages.ensureCursorVisible()
             return
         
@@ -980,7 +956,14 @@ class MainWidget(QWidget):
         except:
             self.messages.moveCursor(QTextCursor.End)
             self.messages.ensureCursorVisible()
-            self.messages.appendPlainText("Port Is Not Open!")
+            self.messages.appendPlainText("Error: Port Is Not Open!")
+            self.messages.ensureCursorVisible()
+            return
+
+        if (self.config.toPlainText() == ''):
+            self.messages.moveCursor(QTextCursor.End)
+            self.messages.ensureCursorVisible()
+            self.messages.appendPlainText("Warning: Nothing To Do! Configuration Message Is Empty! Did you forget to click Calculate Config?")
             self.messages.ensureCursorVisible()
             return
 
@@ -999,8 +982,9 @@ class MainWidget(QWidget):
     def update_com_ports(self) -> None:
         """Update COM Port list in GUI."""
         self.port_combobox.clear()
-        for name, device in gen_serial_ports():
-            self.port_combobox.addItem(name, device)
+        for desc, name, sys in gen_serial_ports():
+            longname = desc + " (" + name + ")"
+            self.port_combobox.addItem(longname, sys)
 
     @property
     def port(self) -> str:
@@ -1009,8 +993,6 @@ class MainWidget(QWidget):
 
     def closeEvent(self, event: QCloseEvent) -> None:
         """Handle Close event of the Widget."""
-        self.timer.stop()
-
         try:
             self.save_settings()
         except:
@@ -1030,14 +1012,13 @@ class MainWidget(QWidget):
         self.terminal.clear() # Clear the serial terminal window
         
         portAvailable = False
-        ports = comports()
-        for p in ports:
-            if (p.device == self.port):
+        for desc, name, sys in gen_serial_ports():
+            if (sys == self.port):
                 portAvailable = True
         if (portAvailable == False):
             self.messages.moveCursor(QTextCursor.End)
             self.messages.ensureCursorVisible()
-            self.messages.appendPlainText("Port No Longer Available!")
+            self.messages.appendPlainText("Error: Port No Longer Available!")
             self.messages.ensureCursorVisible()
             return
 
@@ -1045,36 +1026,37 @@ class MainWidget(QWidget):
             if self.ser.isOpen():
                 self.messages.moveCursor(QTextCursor.End)
                 self.messages.ensureCursorVisible()
-                self.messages.appendPlainText("Port Is Already Open!")
+                self.messages.appendPlainText("Error: Port Is Already Open!")
                 self.messages.ensureCursorVisible()
                 return
         except:
             pass
         
         try:
-            self.ser = serial.Serial()
-            self.ser.port = self.port
-            self.ser.baudrate = 115200
-            self.ser.timeout = 0.01
+            self.ser = QSerialPort()
+            self.ser.setPortName(self.port)
+            self.ser.setBaudRate(QSerialPort.Baud115200)
             try:
-                self.ser.rts = False
+                self.ser.setRequestToSend(False)
             except:
                 pass
-            self.ser.open()
+            self.ser.open(QIODevice.ReadWrite)
         except:
             self.messages.moveCursor(QTextCursor.End)
             self.messages.ensureCursorVisible()
-            self.messages.appendPlainText("Could Not Open The Port!")
+            self.messages.appendPlainText("Error: Could Not Open The Port!")
             self.messages.ensureCursorVisible()
             return
+
+        self.ser.readyRead.connect(self.receive) # Connect the receiver
         
         try:
             sleep(0.5) # Pull RTS low for 0.5s to reset the Artemis
-            self.ser.rts = True
+            self.ser.setRequestToSend(True)
         except:
             self.messages.moveCursor(QTextCursor.End)
             self.messages.ensureCursorVisible()
-            self.messages.appendPlainText("Could Not Toggle The RTS Pin!")
+            self.messages.appendPlainText("Error: Could Not Toggle The RTS Pin!")
             self.messages.ensureCursorVisible()
             #return
         
@@ -1083,28 +1065,39 @@ class MainWidget(QWidget):
         self.messages.appendPlainText("Port is now open.")
         self.messages.ensureCursorVisible()
 
+    @pyqtSlot()
+    def receive(self) -> None:
+        try:
+            while self.ser.canReadLine():
+                text = self.ser.readLine().data().decode()
+                self.terminal.moveCursor(QTextCursor.End)
+                self.terminal.ensureCursorVisible()
+                self.terminal.insertPlainText(text)
+                self.terminal.ensureCursorVisible()
+        except:
+            pass
+
     def on_close_port_btn_pressed(self) -> None:
         """Close the port"""
 
         self.messages.clear() # Clear the message window
         
         portAvailable = False
-        ports = comports()
-        for p in ports:
-            if (p.device == self.port):
+        for desc, name, sys in gen_serial_ports():
+            if (sys == self.port):
                 portAvailable = True
         if (portAvailable == False):
             self.messages.moveCursor(QTextCursor.End)
             self.messages.ensureCursorVisible()
-            self.messages.appendPlainText("Port No Longer Available!")
+            self.messages.appendPlainText("Error: Port No Longer Available!")
             self.messages.ensureCursorVisible()
             return
 
         try:
-            if self.ser.isOpen() == False:
+            if not self.ser.isOpen():
                 self.messages.moveCursor(QTextCursor.End)
                 self.messages.ensureCursorVisible()
-                self.messages.appendPlainText("Port Is Already Closed!")
+                self.messages.appendPlainText("Error: Port Is Already Closed!")
                 self.messages.ensureCursorVisible()
                 return
         except:
@@ -1115,7 +1108,7 @@ class MainWidget(QWidget):
         except:
             self.messages.moveCursor(QTextCursor.End)
             self.messages.ensureCursorVisible()
-            self.messages.appendPlainText("Could Not Close The Port!")
+            self.messages.appendPlainText("Error: Could Not Close The Port!")
             self.messages.ensureCursorVisible()
             return
 
@@ -1136,7 +1129,7 @@ class MainWidget(QWidget):
         if (fileExists == False):
             self.messages.moveCursor(QTextCursor.End)
             self.messages.ensureCursorVisible()
-            self.messages.appendPlainText("File Not Found!")
+            self.messages.appendPlainText("Error: File Not Found!")
             self.messages.ensureCursorVisible()
             return
 
@@ -1147,7 +1140,7 @@ class MainWidget(QWidget):
         except:
             self.messages.moveCursor(QTextCursor.End)
             self.messages.ensureCursorVisible()
-            self.messages.appendPlainText("Load config failed!")
+            self.messages.appendPlainText("Error: Load Config Failed!")
             self.messages.ensureCursorVisible()
             return
 
@@ -1455,7 +1448,7 @@ class MainWidget(QWidget):
         except:
             self.messages.moveCursor(QTextCursor.End)
             self.messages.ensureCursorVisible()
-            self.messages.appendPlainText("File save failed!")
+            self.messages.appendPlainText("Error: File Save Failed!")
             self.messages.ensureCursorVisible()
 
     def on_calc_config_btn_pressed(self) -> None:
@@ -1473,7 +1466,7 @@ class MainWidget(QWidget):
         if self.checkbox_F1_HIHUMID.isChecked(): flags = flags | 0b00000010
         if self.checkbox_F1_LOHUMID.isChecked(): flags = flags | 0b00000001
         if self.checkbox_val_FLAGS1.isChecked():
-            config_str = config_str + "31{0:0{1}x}".format(flags, 2)
+            config_str = config_str + "31" + struct.pack('B', flags).hex()
         elif flags > 0:
             self.messages.moveCursor(QTextCursor.End)
             self.messages.appendPlainText("Warning: FLAGS1 has bits set but the FLAGS1 Include checkbox is not checked")
@@ -1485,199 +1478,203 @@ class MainWidget(QWidget):
         if self.checkbox_F2_LOWBATT.isChecked(): flags = flags | 0b00100000
         if self.checkbox_F2_RING.isChecked(): flags = flags | 0b00010000
         if self.checkbox_val_FLAGS2.isChecked():
-            config_str = config_str + "32{0:0{1}x}".format(flags, 2)
+            config_str = config_str + "32" + struct.pack('B', flags).hex()
         elif flags > 0:
             self.messages.moveCursor(QTextCursor.End)
             self.messages.appendPlainText("Warning: FLAGS2 has bits set but the FLAGS2 Include checkbox is not checked")
             self.messages.ensureCursorVisible()
         # MOFIELDS
-        flags = 0
+        flags0 = 0
+        flags1 = 0
+        flags2 = 0
         maxTxtLen = 0 # Keep a running total of the maximum text message length
         if self.checkbox_F1_DEST.isChecked(): maxTxtLen += 10 # Include the RockBLOCK header
         if self.checkbox_SWVER.isChecked():
-            flags = flags | 0x080000000000000000000000
+            flags0 = flags0 | 0x08000000
             maxTxtLen += 6
         if self.checkbox_SOURCE.isChecked():
-            flags = flags | 0x008000000000000000000000
+            flags0 = flags0 | 0x00800000
             maxTxtLen += 8
         if self.checkbox_BATTV.isChecked():
-            flags = flags | 0x004000000000000000000000
+            flags0 = flags0 | 0x00400000
             maxTxtLen += 5
         if self.checkbox_PRESS.isChecked():
-            flags = flags | 0x002000000000000000000000
+            flags0 = flags0 | 0x00200000
             maxTxtLen += 5
         if self.checkbox_TEMP.isChecked():
-            flags = flags | 0x001000000000000000000000
+            flags0 = flags0 | 0x00100000
             maxTxtLen += 7
         if self.checkbox_HUMID.isChecked():
-            flags = flags | 0x000800000000000000000000
+            flags0 = flags0 | 0x00080000
             maxTxtLen += 7
         if self.checkbox_YEAR.isChecked():
-            flags = flags | 0x000400000000000000000000
+            flags0 = flags0 | 0x00040000
             maxTxtLen += 5
         if self.checkbox_MONTH.isChecked():
-            flags = flags | 0x000200000000000000000000
+            flags0 = flags0 | 0x00020000
             maxTxtLen += 3
         if self.checkbox_DAY.isChecked():
-            flags = flags | 0x000100000000000000000000
+            flags0 = flags0 | 0x00010000
             maxTxtLen += 3
         if self.checkbox_HOUR.isChecked():
-            flags = flags | 0x000080000000000000000000
+            flags0 = flags0 | 0x00008000
             maxTxtLen += 3
         if self.checkbox_MIN.isChecked():
-            flags = flags | 0x000040000000000000000000
+            flags0 = flags0 | 0x00004000
             maxTxtLen += 3
         if self.checkbox_SEC.isChecked():
-            flags = flags | 0x000020000000000000000000
+            flags0 = flags0 | 0x00002000
             maxTxtLen += 3
         if self.checkbox_MILLIS.isChecked():
-            flags = flags | 0x000010000000000000000000
+            flags0 = flags0 | 0x00001000
             maxTxtLen += 4
         if self.checkbox_DATETIME.isChecked():
-            flags = flags | 0x000008000000000000000000
+            flags0 = flags0 | 0x00000800
             maxTxtLen += 15
         if self.checkbox_LAT.isChecked():
-            flags = flags | 0x000004000000000000000000
+            flags0 = flags0 | 0x00000400
             maxTxtLen += 12
         if self.checkbox_LON.isChecked():
-            flags = flags | 0x000002000000000000000000
+            flags0 = flags0 | 0x00000200
             maxTxtLen += 13
         if self.checkbox_ALT.isChecked():
-            flags = flags | 0x000001000000000000000000
+            flags0 = flags0 | 0x00000100
             maxTxtLen += 10
         if self.checkbox_SPEED.isChecked():
-            flags = flags | 0x000000800000000000000000
+            flags0 = flags0 | 0x00000080
             maxTxtLen += 8
         if self.checkbox_HEAD.isChecked():
-            flags = flags | 0x000000400000000000000000
+            flags0 = flags0 | 0x00000040
             maxTxtLen += 7
         if self.checkbox_SATS.isChecked():
-            flags = flags | 0x000000200000000000000000
+            flags0 = flags0 | 0x00000020
             maxTxtLen += 3
         if self.checkbox_PDOP.isChecked():
-            flags = flags | 0x000000100000000000000000
+            flags0 = flags0 | 0x00000010
             maxTxtLen += 7
         if self.checkbox_FIX.isChecked():
-            flags = flags | 0x000000080000000000000000
+            flags0 = flags0 | 0x00000008
             maxTxtLen += 2
         if self.checkbox_GEOFSTAT.isChecked():
-            flags = flags | 0x000000040000000000000000
+            flags0 = flags0 | 0x00000004
             maxTxtLen += 7
         if self.checkbox_USERVAL1.isChecked():
-            flags = flags | 0x000000008000000000000000
+            flags1 = flags1 | 0x80000000
             maxTxtLen += 4
         if self.checkbox_USERVAL2.isChecked():
-            flags = flags | 0x000000004000000000000000
+            flags1 = flags1 | 0x40000000
             maxTxtLen += 4
         if self.checkbox_USERVAL3.isChecked():
-            flags = flags | 0x000000002000000000000000
+            flags1 = flags1 | 0x20000000
             maxTxtLen += 6
         if self.checkbox_USERVAL4.isChecked():
-            flags = flags | 0x000000001000000000000000
+            flags1 = flags1 | 0x10000000
             maxTxtLen += 6
         if self.checkbox_USERVAL5.isChecked():
-            flags = flags | 0x000000000800000000000000
+            flags1 = flags1 | 0x08000000
             maxTxtLen += 11
         if self.checkbox_USERVAL6.isChecked():
-            flags = flags | 0x000000000400000000000000
+            flags1 = flags1 | 0x04000000
             maxTxtLen += 11
         if self.checkbox_USERVAL7.isChecked():
-            flags = flags | 0x000000000200000000000000
+            flags1 = flags1 | 0x02000000
             maxTxtLen += 15
         if self.checkbox_USERVAL8.isChecked():
-            flags = flags | 0x000000000100000000000000
+            flags1 = flags1 | 0x01000000
             maxTxtLen += 15
         if self.checkbox_MOFIELDS.isChecked():
-            flags = flags | 0x000000000000800000000000
+            flags1 = flags1 | 0x00008000
             maxTxtLen += 25
         if self.checkbox_FLAGS1.isChecked():
-            flags = flags | 0x000000000000400000000000
+            flags1 = flags1 | 0x00004000
             maxTxtLen += 3
         if self.checkbox_FLAGS2.isChecked():
-            flags = flags | 0x000000000000200000000000
+            flags1 = flags1 | 0x00002000
             maxTxtLen += 3
         if self.checkbox_DEST.isChecked():
-            flags = flags | 0x000000000000100000000000
+            flags1 = flags1 | 0x00001000
             maxTxtLen += 8
         if self.checkbox_HIPRESS.isChecked():
-            flags = flags | 0x000000000000080000000000
+            flags1 = flags1 | 0x00000800
             maxTxtLen += 5
         if self.checkbox_LOPRESS.isChecked():
-            flags = flags | 0x000000000000040000000000
+            flags1 = flags1 | 0x00000400
             maxTxtLen += 5
         if self.checkbox_HITEMP.isChecked():
-            flags = flags | 0x000000000000020000000000
+            flags1 = flags1 | 0x00000200
             maxTxtLen += 7
         if self.checkbox_LOTEMP.isChecked():
-            flags = flags | 0x000000000000010000000000
+            flags1 = flags1 | 0x00000100
             maxTxtLen += 7
         if self.checkbox_HIHUMID.isChecked():
-            flags = flags | 0x000000000000008000000000
+            flags1 = flags1 | 0x00000080
             maxTxtLen += 7
         if self.checkbox_LOHUMID.isChecked():
-            flags = flags | 0x000000000000004000000000
+            flags1 = flags1 | 0x00000040
             maxTxtLen += 7
         if self.checkbox_GEOFNUM.isChecked():
-            flags = flags | 0x000000000000002000000000
+            flags1 = flags1 | 0x00000020
             maxTxtLen += 3
         if self.checkbox_GEOF1LAT.isChecked():
-            flags = flags | 0x000000000000001000000000
+            flags1 = flags1 | 0x00000010
             maxTxtLen += 12
         if self.checkbox_GEOF1LON.isChecked():
-            flags = flags | 0x000000000000000800000000
+            flags1 = flags1 | 0x00000008
             maxTxtLen += 13
         if self.checkbox_GEOF1RAD.isChecked():
-            flags = flags | 0x000000000000000400000000
+            flags1 = flags1 | 0x00000004
             maxTxtLen += 10
         if self.checkbox_GEOF2LAT.isChecked():
-            flags = flags | 0x000000000000000200000000
+            flags1 = flags1 | 0x00000002
             maxTxtLen += 12
         if self.checkbox_GEOF2LON.isChecked():
-            flags = flags | 0x000000000000000100000000
+            flags1 = flags1 | 0x00000001
             maxTxtLen += 13
         if self.checkbox_GEOF2RAD.isChecked():
-            flags = flags | 0x000000000000000080000000
+            flags2 = flags2 | 0x80000000
             maxTxtLen += 10
         if self.checkbox_GEOF3LAT.isChecked():
-            flags = flags | 0x000000000000000040000000
+            flags2 = flags2 | 0x40000000
             maxTxtLen += 12
         if self.checkbox_GEOF3LON.isChecked():
-            flags = flags | 0x000000000000000020000000
+            flags2 = flags2 | 0x20000000
             maxTxtLen += 13
         if self.checkbox_GEOF3RAD.isChecked():
-            flags = flags | 0x000000000000000010000000
+            flags2 = flags2 | 0x10000000
             maxTxtLen += 10
         if self.checkbox_GEOF4LAT.isChecked():
-            flags = flags | 0x000000000000000008000000
+            flags2 = flags2 | 0x08000000
             maxTxtLen += 12
         if self.checkbox_GEOF4LON.isChecked():
-            flags = flags | 0x000000000000000004000000
+            flags2 = flags2 | 0x04000000
             maxTxtLen += 13
         if self.checkbox_GEOF4RAD.isChecked():
-            flags = flags | 0x000000000000000002000000
+            flags2 = flags2 | 0x02000000
             maxTxtLen += 10
         if self.checkbox_WAKEINT.isChecked():
-            flags = flags | 0x000000000000000001000000
+            flags2 = flags2 | 0x01000000
             maxTxtLen += 5
         if self.checkbox_ALARMINT.isChecked():
-            flags = flags | 0x000000000000000000800000
+            flags2 = flags2 | 0x00800000
             maxTxtLen += 5
         if self.checkbox_TXINT.isChecked():
-            flags = flags | 0x000000000000000000400000
+            flags2 = flags2 | 0x00400000
             maxTxtLen += 5
         if self.checkbox_LOWBATT.isChecked():
-            flags = flags | 0x000000000000000000200000
+            flags2 = flags2 | 0x00200000
             maxTxtLen += 5
         if self.checkbox_DYNMODEL.isChecked():
-            flags = flags | 0x000000000000000000100000
+            flags2 = flags2 | 0x00100000
             maxTxtLen += 3
         if (self.checkbox_F1_BINARY.isChecked() == False) and (maxTxtLen > 340):
             self.messages.moveCursor(QTextCursor.End)
             self.messages.appendPlainText("Error: The text message sent by the Tracker will exceed 340 bytes! You need to select fewer MOFIELDS.")
             self.messages.ensureCursorVisible()
         if self.checkbox_val_MOFIELDS.isChecked():
-            config_str = config_str + "30{0:0{1}x}".format(flags, 24)
-        elif flags > 0:
+            config_str = config_str + "30" + struct.pack('<I', flags0).hex() # Little-endian hex
+            config_str = config_str + struct.pack('<I', flags1).hex()
+            config_str = config_str + struct.pack('<I', flags2).hex()
+        elif (flags0 > 0) or (flags1 > 0) or (flags2 > 0):
             self.messages.moveCursor(QTextCursor.End)
             self.messages.appendPlainText("Warning: MOFIELDS has bits set but the MOFIELDS Include checkbox is not checked")
             self.messages.ensureCursorVisible()
@@ -1782,7 +1779,7 @@ class MainWidget(QWidget):
                         self.messages.appendPlainText("Error: the value for GEOFNUM is not valid!")
                     else:
                         value = (numf * 16) + conf
-                        config_str = config_str + "3a{0:0{1}x}".format(value, 2)
+                        config_str = config_str + "3a" + struct.pack('B', value).hex()
                 except:
                     self.messages.appendPlainText("Error: the value for GEOFNUM is not valid!")
             else:
@@ -1981,7 +1978,7 @@ class MainWidget(QWidget):
                     if (value < 0) or (value == 1) or (value > 10):
                         self.messages.appendPlainText("Error: the value for DYNMODEL is not valid!")
                     else:
-                        config_str = config_str + "4b{0:0{1}x}".format(value, 2)
+                        config_str = config_str + "4b" + struct.pack('B', value).hex()
                 except:
                     self.messages.appendPlainText("Error: the value for DYNMODEL is not valid!")
             else:
@@ -2052,8 +2049,8 @@ class MainWidget(QWidget):
             pair = int(config_str[i:i+2], 16) # Grab a pair of hex digits as an int
             csuma = csuma + pair
             csumb = csumb + csuma
-        config_str = config_str + "{0:0{1}x}".format((csuma%256), 2) # Add the checksum bytes to the message
-        config_str = config_str + "{0:0{1}x}".format((csumb%256), 2)
+        config_str = config_str + struct.pack('B', (csuma%256)).hex() # Add the checksum bytes to the message
+        config_str = config_str + struct.pack('B', (csumb%256)).hex()
         # Display the message            
         self.config.clear() # Clear the config window
         self.config.appendPlainText(config_str) # Display the config message
