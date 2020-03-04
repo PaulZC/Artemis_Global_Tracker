@@ -1036,8 +1036,6 @@ void printTrackerSettings(trackerSettings *myTrackerSettings)
     _debugSerial->println(((float)myTrackerSettings->LOWBATT.the_data / 100),2);
     _debugSerial->print("DYNMODEL: ");
     _debugSerial->println(myTrackerSettings->DYNMODEL);
-    _debugSerial->println(" ");
-    _debugSerial->println(" ");
   }
 }
 

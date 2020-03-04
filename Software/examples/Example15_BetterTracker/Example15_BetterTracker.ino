@@ -868,7 +868,7 @@ void loop()
               Serial.print(new_interval);
               Serial.println(F(" minutes."));
               myTrackerSettings.TXINT = new_interval; // Update the transmit interval
-              updateTrackerSettings(&myTrackerSettings); // Update flash memory
+              putTrackerSettings(&myTrackerSettings); // Update flash memory
             }
 
             // Check if the message contains a correctly formatted RBSOURCE: "[RBSOURCE=nnnnn]"
@@ -890,7 +890,7 @@ void loop()
               Serial.print(F("New RBSOURCE received. Setting SOURCE to "));
               Serial.println(new_source);
               myTrackerSettings.SOURCE = new_source; // Update the source RockBLOCK serial number
-              updateTrackerSettings(&myTrackerSettings); // Update flash memory
+              putTrackerSettings(&myTrackerSettings); // Update flash memory
             }
 
             // Check if the message contains a correctly formatted RBDESTINATION: "[RBDESTINATION=nnnnn]"
@@ -912,7 +912,7 @@ void loop()
               Serial.print(F("New RBDESTINATION received. Setting DEST to "));
               Serial.println(new_destination);
               myTrackerSettings.DEST = new_destination; // Update the destination RockBLOCK serial number
-              updateTrackerSettings(&myTrackerSettings); // Update flash memory
+              putTrackerSettings(&myTrackerSettings); // Update flash memory
             }
           }
         }

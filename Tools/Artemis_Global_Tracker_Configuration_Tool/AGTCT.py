@@ -1036,11 +1036,11 @@ class MainWidget(QWidget):
             self.ser = QSerialPort()
             self.ser.setPortName(self.port)
             self.ser.setBaudRate(QSerialPort.Baud115200)
+            self.ser.open(QIODevice.ReadWrite)
             try:
                 self.ser.setRequestToSend(False)
             except:
                 pass
-            self.ser.open(QIODevice.ReadWrite)
         except:
             self.messages.moveCursor(QTextCursor.End)
             self.messages.ensureCursorVisible()
@@ -1929,7 +1929,7 @@ class MainWidget(QWidget):
             if self.val_WAKEINT.text().isdigit():
                 try:
                     value = int(self.val_WAKEINT.text())
-                    if (value < 0) or (value > 3600):
+                    if (value < 0) or (value > 86400):
                         self.messages.appendPlainText("Error: the value for WAKEINT is not valid!")
                     else:
                         config_str = config_str + "47" + struct.pack('<H', value).hex() # Little-endian hex

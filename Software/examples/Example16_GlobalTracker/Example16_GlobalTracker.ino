@@ -34,7 +34,8 @@
 
   You can have the Iridium 9603N monitor the ring channel continuously for new Mobile Terminated messages
   but this will increase the current draw considerably (approximately 50mA). This is not recommended for
-  battery-powered applications.
+  battery-powered applications. You will also need to increase WAKEINT, setting it to the same interval as
+  both ALARMINT and TXINT.
   
   ** Set the Board to "SparkFun Artemis Module" **
   
@@ -82,8 +83,8 @@ SFE_UBLOX_GPS myGPS;
 #include "Tracker_Message_Fields.h" // Include the message field and storage definitions
 trackerSettings myTrackerSettings; // Create storage for the tracker settings in RAM
 
-#define noTX // Uncomment this line to disable the Iridium SBD transmit if you want to test the code without using message credits
-#define skipGNSS // Uncomment this line to skip getting a GNSS fix (only valid if noTX is defined too)
+//#define noTX // Uncomment this line to disable the Iridium SBD transmit if you want to test the code without using message credits
+//#define skipGNSS // Uncomment this line to skip getting a GNSS fix (only valid if noTX is defined too)
 
 #include <EEPROM.h> // Needed for EEPROM storage on the Artemis
 
@@ -302,14 +303,13 @@ void loop()
       Serial.println();
       Serial.println();
 
-      enableDebugging(Serial); // Uncomment this line to enable extra debug messages to Serial
+      //enableDebugging(Serial); // Uncomment this line to enable extra debug messages to Serial
 
       if (_printDebug == true)
       {
         // If debugging is enabled: print the tracker EEPROM contents as text
         Serial.println(F("EEPROM contents (remember that data is little endian!):"));
         displayEEPROMcontents();
-        Serial.println();
         Serial.println();
       }
 
@@ -383,43 +383,68 @@ void loop()
       if ((myTrackerSettings.FLAGS1 & FLAGS1_HIPRESS) == FLAGS1_HIPRESS) // If the HIPRESS alarm is enabled
       {
         // Check if HIPRESS has been exceeded
-        if (myTrackerSettings.PRESS.the_data > myTrackerSettings.HIPRESS.the_data) alarmState = true;
+        if (myTrackerSettings.PRESS.the_data > myTrackerSettings.HIPRESS.the_data)
+        {
+          alarmState = true;
+          Serial.println(F("*** HIPRESS Alarm! ***"));
+        }
       }
       if ((myTrackerSettings.FLAGS1 & FLAGS1_LOPRESS) == FLAGS1_LOPRESS) // If the LOPRESS alarm is enabled
       {
         // Check if LOPRESS has been exceeded
-        if (myTrackerSettings.PRESS.the_data < myTrackerSettings.LOPRESS.the_data) alarmState = true;
+        if (myTrackerSettings.PRESS.the_data < myTrackerSettings.LOPRESS.the_data)
+        {
+          alarmState = true;
+          Serial.println(F("*** LOPRESS Alarm! ***"));
+        }
       }
       if ((myTrackerSettings.FLAGS1 & FLAGS1_HITEMP) == FLAGS1_HITEMP) // If the HITEMP alarm is enabled
       {
         // Check if HITEMP has been exceeded
-        if (myTrackerSettings.TEMP.the_data > myTrackerSettings.HITEMP.the_data) alarmState = true;
+        if (myTrackerSettings.TEMP.the_data > myTrackerSettings.HITEMP.the_data)
+        {
+          alarmState = true;
+          Serial.println(F("*** HITEMP Alarm! ***"));
+        }
       }
       if ((myTrackerSettings.FLAGS1 & FLAGS1_LOTEMP) == FLAGS1_LOTEMP) // If the LOTEMP alarm is enabled
       {
         // Check if LOTEMP has been exceeded
-        if (myTrackerSettings.TEMP.the_data < myTrackerSettings.LOTEMP.the_data) alarmState = true;
+        if (myTrackerSettings.TEMP.the_data < myTrackerSettings.LOTEMP.the_data)
+        {
+          alarmState = true;
+          Serial.println(F("*** LOTEMP Alarm! ***"));
+        }
       }
       if ((myTrackerSettings.FLAGS1 & FLAGS1_HIHUMID) == FLAGS1_HIHUMID) // If the HIHUMID alarm is enabled
       {
         // Check if HIHUMID has been exceeded
-        if (myTrackerSettings.HUMID.the_data > myTrackerSettings.HIHUMID.the_data) alarmState = true;
+        if (myTrackerSettings.HUMID.the_data > myTrackerSettings.HIHUMID.the_data)
+        {
+          alarmState = true;
+          Serial.println(F("*** HIHUMID Alarm! ***"));
+        }
       }
       if ((myTrackerSettings.FLAGS1 & FLAGS1_LOHUMID) == FLAGS1_LOHUMID) // If the LOHUMID alarm is enabled
       {
         // Check if LOHUMID has been exceeded
-        if (myTrackerSettings.HUMID.the_data < myTrackerSettings.LOHUMID.the_data) alarmState = true;
+        if (myTrackerSettings.HUMID.the_data < myTrackerSettings.LOHUMID.the_data)
+        {
+          alarmState = true;
+          Serial.println(F("*** LOHUMID Alarm! ***"));
+        }
       }
       // Check battery voltage
       // If voltage is lower than LOWBATT, send an alaem message
       get_vbat(); // Get the battery (bus) voltage
       if (myTrackerSettings.BATTV.the_data < myTrackerSettings.LOWBATT.the_data) {
-        Serial.print(F("***!!! LOW VOLTAGE (read_pressure) "));
+        Serial.print(F("*** LOWBATT: "));
         Serial.print((((float)myTrackerSettings.BATTV.the_data)/100.0),2);
-        Serial.println(F(" !!!***"));
+        Serial.println(F("V ***"));
         if ((myTrackerSettings.FLAGS2 & FLAGS2_LOWBATT) == FLAGS2_LOWBATT) // If the LOWBATT alarm is enabled
         {
           alarmState = true;
+          Serial.println(F("*** LOWBATT Alarm! ***"));
         }
       }
 
@@ -536,6 +561,7 @@ void loop()
             else
             {
               dynamicModelSet = true; // Set the flag so we don't try to set the dynamic model again
+              Serial.println(F("*** Dynamic Model Updated ***"));
             }
           }
 
@@ -2329,14 +2355,11 @@ void loop()
         Serial.println(F("EEPROM contents (remember that data is little endian!):"));
         displayEEPROMcontents();
         Serial.println();
-        Serial.println();
       }
     
       printTrackerSettings(&myTrackerSettings); // Print the tracker settings (if debug is enabled)
     
       Serial.println(F("Done!"));
-      Serial.println();
-      Serial.println();
       
       // Go back where we came from...
       loop_step = last_loop_step;
