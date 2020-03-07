@@ -34,7 +34,7 @@ def get_credentials():
     """Gets valid user credentials from storage.
 
     If nothing has been stored, or if the stored credentials are invalid,
-    the OAuth2 flow is completed to obtain the new credentials.
+    the oauthlib flow is completed to obtain the new credentials.
 
     Returns:
         Credentials, the obtained credential.
