@@ -54,7 +54,9 @@ The _Mapper_ requires a Google Static Map API key. Follow [these instructions](h
 to get your own key and copy and paste it into a file called _Google_Static_Maps_API_Key.txt_ so the mapper can read it.
 
 The _GMail Downloader_ requires access to your GMail credentials. Follow [these instructions](https://developers.google.com/gmail/api/quickstart/python)
-to create your credentials and enable access for Python.
+to create your credentials and enable access for Python. After you have run the quickstart.py you will need to delete your token.pickle file as the
+Downloader needs _modify_ permissions and quickstart.py only requests _readonly_ permissions. A new token.pickle will be created when you run the
+Downloader.
 
 For full instructions, please refer to the [Iridium_9603_Beacon repo](https://github.com/PaulZC/Iridium_9603_Beacon/blob/master/RockBLOCK.md#tracking-your-beacon-with-an-internet-connection).
 

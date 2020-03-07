@@ -56,7 +56,6 @@ from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, QGridLayout, QPushButton
     QApplication, QLineEdit, QFileDialog, QPlainTextEdit, QCheckBox, QMessageBox, \
     QMenuBar
 from PyQt5.QtGui import QCloseEvent, QTextCursor, QPixmap, QClipboard
-import serial
 import time
 import urllib.request
 import math
