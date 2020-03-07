@@ -1476,7 +1476,24 @@ class MainWidget(QWidget):
         if self.checkbox_F2_GEOFENCE.isChecked(): flags = flags | 0b10000000
         if self.checkbox_F2_INSIDE.isChecked(): flags = flags | 0b01000000
         if self.checkbox_F2_LOWBATT.isChecked(): flags = flags | 0b00100000
-        if self.checkbox_F2_RING.isChecked(): flags = flags | 0b00010000
+        if self.checkbox_F2_RING.isChecked():
+            flags = flags | 0b00010000
+            wake_int = 60
+            alarm_int = 5
+            tx_int = 5
+            try:
+                if self.val_WAKEINT.text().isdigit():
+                    wake_int = int(self.val_WAKEINT.text())
+                if self.val_ALARMINT.text().isdigit():
+                    alarm_int = int(self.val_ALARMINT.text())
+                if self.val_TXINT.text().isdigit():
+                    tx_int = int(self.val_TXINT.text())
+            except:
+                pass
+            if ((wake_int / 60) < (alarm_int)) and ((wake_int / 60) < (tx_int)):
+                self.messages.moveCursor(QTextCursor.End)
+                self.messages.appendPlainText("Warning: the WAKEINT interval should be the same as ALARMINT and TXINT when monitoring the ring channel")
+                self.messages.ensureCursorVisible()                
         if self.checkbox_val_FLAGS2.isChecked():
             config_str = config_str + "32" + struct.pack('B', flags).hex()
         elif flags > 0:
@@ -1785,26 +1802,28 @@ class MainWidget(QWidget):
             else:
                 self.messages.appendPlainText("Error: the value for GEOFNUM is not valid!")
                 return
-            if numf < 4: # De-select the LAT/LON/RAD for unused geofences
-                self.checkbox_val_GEOF4LAT.setChecked(False)
-                self.checkbox_val_GEOF4LON.setChecked(False)
-                self.checkbox_val_GEOF4RAD.setChecked(False)
-                self.messages.appendPlainText("Warning: unchecking the GEOF4 settings to match GEOFNUM")
-            if numf < 3:
-                self.checkbox_val_GEOF3LAT.setChecked(False)
-                self.checkbox_val_GEOF3LON.setChecked(False)
-                self.checkbox_val_GEOF3RAD.setChecked(False)
-                self.messages.appendPlainText("Warning: unchecking the GEOF3 settings to match GEOFNUM")
-            if numf < 2:
-                self.checkbox_val_GEOF2LAT.setChecked(False)
-                self.checkbox_val_GEOF2LON.setChecked(False)
-                self.checkbox_val_GEOF2RAD.setChecked(False)
-                self.messages.appendPlainText("Warning: unchecking the GEOF2 settings to match GEOFNUM")
-            if numf < 1:
-                self.checkbox_val_GEOF1LAT.setChecked(False)
-                self.checkbox_val_GEOF1LON.setChecked(False)
-                self.checkbox_val_GEOF1RAD.setChecked(False)
-                self.messages.appendPlainText("Warning: unchecking the GEOF1 settings to match GEOFNUM")
+            ## The next 20 lines are useful but are commented out as they stop you setting GEOFNUM to zero
+            ## and resetting the GEOFnLAT/LON/RAD in a single message
+            #if numf < 4: # De-select the LAT/LON/RAD for unused geofences
+            #    self.checkbox_val_GEOF4LAT.setChecked(False)
+            #    self.checkbox_val_GEOF4LON.setChecked(False)
+            #    self.checkbox_val_GEOF4RAD.setChecked(False)
+            #    self.messages.appendPlainText("Warning: unchecking the GEOF4 settings to match GEOFNUM")
+            #if numf < 3:
+            #    self.checkbox_val_GEOF3LAT.setChecked(False)
+            #    self.checkbox_val_GEOF3LON.setChecked(False)
+            #    self.checkbox_val_GEOF3RAD.setChecked(False)
+            #    self.messages.appendPlainText("Warning: unchecking the GEOF3 settings to match GEOFNUM")
+            #if numf < 2:
+            #    self.checkbox_val_GEOF2LAT.setChecked(False)
+            #    self.checkbox_val_GEOF2LON.setChecked(False)
+            #    self.checkbox_val_GEOF2RAD.setChecked(False)
+            #    self.messages.appendPlainText("Warning: unchecking the GEOF2 settings to match GEOFNUM")
+            #if numf < 1:
+            #    self.checkbox_val_GEOF1LAT.setChecked(False)
+            #    self.checkbox_val_GEOF1LON.setChecked(False)
+            #    self.checkbox_val_GEOF1RAD.setChecked(False)
+            #    self.messages.appendPlainText("Warning: unchecking the GEOF1 settings to match GEOFNUM")
         if self.checkbox_val_GEOF1LAT.isChecked():
             try:
                 value = float(self.val_GEOF1LAT.text())

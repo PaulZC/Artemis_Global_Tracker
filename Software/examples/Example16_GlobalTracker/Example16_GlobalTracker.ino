@@ -464,6 +464,14 @@ void loop()
         seconds_since_last_alarmtx = 0; // Clear the time since the last alarm
         seconds_since_last_tx = 0; // Clear the time since the last routine transmit too (assumes ALARMINT is < TXINT)
       }
+      // If we are monitoring the ring channel, either a ring indication was received or a WAKEINT interval_alarm occurred.
+      // Either way, we want to do a full message send cycle so we can go back to monitoring the ring channel.
+      // If we just Go To Sleep instead, we won't be monitoring the ring channel from now until the next transmit
+      else if ((myTrackerSettings.FLAGS2 & FLAGS2_RING) == FLAGS2_RING)
+      {
+        seconds_since_last_alarmtx = 0; // Clear the time since the last alarm
+        seconds_since_last_tx = 0; // Clear the time since the last routine transmit too (assumes ALARMINT is < TXINT)
+      }
       // If we are in an alarm state and it is time for an alarm message
       else if ((alarmState == true) && (seconds_since_last_alarmtx >= (myTrackerSettings.ALARMINT.the_data * 60)))
       {
@@ -473,9 +481,9 @@ void loop()
       // Or if it is time for a routine transmit
       else if (seconds_since_last_tx >= (myTrackerSettings.TXINT.the_data * 60))
       {
-        seconds_since_last_tx = 0; // Clear the time since the last transmit      
+        seconds_since_last_tx = 0; // Clear the time since the last routine transmit      
       }
-      else
+      else // This is probably just a WAKEINT interval_alarm so let's go back to sleep now that we've checked the PHT readings
       {
         loop_step = zzz; // Go to sleep
       }
@@ -2273,6 +2281,8 @@ void loop()
 
     // ************************************************************************************************
     // Leave the 9603N powered up and monitor the ring indicator continuously
+    // Exit and send a message (to download new MT messages) every WAKEINT seconds or earlier when we see a ring indication
+    // The user should have set WAKEINT to the same interval as TXINT or ALARMINT
     case wait_for_ring:
     
       Serial.println(F("Waiting for Ring Indication..."));
@@ -2306,14 +2316,14 @@ void loop()
       // Disable 9603N power
       Serial.println(F("Disabling 9603N power..."));
       digitalWrite(iridiumSleep, LOW); // Disable 9603N via its ON/OFF pin (modem.sleep should have done this already)
-      delay(1000);
+      delay(100);
       digitalWrite(iridiumPwrEN, LOW); // Disable Iridium Power
-      delay(1000);
+      delay(100);
       // Disable the supercapacitor charger
       Serial.println(F("Disabling the supercapacitor charger..."));
       digitalWrite(superCapChgEN, LOW); // Disable the super capacitor charger
 
-      delay(1000); // Wait for serial port to clear
+      delay(100); // Wait for serial port to clear
 
       // Do it all again!
       loop_step = loop_init;
@@ -2361,7 +2371,7 @@ void loop()
     
       Serial.println(F("Done!"));
       
-      // Go back where we came from...
+      // Go back where we came from... (Or so help me!)
       loop_step = last_loop_step;
     
     break; // End of case configure
