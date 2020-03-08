@@ -90,7 +90,7 @@ class MainWidget(QWidget):
         self.upload_btn.pressed.connect(self.on_upload_btn_pressed)
 
         # Terminal Bar
-        self.terminal_label = QLabel(self.tr('Serial Terminal:'))
+        self.terminal_label = QLabel(self.tr('Serial Monitor:'))
 
         # Terminal Window
         self.terminal = QPlainTextEdit()
@@ -1473,7 +1473,21 @@ class MainWidget(QWidget):
             self.messages.ensureCursorVisible()
         # FLAGS2
         flags = 0
-        if self.checkbox_F2_GEOFENCE.isChecked(): flags = flags | 0b10000000
+        if self.checkbox_F2_GEOFENCE.isChecked():
+            flags = flags | 0b10000000
+            wake_int = 60
+            alarm_int = 5
+            try:
+                if self.val_WAKEINT.text().isdigit():
+                    wake_int = int(self.val_WAKEINT.text())
+                if self.val_ALARMINT.text().isdigit():
+                    alarm_int = int(self.val_ALARMINT.text())
+            except:
+                pass
+            if ((wake_int / 60) < (alarm_int)):
+                self.messages.moveCursor(QTextCursor.End)
+                self.messages.appendPlainText("Warning: the WAKEINT interval should be the same as ALARMINT when geofence alerts are enabled")
+                self.messages.ensureCursorVisible()                
         if self.checkbox_F2_INSIDE.isChecked(): flags = flags | 0b01000000
         if self.checkbox_F2_LOWBATT.isChecked(): flags = flags | 0b00100000
         if self.checkbox_F2_RING.isChecked():

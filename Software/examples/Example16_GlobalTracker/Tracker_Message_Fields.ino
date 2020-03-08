@@ -701,7 +701,6 @@ enum tracker_parsing_result parse_data(uint8_t *data_buffer, size_t &data_buffer
       case GEOFNUM:
         myTrackerSettings->GEOFNUM = data_buffer[++x];
         x += 1;
-        geofencesSet = false; // Clear the flag so we update the geofences next time around the loop
         break;
       case GEOF1LAT:
         int32t.the_bytes[0] = data_buffer[++x];
@@ -710,7 +709,6 @@ enum tracker_parsing_result parse_data(uint8_t *data_buffer, size_t &data_buffer
         int32t.the_bytes[3] = data_buffer[++x];
         myTrackerSettings->GEOF1LAT.the_data = int32t.the_data;
         x += 1;
-        geofencesSet = false; // Clear the flag so we update the geofences next time around the loop
         break;
       case GEOF1LON:
         int32t.the_bytes[0] = data_buffer[++x];
@@ -719,7 +717,6 @@ enum tracker_parsing_result parse_data(uint8_t *data_buffer, size_t &data_buffer
         int32t.the_bytes[3] = data_buffer[++x];
         myTrackerSettings->GEOF1LON.the_data = int32t.the_data;
         x += 1;
-        geofencesSet = false; // Clear the flag so we update the geofences next time around the loop
         break;
       case GEOF1RAD:
         uint32t.the_bytes[0] = data_buffer[++x];
@@ -728,7 +725,6 @@ enum tracker_parsing_result parse_data(uint8_t *data_buffer, size_t &data_buffer
         uint32t.the_bytes[3] = data_buffer[++x];
         myTrackerSettings->GEOF1RAD.the_data = uint32t.the_data;
         x += 1;
-        geofencesSet = false; // Clear the flag so we update the geofences next time around the loop
         break;
       case GEOF2LAT:
         int32t.the_bytes[0] = data_buffer[++x];
@@ -737,7 +733,6 @@ enum tracker_parsing_result parse_data(uint8_t *data_buffer, size_t &data_buffer
         int32t.the_bytes[3] = data_buffer[++x];
         myTrackerSettings->GEOF2LAT.the_data = int32t.the_data;
         x += 1;
-        geofencesSet = false; // Clear the flag so we update the geofences next time around the loop
         break;
       case GEOF2LON:
         int32t.the_bytes[0] = data_buffer[++x];
@@ -746,7 +741,6 @@ enum tracker_parsing_result parse_data(uint8_t *data_buffer, size_t &data_buffer
         int32t.the_bytes[3] = data_buffer[++x];
         myTrackerSettings->GEOF2LON.the_data = int32t.the_data;
         x += 1;
-        geofencesSet = false; // Clear the flag so we update the geofences next time around the loop
         break;
       case GEOF2RAD:
         uint32t.the_bytes[0] = data_buffer[++x];
@@ -755,7 +749,6 @@ enum tracker_parsing_result parse_data(uint8_t *data_buffer, size_t &data_buffer
         uint32t.the_bytes[3] = data_buffer[++x];
         myTrackerSettings->GEOF2RAD.the_data = uint32t.the_data;
         x += 1;
-        geofencesSet = false; // Clear the flag so we update the geofences next time around the loop
         break;
       case GEOF3LAT:
         int32t.the_bytes[0] = data_buffer[++x];
@@ -764,7 +757,6 @@ enum tracker_parsing_result parse_data(uint8_t *data_buffer, size_t &data_buffer
         int32t.the_bytes[3] = data_buffer[++x];
         myTrackerSettings->GEOF3LAT.the_data = int32t.the_data;
         x += 1;
-        geofencesSet = false; // Clear the flag so we update the geofences next time around the loop
         break;
       case GEOF3LON:
         int32t.the_bytes[0] = data_buffer[++x];
@@ -773,7 +765,6 @@ enum tracker_parsing_result parse_data(uint8_t *data_buffer, size_t &data_buffer
         int32t.the_bytes[3] = data_buffer[++x];
         myTrackerSettings->GEOF3LON.the_data = int32t.the_data;
         x += 1;
-        geofencesSet = false; // Clear the flag so we update the geofences next time around the loop
         break;
       case GEOF3RAD:
         uint32t.the_bytes[0] = data_buffer[++x];
@@ -782,7 +773,6 @@ enum tracker_parsing_result parse_data(uint8_t *data_buffer, size_t &data_buffer
         uint32t.the_bytes[3] = data_buffer[++x];
         myTrackerSettings->GEOF3RAD.the_data = uint32t.the_data;
         x += 1;
-        geofencesSet = false; // Clear the flag so we update the geofences next time around the loop
         break;
       case GEOF4LAT:
         int32t.the_bytes[0] = data_buffer[++x];
@@ -791,7 +781,6 @@ enum tracker_parsing_result parse_data(uint8_t *data_buffer, size_t &data_buffer
         int32t.the_bytes[3] = data_buffer[++x];
         myTrackerSettings->GEOF4LAT.the_data = int32t.the_data;
         x += 1;
-        geofencesSet = false; // Clear the flag so we update the geofences next time around the loop
         break;
       case GEOF4LON:
         int32t.the_bytes[0] = data_buffer[++x];
@@ -800,7 +789,6 @@ enum tracker_parsing_result parse_data(uint8_t *data_buffer, size_t &data_buffer
         int32t.the_bytes[3] = data_buffer[++x];
         myTrackerSettings->GEOF4LON.the_data = int32t.the_data;
         x += 1;
-        geofencesSet = false; // Clear the flag so we update the geofences next time around the loop
         break;
       case GEOF4RAD:
         uint32t.the_bytes[0] = data_buffer[++x];
@@ -809,7 +797,6 @@ enum tracker_parsing_result parse_data(uint8_t *data_buffer, size_t &data_buffer
         uint32t.the_bytes[3] = data_buffer[++x];
         myTrackerSettings->GEOF4RAD.the_data = uint32t.the_data;
         x += 1;
-        geofencesSet = false; // Clear the flag so we update the geofences next time around the loop
         break;
       case WAKEINT:
         uint16t.the_bytes[0] = data_buffer[++x];
@@ -838,7 +825,6 @@ enum tracker_parsing_result parse_data(uint8_t *data_buffer, size_t &data_buffer
       case DYNMODEL:
         myTrackerSettings->DYNMODEL = (dynModel)(data_buffer[++x]);
         x += 1;
-        dynamicModelSet == false; // Clear the flag so the dynamic model will be updated next time around the loop
         break;
       case USERFUNC1:
         USER_FUNC_1(); // Call the user function

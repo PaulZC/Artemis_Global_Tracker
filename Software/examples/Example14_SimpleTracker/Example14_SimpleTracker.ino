@@ -117,7 +117,6 @@ float tempC = 0.0; // Temperature in Celcius
 byte fixType = 0; // GNSS fix type: 0=No fix, 1=Dead reckoning, 2=2D, 3=3D, 4=GNSS+Dead reckoning
 bool PGOOD = false; // Flag to indicate if LTC3225 PGOOD is HIGH
 int err; // Error value returned by IridiumSBD.begin
-bool dynamicModelSet = false; // Flag to indicate if the ZOE-M8Q dynamic model has been set
 
 #define VBAT_LOW 2.8 // Minimum voltage for LTC3225
 
@@ -279,7 +278,6 @@ void setup()
   loop_step = loop_init; // Make sure loop_step is set to loop_init
   seconds_count = 0; // Make sure seconds_count is reset
   interval_alarm = false; // Make sure the interval alarm flag is clear
-  dynamicModelSet = false; // Make sure the dynamicModelSet flag is clear
 
   // Set up the rtc for 1 second interrupts
   setupRTC();
@@ -386,18 +384,13 @@ void loop()
           // If we are going to change the dynamic platform model, let's do it here.
           // Possible values are:
           // PORTABLE,STATIONARY,PEDESTRIAN,AUTOMOTIVE,SEA,AIRBORNE1g,AIRBORNE2g,AIRBORNE4g,WRIST,BIKE
-          // Now then... Let's only do this once. I.e. only change the dynamic model if dynamicModelSet is false.
-          
-          if (dynamicModelSet == false)
+          if (myGPS.setDynamicModel(DYN_MODEL_PORTABLE) == false)
           {
-            if (myGPS.setDynamicModel(DYN_MODEL_PORTABLE) == false)
-            {
-              Serial.println(F("***!!! Warning: setDynamicModel may have failed !!!***"));
-            }
-            else
-            {
-              dynamicModelSet = true; // Set the flag so we don't try to set the dynamic model again
-            }
+            Serial.println(F("***!!! Warning: setDynamicModel may have failed !!!***"));
+          }
+          else
+          {
+            Serial.println(F("Dynamic Model updated"));
           }
           
           loop_step = read_GPS; // Move on, read the GNSS fix

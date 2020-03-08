@@ -55,11 +55,12 @@ If message forwarding is enabled, the message format will be (using the above ex
 
 If message forwarding is enabled, you will be charged twice for each message: once to send it, and once to receive it.
 
-**(WORK IN PROGRESS!)** **Example16** is the full Global Tracker which has many settings that can be configured and stored in EEPROM. The GlobalTracker can be configured to transmit:
+**Example16** is the full Global Tracker which has many settings that can be configured and stored in EEPROM. The GlobalTracker can be configured to transmit:
 on a GeoFence alert; or when Pressure, Temperature or Humidity limits are exceeded; or if the battery voltage is low. All of the settings can be configured via USB-C
 or remotely via a binary format Iridium SBD message.
 
 Messages can be sent in text format (human-readable) or binary format (to save messages credits). You can configure which message fields are included in the message so you only send the data you need.
+The [Artemis Global Tracker Configuration Tool (AGTCT)](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Tools) will generate the configuration messages for you.
 
 You can trigger user-defined functions e.g. to operate an [external relay](https://www.sparkfun.com/products/15093)
 

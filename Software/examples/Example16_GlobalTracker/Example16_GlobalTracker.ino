@@ -2,11 +2,10 @@
   Artemis Global Tracker
   
   Written by Paul Clark (PaulZC)
-  1st March 2020
+  8th March 2020
 
   *** (MINOR) WORK IN PROGRESS! ***
   * Still to do:
-  * Full testing with the AGTCT tool
   * Remove trailing zeros from the text message fields to save credits
 
   This example builds on the BetterTracker example. Many settings are stored in EEPROM (Flash) and can be configured
@@ -36,6 +35,9 @@
   but this will increase the current draw considerably (approximately 50mA). This is not recommended for
   battery-powered applications. You will also need to increase WAKEINT, setting it to the same interval as
   both ALARMINT and TXINT.
+  
+  Likewise, if you want to enable geofence alarm messages, you will also need to increase WAKEINT.
+  Set it to the same interval as ALARMINT.
   
   ** Set the Board to "SparkFun Artemis Module" **
   
@@ -127,11 +129,15 @@ volatile uint16_t wake_int;
 // More global variables
 bool PGOOD = false; // Flag to indicate if LTC3225 PGOOD is HIGH
 int err; // Error value returned by IridiumSBD.begin
-bool dynamicModelSet = false; // Flag to indicate if the ZOE-M8Q dynamic model has been set
-bool geofencesSet = false; // Flag to indicate if the ZOE-M8Q geofences been set
 bool firstTime = true; // Flag to indicate if this is the first time around the loop (so we go right round the loop and not just check the PHT)
 int delayCount; // General-purpose delay count used by non-blocking delays
 bool alarmState = false; // Use this to keep track of whether we are in an alarm state
+
+// geofence_alarm will be set to true by the ISR
+// but we only want to send geofence alarm messages every ALARMINT
+// so let's use sendGeofenceAlarm to record if a geofence alarm message should be sent
+// as geofence_alarm may have been cleared by then
+bool sendGeofenceAlarm = false;
 
 uint8_t tracker_serial_rx_buffer[1024]; // Define tracker_serial_rx_buffer which will store the incoming serial configuration data
 size_t tracker_serial_rx_buffer_size; // The size of the buffer
@@ -253,8 +259,8 @@ void setup()
   seconds_since_last_tx = 0; // Make sure seconds_since_last_tx is reset
   firstTime = true; // Make sure firstTime is set
   interval_alarm = false; // Make sure the interval alarm flag is clear
-  dynamicModelSet = false; // Make sure the dynamicModelSet flag is clear
   geofence_alarm = false; // Make sure the geofence alarm flag is clear
+  sendGeofenceAlarm = false; // Make sure the send-a-geofence-alarm-message flag is clear
 
   disableDebugging(); // Make sure the serial debug messages are disabled until the Serial port is open!
 
@@ -450,6 +456,8 @@ void loop()
 
       loop_step = start_GPS; // Get ready to move on and start the GPS
 
+      // Send a message:
+
       // If this is the first time around the loop
       if (firstTime == true)
       {
@@ -457,33 +465,50 @@ void loop()
         seconds_since_last_alarmtx = 0; // Clear the time since the last alarm
         seconds_since_last_tx = 0; // Clear the time since the last routine transmit too (assumes ALARMINT is < TXINT)
       }
-      // If a geofence alarm has occurred (but only if geofence alarms are enabled and the alarmtx limit has been reached)
-      else if ((geofence_alarm == true)  && ((myTrackerSettings.FLAGS2 & FLAGS2_GEOFENCE) == FLAGS2_GEOFENCE) && (seconds_since_last_alarmtx >= (myTrackerSettings.ALARMINT.the_data * 60)))
+      // If a geofence alarm has occurred but only if geofence alarms are enabled and the alarmtx limit has been reached
+      // otherwise we could be sending geofence alarm messages very frequently
+      else if ((sendGeofenceAlarm == true)  && ((myTrackerSettings.FLAGS2 & FLAGS2_GEOFENCE) == FLAGS2_GEOFENCE))
       {
-        geofence_alarm = false; // Clear the geofence alarm flag
-        seconds_since_last_alarmtx = 0; // Clear the time since the last alarm
-        seconds_since_last_tx = 0; // Clear the time since the last routine transmit too (assumes ALARMINT is < TXINT)
+        if (seconds_since_last_alarmtx >= (myTrackerSettings.ALARMINT.the_data * 60))
+        {
+          Serial.println(F("*** Geofence Alarm! ***"));
+          sendGeofenceAlarm = false; // Clear the send-a-geofence-alarm-message flag
+          seconds_since_last_alarmtx = 0; // Clear the time since the last alarm
+          seconds_since_last_tx = 0; // Clear the time since the last routine transmit too (assumes ALARMINT is < TXINT)
+        }
+        else
+        {
+          Serial.println(F("*** A Geofence Alarm was seen but it is too early to send the message! ***"));
+          loop_step = zzz; // Go to sleep as it is too early to send a geofence alarm message
+        }
       }
       // If we are monitoring the ring channel, either a ring indication was received or a WAKEINT interval_alarm occurred.
       // Either way, we want to do a full message send cycle so we can go back to monitoring the ring channel.
       // If we just Go To Sleep instead, we won't be monitoring the ring channel from now until the next transmit
       else if ((myTrackerSettings.FLAGS2 & FLAGS2_RING) == FLAGS2_RING)
       {
+        Serial.println(F("*** Ring Alarm! ***"));
         seconds_since_last_alarmtx = 0; // Clear the time since the last alarm
         seconds_since_last_tx = 0; // Clear the time since the last routine transmit too (assumes ALARMINT is < TXINT)
       }
       // If we are in an alarm state and it is time for an alarm message
       else if ((alarmState == true) && (seconds_since_last_alarmtx >= (myTrackerSettings.ALARMINT.the_data * 60)))
       {
+        Serial.println(F("Time for an alarm message!"));
         seconds_since_last_alarmtx = 0; // Clear the time since the last alarm
         seconds_since_last_tx = 0; // Clear the time since the last routine transmit too (assumes ALARMINT is < TXINT)
       }
       // Or if it is time for a routine transmit
       else if (seconds_since_last_tx >= (myTrackerSettings.TXINT.the_data * 60))
       {
+        Serial.println(F("Time for a routine message."));
         seconds_since_last_tx = 0; // Clear the time since the last routine transmit      
       }
-      else // This is probably just a WAKEINT interval_alarm so let's go back to sleep now that we've checked the PHT readings
+
+      // Else:
+
+      // This is probably just a WAKEINT interval_alarm so let's go back to sleep now that we've checked the PHT readings
+      else
       {
         loop_step = zzz; // Go to sleep
       }
@@ -555,75 +580,68 @@ void loop()
           //myGPS.enableDebugging(); // Enable debug messages
           myGPS.setI2COutput(COM_TYPE_UBX); // Limit I2C output to UBX (disable the NMEA noise)
 
-          // If we are going to change the dynamic platform model, let's do it here.
+          // Change the dynamic platform model.
           // Possible values are:
           // 0(PORTABLE),2(STATIONARY),3(PEDESTRIAN),4(AUTOMOTIVE),5(SEA),6(AIRBORNE1g),7(AIRBORNE2g),8(AIRBORNE4g),9(WRIST),10(BIKE)
-          // Now then... Let's only do this if dynamicModelSet is false.
+          // Unless we are going to saveConfiguration to BBR, which is risky with powerSaveMode, we need to do this each time around the loop.
           
-          if (dynamicModelSet == false)
+          if (myGPS.setDynamicModel(myTrackerSettings.DYNMODEL) == false)
           {
-            if (myGPS.setDynamicModel(myTrackerSettings.DYNMODEL) == false)
-            {
-              Serial.println(F("***!!! Warning: setDynamicModel may have failed !!!***"));
-            }
-            else
-            {
-              dynamicModelSet = true; // Set the flag so we don't try to set the dynamic model again
-              Serial.println(F("*** Dynamic Model Updated ***"));
-            }
+            Serial.println(F("***!!! Warning: setDynamicModel may have failed !!!***"));
+          }
+          else
+          {
+            Serial.println(F("Dynamic Model updated"));
           }
 
-          // If we are going to set the geofences, let's do it here.
-
-          if (geofencesSet == false) // If we have not set the geofences already
+          // Set the geofences.
+          // Unless we are going to saveConfiguration to BBR, which is risky with powerSaveMode, we need to do this each time around the loop.
+          byte numf = (myTrackerSettings.GEOFNUM & 0xf0) >> 4; // Extract the number of geofences
+          byte conf = myTrackerSettings.GEOFNUM & 0x0f; // Extract the confidence level
+          // Always call clearGeofences() to clear all existing geofences.
+          // We need to do this if numf is greater than zero to be able to define new geofences,
+          // but we also want to do it if numf is zero to erase any previous geofences.
+          Serial.print(F("Clearing any existing geofences. clearGeofences returned: "));
+          Serial.println(myGPS.clearGeofences());              
+          byte pinPolarity; // Define the pin polarity depending on whether FLAGS2_INSIDE is set
+          if ((myTrackerSettings.FLAGS2 & FLAGS2_INSIDE) == FLAGS2_INSIDE) // If the INSIDE bit is set
           {
-            byte numf = (myTrackerSettings.GEOFNUM & 0xf0) >> 4; // Extract the number of geofences
-            byte conf = myTrackerSettings.GEOFNUM & 0x0f; // Extract the confidence level
-            // Always call clearGeofences() to clear all existing geofences.
-            // We need to do this if numf is greater than zero to be able to define new geofences,
-            // but we also want to do it if numf is zero to erase any previous geofences.
-            Serial.print(F("Clearing any existing geofences. clearGeofences returned: "));
-            Serial.println(myGPS.clearGeofences());              
-            byte pinPolarity; // Define the pin polarity depending on whether FLAGS2_INSIDE is set
-            if ((myTrackerSettings.FLAGS2 & FLAGS2_INSIDE) == FLAGS2_INSIDE) // If the INSIDE bit is set
-            {
-              pinPolarity = 0; // Set the PIO pin polarity to 0: the PIO pin will be low when inside the combined geofence; unknown state is always high
-            }
-            else
-            {
-              pinPolarity = 1; // Set the PIO pin polarity to 1: the PIO pin will be low when outside the combined geofence; unknown state is always high
-            }
-            byte pin = 14; // ZOE-M8Q PIO14 is connected to the geofencePin
-
-            if (numf > 0) // If the number of geofences is not zero
-            {
-              if (numf >= 1)
-              {
-                // It is possible to define up to four geofences.
-                // Call addGeofence up to four times to define them.
-                Serial.println(F("Setting the geofences:"));
-    
-                Serial.print(F("addGeofence for geofence 1 returned: "));
-                Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF1LAT.the_data, myTrackerSettings.GEOF1LON.the_data, myTrackerSettings.GEOF1RAD.the_data, conf, pinPolarity, pin));
-              }
-              if (numf >= 2)
-              {
-                Serial.print(F("addGeofence for geofence 2 returned: "));
-                Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF2LAT.the_data, myTrackerSettings.GEOF2LON.the_data, myTrackerSettings.GEOF2RAD.the_data, conf, pinPolarity, pin));
-              }            
-              if (numf >= 3)
-              {
-                Serial.print(F("addGeofence for geofence 3 returned: "));
-                Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF3LAT.the_data, myTrackerSettings.GEOF3LON.the_data, myTrackerSettings.GEOF3RAD.the_data, conf, pinPolarity, pin));
-              }            
-              if (numf >= 4)
-              {
-                Serial.print(F("addGeofence for geofence 4 returned: "));
-                Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF4LAT.the_data, myTrackerSettings.GEOF4LON.the_data, myTrackerSettings.GEOF4RAD.the_data, conf, pinPolarity, pin));
-              }            
-            }
+            pinPolarity = 0; // Set the PIO pin polarity to 0: the PIO pin will be low when inside the combined geofence; unknown state is always high
           }
-          geofencesSet = true; // Set the flag so we don't try to set the geofences again
+          else
+          {
+            pinPolarity = 1; // Set the PIO pin polarity to 1: the PIO pin will be low when outside the combined geofence; unknown state is always high
+          }
+          byte pinNum = 14; // ZOE-M8Q PIO14 is connected to the geofencePin
+
+          if (numf > 0) // If the number of geofences is not zero
+          {
+            if (numf >= 1)
+            {
+              // It is possible to define up to four geofences.
+              // Call addGeofence up to four times to define them.
+              Serial.println(F("Setting the geofences:"));
+  
+              Serial.print(F("addGeofence for geofence 1 returned: "));
+              Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF1LAT.the_data, myTrackerSettings.GEOF1LON.the_data, myTrackerSettings.GEOF1RAD.the_data, conf, pinPolarity, pinNum));
+            }
+            if (numf >= 2)
+            {
+              Serial.print(F("addGeofence for geofence 2 returned: "));
+              Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF2LAT.the_data, myTrackerSettings.GEOF2LON.the_data, myTrackerSettings.GEOF2RAD.the_data, conf, pinPolarity, pinNum));
+            }            
+            if (numf >= 3)
+            {
+              Serial.print(F("addGeofence for geofence 3 returned: "));
+              Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF3LAT.the_data, myTrackerSettings.GEOF3LON.the_data, myTrackerSettings.GEOF3RAD.the_data, conf, pinPolarity, pinNum));
+            }            
+            if (numf >= 4)
+            {
+              Serial.print(F("addGeofence for geofence 4 returned: "));
+              Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF4LAT.the_data, myTrackerSettings.GEOF4LON.the_data, myTrackerSettings.GEOF4RAD.the_data, conf, pinPolarity, pinNum));
+            }            
+          }
+
           loop_step = read_GPS; // Move on, read the GNSS fix
         }
         
@@ -710,9 +728,9 @@ void loop()
         myTrackerSettings.PDOP.the_data = myGPS.getPDOP(); // Get the PDOP in cm
         geofenceState currentGeofenceState; // Create storage for the geofence state
         myGPS.getGeofenceState(currentGeofenceState); // Get the geofence state
-        myTrackerSettings.GEOFSTAT[0] = (currentGeofenceState.status << 4) | currentGeofenceState.combState; // Store the status and the combined state
-        myTrackerSettings.GEOFSTAT[1] = (currentGeofenceState.states[0] << 4) | currentGeofenceState.states[1]; // Store the individual geofence states
-        myTrackerSettings.GEOFSTAT[2] = (currentGeofenceState.states[2] << 4) | currentGeofenceState.states[3];
+        myTrackerSettings.GEOFSTAT[0] = ((currentGeofenceState.status) << 4) | (currentGeofenceState.combState); // Store the status and the combined state
+        myTrackerSettings.GEOFSTAT[1] = ((currentGeofenceState.states[0]) << 4) | (currentGeofenceState.states[1]); // Store the individual geofence states
+        myTrackerSettings.GEOFSTAT[2] = ((currentGeofenceState.states[2]) << 4) | (currentGeofenceState.states[3]);
 
         Serial.println(F("A 3D fix was found!"));
         Serial.print(F("Latitude (degrees * 10^-7): ")); Serial.println(myTrackerSettings.LAT.the_data);
@@ -2058,8 +2076,68 @@ void loop()
         Serial.println(F("Powering up the GNSS for geofence monitoring..."));
         gnssON(); // Enable power for the GNSS
         delay(2000); // Give the GNSS time to power up
+        
         if (myGPS.begin(Wire1) == true) //Connect to the Ublox module using Wire port
         {
+          // Change the dynamic platform model.
+          // Unless we are going to saveConfiguration to BBR, which is risky with powerSaveMode, we need to do this each time.
+          if (myGPS.setDynamicModel(myTrackerSettings.DYNMODEL) == false)
+          {
+            Serial.println(F("***!!! Warning: setDynamicModel may have failed !!!***"));
+          }
+          else
+          {
+            Serial.println(F("Dynamic Model updated"));
+          }
+
+          // Set the geofences.
+          // Unless we are going to saveConfiguration to BBR, which is risky with powerSaveMode, we need to do this each time.
+          byte numf = (myTrackerSettings.GEOFNUM & 0xf0) >> 4; // Extract the number of geofences
+          byte conf = myTrackerSettings.GEOFNUM & 0x0f; // Extract the confidence level
+          // Always call clearGeofences() to clear all existing geofences.
+          // We need to do this if numf is greater than zero to be able to define new geofences,
+          // but we also want to do it if numf is zero to erase any previous geofences.
+          Serial.print(F("Clearing any existing geofences. clearGeofences returned: "));
+          Serial.println(myGPS.clearGeofences());              
+          byte pinPolarity; // Define the pin polarity depending on whether FLAGS2_INSIDE is set
+          if ((myTrackerSettings.FLAGS2 & FLAGS2_INSIDE) == FLAGS2_INSIDE) // If the INSIDE bit is set
+          {
+            pinPolarity = 0; // Set the PIO pin polarity to 0: the PIO pin will be low when inside the combined geofence; unknown state is always high
+          }
+          else
+          {
+            pinPolarity = 1; // Set the PIO pin polarity to 1: the PIO pin will be low when outside the combined geofence; unknown state is always high
+          }
+          byte pinNum = 14; // ZOE-M8Q PIO14 is connected to the geofencePin
+
+          if (numf > 0) // If the number of geofences is not zero
+          {
+            if (numf >= 1)
+            {
+              // It is possible to define up to four geofences.
+              // Call addGeofence up to four times to define them.
+              Serial.println(F("Setting the geofences:"));
+  
+              Serial.print(F("addGeofence for geofence 1 returned: "));
+              Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF1LAT.the_data, myTrackerSettings.GEOF1LON.the_data, myTrackerSettings.GEOF1RAD.the_data, conf, pinPolarity, pinNum));
+            }
+            if (numf >= 2)
+            {
+              Serial.print(F("addGeofence for geofence 2 returned: "));
+              Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF2LAT.the_data, myTrackerSettings.GEOF2LON.the_data, myTrackerSettings.GEOF2RAD.the_data, conf, pinPolarity, pinNum));
+            }            
+            if (numf >= 3)
+            {
+              Serial.print(F("addGeofence for geofence 3 returned: "));
+              Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF3LAT.the_data, myTrackerSettings.GEOF3LON.the_data, myTrackerSettings.GEOF3RAD.the_data, conf, pinPolarity, pinNum));
+            }            
+            if (numf >= 4)
+            {
+              Serial.print(F("addGeofence for geofence 4 returned: "));
+              Serial.println(myGPS.addGeofence(myTrackerSettings.GEOF4LAT.the_data, myTrackerSettings.GEOF4LON.the_data, myTrackerSettings.GEOF4RAD.the_data, conf, pinPolarity, pinNum));
+            }            
+          }
+
           Serial.println(F("Waiting for a 3D GNSS fix..."));
     
           myTrackerSettings.FIX = 0; // Clear the fix type
@@ -2092,7 +2170,7 @@ void loop()
   
           Serial.println(F("Waiting for the geofence status to go active..."));
           byte geofenceStatus = 0; // Use this to hold the geofence status
-  
+
           // Wait for the geofence status to go active for up to GNSS_timeout minutes
           // Stop when it goes active, or we timeout
           for (unsigned long tnow = millis(); (geofenceStatus != 1) && (millis() - tnow < GNSS_timeout * 60UL * 1000UL);)
@@ -2120,6 +2198,7 @@ void loop()
             // Delay for 100msec so we don't pound the I2C bus too hard!
             delay(100);
           }
+
           // Put the ZOE-M8Q into power save mode
           if (myGPS.powerSaveMode() == true)
           {
@@ -2213,6 +2292,8 @@ void loop()
       // am_hal_pwrctrl_memory_deepsleep_retain. I wonder why?
       PWRCTRL->MEMPWDINSLEEP_b.SRAMPWDSLP = PWRCTRL_MEMPWDINSLEEP_SRAMPWDSLP_ALLBUTLOWER64K;
 
+      geofence_alarm = false; // The geofence alarm pin will have been bouncing around so let's make sure the flag is clear
+
       // This while loop keeps the processor asleep until WAKEINT seconds have passed
       // Or a geofence alarm takes place (but only if geofence alarms are enabled)
       while ((interval_alarm == false) && ((geofence_alarm == false) || ((myTrackerSettings.FLAGS2 & FLAGS2_GEOFENCE) != FLAGS2_GEOFENCE)))
@@ -2220,8 +2301,16 @@ void loop()
         // Go to Deep Sleep.
         am_hal_sysctrl_sleep(AM_HAL_SYSCTRL_SLEEP_DEEP);
       }
-      interval_alarm = false; // Clear the interval alarm flag now
-
+      
+      interval_alarm = false; // Clear the interval alarm flag now (even if a geofence alarm caused us to come out of sleep)
+      
+      // If a geofence alarm took place, let's record that we need to send a geofence alarm message
+      // so it doesn't matter what geofence_alarm does before then
+      if (geofence_alarm == true)
+      {
+        sendGeofenceAlarm = true;
+        geofence_alarm = false;
+      }
 
       // Wake up!
       loop_step = wake;
@@ -2273,7 +2362,10 @@ void loop()
   
       // Turn on ADC
       ap3_adc_setup();
-      
+
+      // Disable power for the GNSS (which could make the geofence interrupt pin bounce around causing false alerts)
+      gnssOFF();
+
       // Do it all again!
       loop_step = loop_init;
     
