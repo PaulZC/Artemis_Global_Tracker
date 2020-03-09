@@ -445,7 +445,7 @@ void loop()
         }
       }
       // Check battery voltage
-      // If voltage is lower than LOWBATT, send an alaem message
+      // If voltage is lower than LOWBATT, send an alarm message
       get_vbat(); // Get the battery (bus) voltage
       if (myTrackerSettings.BATTV.the_data < myTrackerSettings.LOWBATT.the_data) {
         Serial.print(F("*** LOWBATT: "));
@@ -544,7 +544,8 @@ void loop()
         loop_step = zzz; // Go to sleep
       }
       
-      else { // If the battery voltage is OK
+      else // If the battery voltage is OK
+      {
       
         if (myGPS.begin(Wire1) == false) //Connect to the Ublox module using Wire port
         {
@@ -579,7 +580,8 @@ void loop()
           loop_step = start_LTC3225; // Move on, skip reading the GNSS fix
         }
 
-        else { // If the GNSS started up OK
+        else // If the GNSS started up OK
+        {
           
           //myGPS.enableDebugging(); // Enable debug messages
           myGPS.setI2COutput(COM_TYPE_UBX); // Limit I2C output to UBX (disable the NMEA noise)
@@ -665,8 +667,8 @@ void loop()
             {
               Serial.println(F("***!!! Warning: saving the NAVCONF to BBR may have failed !!!***"));
             }
-            loop_step = read_GPS; // Move on, read the GNSS fix
           }
+          loop_step = read_GPS; // Move on, read the GNSS fix
         }
       }
 
