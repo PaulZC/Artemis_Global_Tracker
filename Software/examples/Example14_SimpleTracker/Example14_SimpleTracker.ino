@@ -952,16 +952,14 @@ void loop()
   } // End of switch (loop_step)
 } // End of loop()
 
+#if DIAGNOSTICS
 void ISBDConsoleCallback(IridiumSBD *device, char c)
 {
-#if DIAGNOSTICS
   Serial.write(c);
-#endif
 }
 
 void ISBDDiagsCallback(IridiumSBD *device, char c)
 {
-#if DIAGNOSTICS
   Serial.write(c);
-#endif
 }
+#endif
