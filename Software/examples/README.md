@@ -70,6 +70,8 @@ You can also include readings from additional external sensors e.g.: [UV](https:
 You can have the Iridium 9603N monitor the ring channel continuously for new Mobile Terminated messages so it can respond to them immediately,
 but this will increase the current draw considerably (approximately 50mA). This is not recommended for battery-powered applications.
 
+**Example17** is the code used to test the Artemis Global Tracker during production. You will need an AGT Test Header to allow this code to run.
+
 <br/>
 
 To run the examples, you will need to install the SparkFun Apollo3 core and then set the board to the "SparkFun Artemis Module":
