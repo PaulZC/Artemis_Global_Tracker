@@ -1015,6 +1015,10 @@ void loop()
         if ((myTrackerSettings.FLAGS1 & FLAGS1_BINARY) != FLAGS1_BINARY) // if bit 7 of FLAGS1 is clear we are sending text
         { // Construct the text message
 
+// ##################################################
+// Start of text message construction - the next ~430 lines construct the text message (they should really be in a separate .ino!)
+// ##################################################
+
           // Check if we need to include a RockBLOCK gateway header (DEST)
           if ((myTrackerSettings.FLAGS1 & FLAGS1_DEST) == FLAGS1_DEST) // if bit 6 of FLAGS1 is set we need to add RB DEST first
           {
@@ -1443,6 +1447,10 @@ void loop()
             else {outBuffer[outBufferPtr] = 0x00;} // if there is not enough room, ignore this message (set the first character to NULL)
           }
          
+// ##################################################
+// End of text message construction
+// ##################################################
+
           // Remove the final comma
           outBufferPtr -= 1; // Reduce the pointer by one to point at the final comma
           outBuffer[outBufferPtr] = 0x00; // Clear the comma
@@ -1457,6 +1465,10 @@ void loop()
         else // we are sending binary
         {
                     
+// ##################################################
+// Start of binary message construction - the next ~470 lines construct the binary message (they should really be in a separate .ino!)
+// ##################################################
+
           // Check if we need to include a RockBLOCK gateway header (DEST)
           if ((myTrackerSettings.FLAGS1 & FLAGS1_DEST) == FLAGS1_DEST) // if bit 6 of FLAGS1 is set we need to add RB DEST first
           {
@@ -1923,6 +1935,10 @@ void loop()
           outBufferBinary[outBufferPtr++] = (byte)(csuma & 0x000000ff);          
           outBufferBinary[outBufferPtr++] = (byte)(csumb & 0x000000ff);
                   
+// ##################################################
+// End of binary message construction
+// ##################################################
+
           // Print the message
           Serial.print(F("Binary message is '"));
           for (size_t i = 0; i < outBufferPtr; i++)

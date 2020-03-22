@@ -31,7 +31,7 @@
 
 */
 
-#define noFail // Uncomment this line to allow the test to continue even though it has failed
+//#define noFail // Uncomment this line to allow the test to continue even though it has failed
 
 // Artemis Tracker pin definitions
 #define spiCS1              4  // D4 can be used as an SPI chip select or as a general purpose IO pin
@@ -51,6 +51,21 @@
 #define iridiumRx           24 // The Iridium 9603N Rx pin (TX_IN) (Serial1 Tx)
 // Make sure you do not have gnssEN and iridiumPwrEN enabled at the same time!
 // If you do, bad things might happen to the AS179 RF switch!
+
+// Define the bit masks for the IO pin states (for command 0x55)
+#define ON_OFF_BIT_MASK 0x1000
+#define RX_OUT_BIT_MASK 0x0800
+#define DCD_BIT_MASK 0x0400
+#define CTS_BIT_MASK 0x0200
+#define RTS_BIT_MASK 0x0100
+#define RES_17_BIT_MASK 0x0080
+#define NA_BIT_MASK 0x0040
+#define TX_IN_BIT_MASK 0x0020
+#define DSR_BIT_MASK 0x0010
+#define RI_BIT_MASK 0x0008
+#define DTR_BIT_MASK 0x0004
+#define RES_16_BIT_MASK 0x0002
+#define SUPPLY_BIT_MASK 0x0001
 
 #include <Wire.h>
 TwoWire testWire(4); //Will use Artemis pads 39/40 to talk to the AGT Test Header
@@ -122,8 +137,13 @@ void setup()
 
   // Start the console serial port
   Serial.begin(115200);
+
+  // Comment the next two lines if you want the code to start automatically
+  // - without needing to open the Serial Monitor.
+  // The OK LED on the test header will indicate if the test was successful.
   while (!Serial) // Wait for the user to open the serial monitor
     ;
+
   delay(100);
   Serial.println();
   Serial.println();
@@ -322,123 +342,156 @@ void setup()
   // OK. The GNSS is talking and its clock is updating. So far so good.
   // Let's see if the geofence pin (PIO14) is connected.
   // We'll do that by:
-  //  leaving NMEA output on UART1 enabled;
+  //  leaving the standard NMEA messages enabled on UART1;
   //  ensuring PIO14 isn't allocated for antenna control with clearAntPIO();
   //  making PIO14 the txReady pin for UART1;
-  //  changing the txReady polarity from high-active to low-active with an 8-byte threshold.
+  //  request a PVT on I2C - when we get it we can be confident that UART1 will still be transmitting its NMEA messages;
+  //  sample the txReady pin then (while UART1 is transmitting);
+  //  changing the txReady polarity from high-active to low-active (with zero threshold).
 
   myGPS.clearAntPIO(); // Ensure PIO14 is not allocated to the ANT
 
   // Let's create the custom packetCfg to let us change the UBX_CFG_PRT
   uint8_t customPayloadCfg[MAX_PAYLOAD_SIZE];
   ubxPacket customPacketCfg = {0, 0, 0, 0, 0, customPayloadCfg, 0, 0, false};
+
+  // The UART1 timing is a bit tricky, we need to sample txReady while UART1 is transmitting,
+  // so we'll attempt this test up to three times if required.
+
+  byte attempts = 3; // Limit the number of attempts
+  bool txReadyPassed = true; // Use this to flag if the test was successful
+
+  while (attempts > 0) // Keep repeating the test while attempts is > zero
+  {
+    txReadyPassed = true; // Set the test passed flag (it will be cleared by a fail)
   
-  customPacketCfg.cls = UBX_CLASS_CFG;
-  customPacketCfg.id = UBX_CFG_PRT;
-  customPacketCfg.len = 20;
-  customPacketCfg.startingSpot = 0;
-  customPayloadCfg[0] = 0x01; // portID = 1 (UART1)
-  customPayloadCfg[1] = 0; // reserved1
-  // thres=0x001 | pin=14 | pol=0 (high active) | en=1 : 000000001 01110 0 1 = 0x00B9
-  // (Don't forget the u-blox X2 is little endian!)
-  customPayloadCfg[2] = 0xB9; // txReady
-  customPayloadCfg[3] = 0x00; // txReady
-  // nStopBits=0 (1 stop bit) | parity=4 (none) | charLen=3 (8-bit) : 000000000000000000 00 100 0 11 000000 = 0x000008C0
-  customPayloadCfg[4] = 0xC0; // mode
-  customPayloadCfg[5] = 0x08;
-  customPayloadCfg[6] = 0x00;
-  customPayloadCfg[7] = 0x00;
-  // baud rate = 9600 = 0x00002580
-  customPayloadCfg[8] = 0x80; // baudRate
-  customPayloadCfg[9] = 0x25;
-  customPayloadCfg[10] = 0x00;
-  customPayloadCfg[11] = 0x00;
-  customPayloadCfg[12] = 0x03; // inProtoMask = 3 (ubx + NMEA)
-  customPayloadCfg[13] = 0x00;
-  customPayloadCfg[14] = 0x03; // outProtoMask = 3 (ubx + NMEA)
-  customPayloadCfg[15] = 0x00;
-  customPayloadCfg[16] = 0x00; // flags (no extendedTxTimeout)
-  customPayloadCfg[17] = 0x00;
-  customPayloadCfg[18] = 0x00; // reserved2
-  customPayloadCfg[19] = 0x00;  
+    customPacketCfg.cls = UBX_CLASS_CFG;
+    customPacketCfg.id = UBX_CFG_PRT;
+    customPacketCfg.len = 20;
+    customPacketCfg.startingSpot = 0;
+    customPayloadCfg[0] = 0x01; // portID = 1 (UART1)
+    customPayloadCfg[1] = 0; // reserved1
+    // thres=0x000 | pin=14 | pol=0 (high active) | en=1 : 000000000 01110 0 1 = 0x0039
+    // (Don't forget the u-blox X2 is little endian!)
+    customPayloadCfg[2] = 0x39; // txReady
+    customPayloadCfg[3] = 0x00; // txReady
+    // nStopBits=0 (1 stop bit) | parity=4 (none) | charLen=3 (8-bit) : 000000000000000000 00 100 0 11 000000 = 0x000008C0
+    customPayloadCfg[4] = 0xC0; // mode
+    customPayloadCfg[5] = 0x08;
+    customPayloadCfg[6] = 0x00;
+    customPayloadCfg[7] = 0x00;
+    // baud rate = 9600 = 0x00002580
+    customPayloadCfg[8] = 0x80; // baudRate
+    customPayloadCfg[9] = 0x25;
+    customPayloadCfg[10] = 0x00;
+    customPayloadCfg[11] = 0x00;
+    customPayloadCfg[12] = 0x03; // inProtoMask = 3 (ubx + NMEA)
+    customPayloadCfg[13] = 0x00;
+    customPayloadCfg[14] = 0x03; // outProtoMask = 3 (ubx + NMEA)
+    customPayloadCfg[15] = 0x00;
+    customPayloadCfg[16] = 0x00; // flags (no extendedTxTimeout)
+    customPayloadCfg[17] = 0x00;
+    customPayloadCfg[18] = 0x00; // reserved2
+    customPayloadCfg[19] = 0x00;  
+  
+    Serial.println(F("Test 3 Step 3: Updating the ZOE geofence/txReady pin"));
+  
+    // Send the custom packetCfg.
+    // This will always timeout due to a 'feature' in the u-blox library
+    // but we don't care about that...
+    myGPS.sendCommand(customPacketCfg, 0);
+  
+    // Now let's ask for the PVT message via I2C
+    // We can be confident that NMEA will be being transmitted on UART1 at the same time (but slower)
+    myGPS.getPVT();
 
-  Serial.println(F("Test 3 Step 3: Updating the ZOE geofence/txReady pin (takes 2 seconds)"));
+    // Now let's check the geofence/txReady pin (PIO14). It should be high indicating there is data waiting.
+    if (digitalRead(geofencePin) != HIGH)
+    {
+      Serial.println(F("Test 3 Step 3: Possible short on the ZOE-M8Q PIO14 (geofence) pin?"));
+      txReadyPassed = false; // Flag that this attempt has failed
+    }
+  
+    geofenceFlag = false; // Clear the geofence interrupt flag - just before we change the txReady polarity
+  
+    customPacketCfg.cls = UBX_CLASS_CFG;
+    customPacketCfg.id = UBX_CFG_PRT;
+    customPacketCfg.len = 20;
+    customPacketCfg.startingSpot = 0;
+    customPayloadCfg[0] = 0x01; // portID = 1 (UART1)
+    customPayloadCfg[1] = 0; // reserved1
+    // thres=0x000 | pin=14 | pol=1 (low active) | en=1 : 000000000 01110 1 1 = 0x003B
+    // (Don't forget the u-blox X2 is little endian!)
+    customPayloadCfg[2] = 0x3B; // txReady
+    customPayloadCfg[3] = 0x00; // txReady
+    // nStopBits=0 (1 stop bit) | parity=4 (none) | charLen=3 (8-bit) : 000000000000000000 00 100 0 11 000000 = 0x000008C0
+    customPayloadCfg[4] = 0xC0; // mode
+    customPayloadCfg[5] = 0x08;
+    customPayloadCfg[6] = 0x00;
+    customPayloadCfg[7] = 0x00;
+    // baud rate = 9600 = 0x00002580
+    customPayloadCfg[8] = 0x80; // baudRate
+    customPayloadCfg[9] = 0x25;
+    customPayloadCfg[10] = 0x00;
+    customPayloadCfg[11] = 0x00;
+    customPayloadCfg[12] = 0x03; // inProtoMask = 3 (ubx + NMEA)
+    customPayloadCfg[13] = 0x00;
+    customPayloadCfg[14] = 0x03; // outProtoMask = 3 (ubx + NMEA)
+    customPayloadCfg[15] = 0x00;
+    customPayloadCfg[16] = 0x00; // flags (no extendedTxTimeout)
+    customPayloadCfg[17] = 0x00;
+    customPayloadCfg[18] = 0x00; // reserved2
+    customPayloadCfg[19] = 0x00;  
+  
+    Serial.println(F("Test 3 Step 4: Updating the ZOE geofence/txReady pin"));
+  
+    // Send the custom packetCfg.
+    // This will always timeout due to a 'feature' in the u-blox library
+    // but we don't care about that...
+    myGPS.sendCommand(customPacketCfg, 0);
+  
+    // Now let's ask for the PVT message via I2C
+    // We can be confident that NMEA will be being transmitted on UART1 at the same time
+    myGPS.getPVT();
 
-  // Send the custom packetCfg.
-  // This will always timeout due to a 'feature' in the u-blox library
-  // but we don't care about that...
-  myGPS.sendCommand(customPacketCfg, 0);
+    // Now let's check the geofence/txReady pin (PIO14). It should be low indicating there is data waiting.
+    if (digitalRead(geofencePin) != LOW)
+    {
+      Serial.println(F("Test 3 Step 4: Possible open circuit on the ZOE-M8Q PIO14 (geofence) pin?"));
+      txReadyPassed = false; // Flag that this attempt has failed
+      // Keep going anyway... (Just in case the UART1 timing wasn't right)
+    }
+  
+    // Finally, let's check that the geofence ISR was triggered
+    if (geofenceFlag != true)
+    {
+      Serial.println(F("Test 3 Step 5: No change seen on the ZOE-M8Q PIO14 (geofence) pin. Possible open circuit!"));
+      txReadyPassed = false; // Flag that this attempt has failed
+      // Failing this part of the test almost certainly indicates that the geofence pin is open circuit
+      // but we'll give it another chance just in case...
+    }
 
-  // The length of this delay is important as we want to sample geofence/txReady while
-  // the ZOE is transmitting on UART1. Adjust with caution!
-  delay(1950);
-
-  // Now let's check the geofence/txReady pin (PIO14). It should be high indicating there is data waiting.
-  if (digitalRead(geofencePin) != HIGH)
-  {
-    Serial.println(F("Test 3 Step 3: Possible short on the ZOE-M8Q PIO14 (geofence) pin?"));
-    // Keep going anyway... (Just in case the UART1 timing wasn't right)
-  }
-
-  geofenceFlag = false; // Clear the geofence interrupt flag - just before we change the txReady polarity
-
-  customPacketCfg.cls = UBX_CLASS_CFG;
-  customPacketCfg.id = UBX_CFG_PRT;
-  customPacketCfg.len = 20;
-  customPacketCfg.startingSpot = 0;
-  customPayloadCfg[0] = 0x01; // portID = 1 (UART1)
-  customPayloadCfg[1] = 0; // reserved1
-  // thres=0x001 | pin=14 | pol=1 (low active) | en=1 : 000000001 01110 1 1 = 0x00BB
-  // (Don't forget the u-blox X2 is little endian!)
-  customPayloadCfg[2] = 0xBB; // txReady
-  customPayloadCfg[3] = 0x00; // txReady
-  // nStopBits=0 (1 stop bit) | parity=4 (none) | charLen=3 (8-bit) : 000000000000000000 00 100 0 11 000000 = 0x000008C0
-  customPayloadCfg[4] = 0xC0; // mode
-  customPayloadCfg[5] = 0x08;
-  customPayloadCfg[6] = 0x00;
-  customPayloadCfg[7] = 0x00;
-  // baud rate = 9600 = 0x00002580
-  customPayloadCfg[8] = 0x80; // baudRate
-  customPayloadCfg[9] = 0x25;
-  customPayloadCfg[10] = 0x00;
-  customPayloadCfg[11] = 0x00;
-  customPayloadCfg[12] = 0x03; // inProtoMask = 3 (ubx + NMEA)
-  customPayloadCfg[13] = 0x00;
-  customPayloadCfg[14] = 0x03; // outProtoMask = 3 (ubx + NMEA)
-  customPayloadCfg[15] = 0x00;
-  customPayloadCfg[16] = 0x00; // flags (no extendedTxTimeout)
-  customPayloadCfg[17] = 0x00;
-  customPayloadCfg[18] = 0x00; // reserved2
-  customPayloadCfg[19] = 0x00;  
-
-  Serial.println(F("Test 3 Step 4: Updating the ZOE geofence/txReady pin (takes 2 seconds)"));
-
-  // Send the custom packetCfg.
-  // This will always timeout due to a 'feature' in the u-blox library
-  // but we don't care about that...
-  myGPS.sendCommand(customPacketCfg, 0);
-
-  // The length of this delay is important as we want to sample geofence/txReady while
-  // the ZOE is transmitting on UART1. Adjust with caution!
-  delay(1995);
-
-  // Now let's check the geofence/txReady pin (PIO14). It should be low indicating there is data waiting.
-  if (digitalRead(geofencePin) != LOW)
-  {
-    Serial.println(F("Test 3 Step 4: Possible open circuit on the ZOE-M8Q PIO14 (geofence) pin?"));
-    // Keep going anyway... (Just in case the UART1 timing wasn't right)
-  }
-
-  // Finally, let's check that the geofence ISR was triggered (should be redundant!)
-  if (geofenceFlag != true)
-  {
-    Serial.println(F("Test 3 Step 5: No change seen on the ZOE-M8Q PIO14 (geofence) pin. Possible open circuit!"));
-    gnssOFF();
-    fail();        
-  }
+    // Let's check if the test was successful
+    if (txReadyPassed == true)
+    {
+      attempts = 0; // The test passed so let's set attempts to zero to avoid repeating the test
+    }
+    else
+    {
+      Serial.println(F("Repeating Test 3 from Step 3..."));
+      attempts = attempts - 1; // Decrement attempts and repeat
+    }
+  
+  } // End of while (attempts > 0)
 
   // Test is complete so let's turn the ZOE off again
   gnssOFF();
+
+  // Check if the test failed
+  if (txReadyPassed == false)
+  {
+    fail();
+  }
 
   if (testFailed == false)
   {
@@ -469,79 +522,79 @@ void setup()
   // Bit 0 (LSB) : SUPPLY
 
   // Check if the ON_OFF pin is high
-  if ((ioPins & 0x1000) != 0x1000)
+  if ((ioPins & ON_OFF_BIT_MASK) != ON_OFF_BIT_MASK)
   {
     Serial.println(F("Test 4 Step 1: Iridium 9603N ON_OFF (Pin 5) is LOW. Possible short circuit!"));
     fail();
   }
   // Check if the RX_OUT pin is high
-  if ((ioPins & 0x0800) != 0x0800)
+  if ((ioPins & RX_OUT_BIT_MASK) != RX_OUT_BIT_MASK)
   {
     Serial.println(F("Test 4 Step 2: Iridium 9603N RX_OUT (Pin 7) is LOW. Possible short circuit!"));
     fail();
   }
   // Check if the DCD pin is high
-  if ((ioPins & 0x0400) != 0x0400)
+  if ((ioPins & DCD_BIT_MASK) != DCD_BIT_MASK)
   {
     Serial.println(F("Test 4 Step 3: Iridium 9603N DCD (Pin 9) is LOW. Possible short circuit!"));
     fail();
   }
   // Check if the CTS pin is high
-  if ((ioPins & 0x0200) != 0x0200)
+  if ((ioPins & CTS_BIT_MASK) != CTS_BIT_MASK)
   {
     Serial.println(F("Test 4 Step 4: Iridium 9603N CTS (Pin 11) is LOW. Possible short circuit!"));
     fail();
   }
   // Check if the RTS pin is low
-  if ((ioPins & 0x0100) != 0x0000)
+  if ((ioPins & RTS_BIT_MASK) != 0x0000)
   {
     Serial.println(F("Test 4 Step 5: Iridium 9603N RTS (Pin 13) is HIGH. Possible open circuit!"));
     fail();
   }
   // Check if the RES_17 pin is high
-  if ((ioPins & 0x0080) != 0x0080)
+  if ((ioPins & RES_17_BIT_MASK) != RES_17_BIT_MASK)
   {
     Serial.println(F("Test 4 Step 6: Iridium 9603N RES_17 (Pin 17) is LOW. Possible short circuit!"));
     fail();
   }
   // Check if the NA pin is high
-  if ((ioPins & 0x0040) != 0x0040)
+  if ((ioPins & NA_BIT_MASK) != NA_BIT_MASK)
   {
     Serial.println(F("Test 4 Step 7: Iridium 9603N NA (Pin 19) is LOW. Possible short circuit!"));
     fail();
   }
   // Check if the TX_IN pin is high
-  if ((ioPins & 0x0020) != 0x0020)
+  if ((ioPins & TX_IN_BIT_MASK) != TX_IN_BIT_MASK)
   {
     Serial.println(F("Test 4 Step 8: Iridium 9603N TX_IN (Pin 6) is LOW. Possible short circuit!"));
     fail();
   }
   // Check if the DSR pin is high
-  if ((ioPins & 0x0010) != 0x0010)
+  if ((ioPins & DSR_BIT_MASK) != DSR_BIT_MASK)
   {
     Serial.println(F("Test 4 Step 9: Iridium 9603N DSR (Pin 10) is LOW. Possible short circuit!"));
     fail();
   }
   // Check if the RI pin is high
-  if ((ioPins & 0x0008) != 0x0008)
+  if ((ioPins & RI_BIT_MASK) != RI_BIT_MASK)
   {
     Serial.println(F("Test 4 Step 10: Iridium 9603N RI (Pin 12) is LOW. Possible short circuit!"));
     fail();
   }
   // Check if the DTR pin is low
-  if ((ioPins & 0x0004) != 0x0000)
+  if ((ioPins & DTR_BIT_MASK) != 0x0000)
   {
     Serial.println(F("Test 4 Step 11: Iridium 9603N DTR (Pin 14) is HIGH. Possible open circuit!"));
     fail();
   }
   // Check if the RES_16 pin is high
-  if ((ioPins & 0x0002) != 0x0002)
+  if ((ioPins & RES_16_BIT_MASK) != RES_16_BIT_MASK)
   {
     Serial.println(F("Test 4 Step 12: Iridium 9603N RES_16 (Pin 16) is LOW. Possible short circuit!"));
     fail();
   }
   // Check if the SUPPLY pin is high
-  if ((ioPins & 0x0001) != 0x0001)
+  if ((ioPins & SUPPLY_BIT_MASK) != SUPPLY_BIT_MASK)
   {
     Serial.println(F("Test 4 Step 13: Iridium 9603N SUPPLY (Pin 20) is LOW. Possible short circuit!"));
     fail();
@@ -570,73 +623,73 @@ void setup()
     fail();
   }
   // Check if the RX_OUT pin is low
-  if ((ioPins & 0x0800) != 0x0000)
+  if ((ioPins & RX_OUT_BIT_MASK) != 0x0000)
   {
     Serial.println(F("Test 4 Step 15: Iridium 9603N RX_OUT (Pin 7) is HIGH. Possible open circuit!"));
     fail();
   }
   // Check if the DCD pin is high
-  if ((ioPins & 0x0400) != 0x0400)
+  if ((ioPins & DCD_BIT_MASK) != DCD_BIT_MASK)
   {
     Serial.println(F("Test 4 Step 16: Iridium 9603N DCD (Pin 9) is LOW. Possible short circuit!"));
     fail();
   }
   // Check if the CTS pin is high
-  if ((ioPins & 0x0200) != 0x0200)
+  if ((ioPins & CTS_BIT_MASK) != CTS_BIT_MASK)
   {
     Serial.println(F("Test 4 Step 17: Iridium 9603N CTS (Pin 11) is LOW. Possible short circuit!"));
     fail();
   }
   // Check if the RTS pin is low
-  if ((ioPins & 0x0100) != 0x0000)
+  if ((ioPins & RTS_BIT_MASK) != 0x0000)
   {
     Serial.println(F("Test 4 Step 18: Iridium 9603N RTS (Pin 13) is HIGH. Possible open circuit!"));
     fail();
   }
   // Check if the RES_17 pin is high
-  if ((ioPins & 0x0080) != 0x0080)
+  if ((ioPins & RES_17_BIT_MASK) != RES_17_BIT_MASK)
   {
     Serial.println(F("Test 4 Step 19: Iridium 9603N RES_17 (Pin 17) is LOW. Possible short circuit!"));
     fail();
   }
   // Check if the NA pin is low
-  if ((ioPins & 0x0040) != 0x0000)
+  if ((ioPins & NA_BIT_MASK) != 0x0000)
   {
     Serial.println(F("Test 4 Step 20: Iridium 9603N NA (Pin 19) is HIGH. Possible open circuit!"));
     fail();
   }
   // Check if the TX_IN pin is low
-  if ((ioPins & 0x0020) != 0x0000)
+  if ((ioPins & TX_IN_BIT_MASK) != 0x0000)
   {
     Serial.println(F("Test 4 Step 21: Iridium 9603N TX_IN (Pin 6) is HIGH. Possible open circuit!"));
     fail();
   }
   // Check if the DSR pin is high
-  if ((ioPins & 0x0010) != 0x0010)
+  if ((ioPins & DSR_BIT_MASK) != DSR_BIT_MASK)
   {
     Serial.println(F("Test 4 Step 22: Iridium 9603N DSR (Pin 10) is LOW. Possible short circuit!"));
     fail();
   }
   // Check if the RI pin is low
-  if ((ioPins & 0x0008) != 0x0000)
+  if ((ioPins & RI_BIT_MASK) != 0x0000)
   {
     Serial.println(F("Test 4 Step 23: Iridium 9603N RI (Pin 12) is HIGH. Possible open circuit!"));
     fail();
   }
   // Check if the DTR pin is low
-  if ((ioPins & 0x0004) != 0x0000)
+  if ((ioPins & DTR_BIT_MASK) != 0x0000)
   {
     Serial.println(F("Test 4 Step 24: Iridium 9603N DTR (Pin 14) is HIGH. Possible open circuit!"));
     fail();
   }
   // Check if the RES_16 pin is high
-  if ((ioPins & 0x0002) != 0x0002)
+  if ((ioPins & RES_16_BIT_MASK) != RES_16_BIT_MASK)
   {
     Serial.println(F("Test 4 Step 25: Iridium 9603N RES_16 (Pin 16) is LOW. Possible short circuit!"));
     fail();
   }
   // Check if the SUPPLY pin is high
-  if ((ioPins & 0x0001) != 0x0001)
+  if ((ioPins & SUPPLY_BIT_MASK) != SUPPLY_BIT_MASK)
   {
     Serial.println(F("Test 4 Step 26: Iridium 9603N SUPPLY (Pin 20) is LOW. Possible short circuit!"));
     fail();
