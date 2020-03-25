@@ -13983,11 +13983,11 @@ These rules have been curated by SparkFuns DFM commitee. After doing much resear
 </element>
 <element name="C5" library="New_Parts" package="CPOL-RADIAL-1F-2.7V" value="1F 2.7V" x="29.972" y="58.674" smashed="yes">
 <attribute name="NAME" x="29.337" y="56.007" size="0.8128" layer="25" font="vector" ratio="18"/>
-<attribute name="PROD_ID" value="CAP-08070" x="29.972" y="58.674" size="1.778" layer="27" display="off"/>
+<attribute name="PROD_ID" value="CAP-14696" x="29.972" y="58.674" size="1.778" layer="27" display="off"/>
 </element>
 <element name="C6" library="New_Parts" package="CPOL-RADIAL-1F-2.7V" value="1F 2.7V" x="20.828" y="58.674" smashed="yes">
 <attribute name="NAME" x="20.193" y="56.007" size="0.8128" layer="25" font="vector" ratio="18"/>
-<attribute name="PROD_ID" value="CAP-08070" x="20.828" y="58.674" size="1.778" layer="27" display="off"/>
+<attribute name="PROD_ID" value="CAP-14696" x="20.828" y="58.674" size="1.778" layer="27" display="off"/>
 </element>
 <element name="U2" library="New_Parts" package="DFN300X200-10L" value="LTC3225EDDB#TRMPBF" x="9.906" y="55.499" smashed="yes">
 <attribute name="NAME" x="9.4234" y="57.15" size="0.6096" layer="25" font="vector" ratio="20" rot="SR0"/>
@@ -14035,7 +14035,7 @@ These rules have been curated by SparkFuns DFM commitee. After doing much resear
 </element>
 <element name="R7" library="SparkFun-Resistors" package="0603" value="30.1k" x="15.113" y="49.784" smashed="yes" rot="R270">
 <attribute name="NAME" x="15.875" y="50.673" size="0.8128" layer="25" font="vector" ratio="18" rot="R270"/>
-<attribute name="PROD_ID" value="RES-08595" x="15.113" y="49.784" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="PROD_ID" value="RES-14417" x="15.113" y="49.784" size="1.778" layer="27" rot="R270" display="off"/>
 </element>
 <element name="R8" library="SparkFun-Resistors" package="0603" value="100k" x="9.8298" y="52.2478" smashed="yes">
 <attribute name="NAME" x="9.2202" y="50.5968" size="0.8128" layer="25" font="vector" ratio="18"/>
@@ -14486,7 +14486,7 @@ These rules have been curated by SparkFuns DFM commitee. After doing much resear
 <attribute name="DIGIKEY" value="BD48K24G-TLCT-ND" x="13.97" y="31.242" size="1.778" layer="27" display="off"/>
 <attribute name="MOUSER" value="755-BD48K24G-TL" x="13.97" y="31.242" size="1.778" layer="27" display="off"/>
 <attribute name="NAME" x="16.256" y="31.496" size="0.6096" layer="25" font="vector" ratio="20" rot="R180" align="bottom-center"/>
-<attribute name="PROD_ID" value="" x="13.97" y="31.242" size="1.778" layer="27" display="off"/>
+<attribute name="PROD_ID" value="IC-15065" x="13.97" y="31.242" size="1.778" layer="27" display="off"/>
 <attribute name="VOLTAGE" value="2.4V" x="13.97" y="31.242" size="1.778" layer="27" display="off"/>
 </element>
 <element name="U$7" library="EN" package="EN0" value="" x="1.905" y="15.24" smashed="yes"/>

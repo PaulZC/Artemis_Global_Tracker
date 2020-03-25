@@ -1025,7 +1025,7 @@ It has a reduced top mask to make it harder to install upside-down.</description
 </connects>
 <technologies>
 <technology name="">
-<attribute name="PROD_ID" value="RES-08595"/>
+<attribute name="PROD_ID" value="RES-14417"/>
 <attribute name="VALUE" value="30.1k"/>
 </technology>
 </technologies>
@@ -15135,7 +15135,7 @@ ranging from 2.3V to 6.0V in increments of 0.1V.&lt;/p&gt;</description>
 <technology name="BD48K24G-TL">
 <attribute name="DIGIKEY" value="BD48K24G-TLCT-ND" constant="no"/>
 <attribute name="MOUSER" value="755-BD48K24G-TL" constant="no"/>
-<attribute name="PROD_ID" value="" constant="no"/>
+<attribute name="PROD_ID" value="IC-15065" constant="no"/>
 <attribute name="VOLTAGE" value="2.4V" constant="no"/>
 </technology>
 </technologies>
@@ -15163,7 +15163,7 @@ ranging from 2.3V to 6.0V in increments of 0.1V.&lt;/p&gt;</description>
 </devices>
 </deviceset>
 <deviceset name="1F-2.7V(PTH)" prefix="C" uservalue="yes">
-<description>1F 2.7V SuperCapacitor CAP-08070</description>
+<description>1F 2.7V SuperCapacitor CAP-14696</description>
 <gates>
 <gate name="G$1" symbol="CAP_POL" x="0" y="0"/>
 </gates>
@@ -15175,7 +15175,7 @@ ranging from 2.3V to 6.0V in increments of 0.1V.&lt;/p&gt;</description>
 </connects>
 <technologies>
 <technology name="">
-<attribute name="PROD_ID" value="CAP-08070" constant="no"/>
+<attribute name="PROD_ID" value="CAP-14696" constant="no"/>
 </technology>
 </technologies>
 </device>
