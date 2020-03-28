@@ -2,7 +2,7 @@
   Artemis Global Tracker
   
   Written by Paul Clark (PaulZC)
-  8th March 2020
+  28th March 2020
 
   *** (MINOR) WORK IN PROGRESS! ***
   * Still to do:
@@ -124,7 +124,7 @@ volatile bool interval_alarm = false;
 volatile bool geofence_alarm = false;
 
 // Volatile copy of the WAKEINT (wake up interval)
-volatile uint16_t wake_int;
+volatile uint32_t wake_int;
 
 // More global variables
 bool PGOOD = false; // Flag to indicate if LTC3225 PGOOD is HIGH
@@ -1312,7 +1312,7 @@ void loop()
           if ((myTrackerSettings.MOFIELDS[1].the_data & MOFIELDS1_GEOFNUM) ==  MOFIELDS1_GEOFNUM) // If the bit is set
           {
             sprintf(outBuffer+outBufferPtr, "%d.%d,", ((myTrackerSettings.GEOFNUM & 0xf0) >> 4), (myTrackerSettings.GEOFNUM & 0x0f)); // Add the field to outBuffer
-            if (outBufferPtr < (MOLIM-3)) {while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++;} // increment the pointer if there is room
+            if (outBufferPtr < (MOLIM-4)) {while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++;} // increment the pointer if there is room
             else {outBuffer[outBufferPtr] = 0x00;} // if there is not enough room, ignore this message (set the first character to NULL)
           }
           if ((myTrackerSettings.MOFIELDS[1].the_data & MOFIELDS1_GEOF1LAT) == MOFIELDS1_GEOF1LAT) // If the bit is set
@@ -1417,19 +1417,19 @@ void loop()
           if ((myTrackerSettings.MOFIELDS[2].the_data & MOFIELDS2_WAKEINT) == MOFIELDS2_WAKEINT) // If the bit is set
           {
             sprintf(outBuffer+outBufferPtr, "%d,", myTrackerSettings.WAKEINT.the_data); // Add the field to outBuffer
-            if (outBufferPtr < (MOLIM-5)) {while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++;} // increment the pointer if there is room
+            if (outBufferPtr < (MOLIM-6)) {while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++;} // increment the pointer if there is room (maximum is 86400)
             else {outBuffer[outBufferPtr] = 0x00;} // if there is not enough room, ignore this message (set the first character to NULL)
           }
           if ((myTrackerSettings.MOFIELDS[2].the_data & MOFIELDS2_ALARMINT) == MOFIELDS2_ALARMINT) // If the bit is set
           {
             sprintf(outBuffer+outBufferPtr, "%d,", myTrackerSettings.ALARMINT.the_data); // Add the field to outBuffer
-            if (outBufferPtr < (MOLIM-5)) {while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++;} // increment the pointer if there is room
+            if (outBufferPtr < (MOLIM-5)) {while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++;} // increment the pointer if there is room (maximum is 1440)
             else {outBuffer[outBufferPtr] = 0x00;} // if there is not enough room, ignore this message (set the first character to NULL)
           }
           if ((myTrackerSettings.MOFIELDS[2].the_data & MOFIELDS2_TXINT) == MOFIELDS2_TXINT) // If the bit is set
           {
             sprintf(outBuffer+outBufferPtr, "%d,", myTrackerSettings.TXINT.the_data); // Add the field to outBuffer
-            if (outBufferPtr < (MOLIM-5)) {while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++;} // increment the pointer if there is room
+            if (outBufferPtr < (MOLIM-5)) {while (outBuffer[outBufferPtr] != 0x00) outBufferPtr++;} // increment the pointer if there is room (maximum is 1440)
             else {outBuffer[outBufferPtr] = 0x00;} // if there is not enough room, ignore this message (set the first character to NULL)
           }
           if ((myTrackerSettings.MOFIELDS[2].the_data & MOFIELDS2_LOWBATT) == MOFIELDS2_LOWBATT) // If the bit is set
@@ -1895,6 +1895,8 @@ void loop()
             outBufferBinary[outBufferPtr++] = WAKEINT; // Add the field ID
             outBufferBinary[outBufferPtr++] = myTrackerSettings.WAKEINT.the_bytes[0]; // Add the data
             outBufferBinary[outBufferPtr++] = myTrackerSettings.WAKEINT.the_bytes[1];
+            outBufferBinary[outBufferPtr++] = myTrackerSettings.WAKEINT.the_bytes[2];
+            outBufferBinary[outBufferPtr++] = myTrackerSettings.WAKEINT.the_bytes[3];
           }
           if ((myTrackerSettings.MOFIELDS[1].the_data & MOFIELDS2_ALARMINT) == MOFIELDS2_ALARMINT) // If the bit is set
           {

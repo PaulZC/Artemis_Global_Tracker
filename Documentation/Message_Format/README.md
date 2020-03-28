@@ -162,7 +162,7 @@ If the number of IDs is expanded beyond 0x5f, MOFIELDS will need to be redefined
 | [0x44](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geof4lat-0x44) | GEOF4LAT | int32_t | 4 | 11 | Yes | Yes | Yes | Yes | The latitude of the center of geofence circle 4 |
 | [0x45](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geof4lon-0x45) | GEOF4LON | int32_t | 4 | 12 | Yes | Yes | Yes | Yes | The longitude of the center of geofence circle 4 |
 | [0x46](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geof4rad-0x46) | GEOF4RAD | uint32_t | 4 | 9 | Yes | Yes | Yes | Yes | The radius of geofence circle 4 |
-| [0x47](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#wakeint-0x47) | WAKEINT | uint16_t | 2 | 4 | Yes | Yes | Yes | Yes | Defines the tracker's wake-up interval (seconds)  |
+| [0x47](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#wakeint-0x47) | WAKEINT | uint32_t | 4 | 5 | Yes | Yes | Yes | Yes | Defines the tracker's wake-up interval (seconds)  |
 | [0x48](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#alarmint-0x48) | ALARMINT | uint16_t | 2 | 4 | Yes | Yes | Yes | Yes | Defines the tracker's transmission interval during an alarm (minutes)  |
 | [0x49](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#txint-0x49) | TXINT | uint16_t | 2 | 4 | Yes | Yes | Yes | Yes | Defines the tracker's normal transmission interval (minutes)  |
 | [0x4a](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#lowbatt-0x4a) | LOWBATT | uint16_t | 2 | 4 | Yes | Yes | Yes | Yes | The low battery limit |
@@ -872,12 +872,16 @@ WAKEINT (0x47)
 | []() | |
 |---|---|
 | Description: | The tracker's wake-up interval (seconds). The tracker will wake up every WAKEINT seconds and check the PHT values. |
-| Binary: | uint16_t, 2 bytes, little endian, in seconds. |
-| Text: | Sent in the format nnnn _without preceding zeroes_ |
+| Binary: | uint32_t, 4 bytes, little endian, in seconds. |
+| Text: | Sent in the format nnnnn _without preceding zeroes_ |
 | Example value: | 10 seconds |
-| Binary example: | 0x470a00 (10 is 0x000a) |
+| Binary example: | 0x470a000000 (10 is 0x0000000a) |
 | Text example: | 10 |
 | Default value: | 60 |
+
+**Notes:**
+
+The maximum value is 86400 seconds (= 24 hours)
 
 ---
 ALARMINT (0x48)
@@ -893,6 +897,10 @@ ALARMINT (0x48)
 | Text example: | 10 |
 | Default value: | 5 |
 
+**Notes:**
+
+The maximum value is 1440 minutes (= 24 hours)
+
 ---
 TXINT (0x49)
 ---
@@ -906,6 +914,10 @@ TXINT (0x49)
 | Binary example: | 0x490a00 (10 is 0x000a) |
 | Text example: | 10 |
 | Default value: | 5 |
+
+**Notes:**
+
+The maximum value is 1440 minutes (= 24 hours)
 
 ---
 LOWBATT (0x4a)

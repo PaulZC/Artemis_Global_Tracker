@@ -8,7 +8,7 @@ These FAQs assume you are running the [full Global Tracker (Example16)](https://
 - [How do I enable RockBLOCK message forwarding?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-enable-RockBLOCK-message-forwarding)
 - [How do I enable Pressure, Humidity and Temperature alarms?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-enable-Pressure-Humidity-and-Temperature-alarms)
 - [How do I enable Geofence alarms?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-enable-Geofence-alarms)
-- [How do monitor the ring channel continuously for new MT messages?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-monitor-the-ring-channel-continuously-for-new-MT-messages)
+- [How do I monitor the ring channel continuously for new MT messages?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-monitor-the-ring-channel-continuously-for-new-MT-messages)
 - [How do I define and trigger a user function?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-define-and-trigger-a-user-function)
 - [How do I send a user value?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-send-a-user-value)
 
@@ -208,7 +208,7 @@ Notes:
 - WAKEINT and ALARMINT need to be set to the same value.
 - If you want the alarm messages to be generated when entering a geofenced area, tick the **FLAGS2** _Alarm when inside the GeoFence_ checkbox.
 
-## How do monitor the ring channel continuously for new MT messages?
+## How do I monitor the ring channel continuously for new MT messages?
 
 The tracker can be configured to leave the Iridium 9603N powered on continuously so it can monitor the ring channel and respond to new Mobile Terminated messages immediately.
 
@@ -236,7 +236,7 @@ The configuration tool should look like [this](https://github.com/PaulZC/Artemis
 as shown above.
 
 Notes:
-- Enabling geofence alerts will substantially increase the current draw and shorten battery life as the ZOE will be powered continuously.
+- Monitoring the ring channel will substantially increase the current draw as the Iridium 9603N will be powered continuously. This is not recommended for battery-powered applications.
 - WAKEINT should be set to the same value as ALARMINT and TXINT.
 - Iridium ring alerts are only sent if the network knows your approximate location. You need to send at least one message per day in order to receive ring alerts.
 

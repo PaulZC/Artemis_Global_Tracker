@@ -812,9 +812,11 @@ enum tracker_parsing_result parse_data(uint8_t *data_buffer, size_t &data_buffer
         geofencesSet = false; // Clear the flag so we update the geofences next time around the loop
         break;
       case WAKEINT:
-        uint16t.the_bytes[0] = data_buffer[++x];
-        uint16t.the_bytes[1] = data_buffer[++x];
-        myTrackerSettings->WAKEINT.the_data = uint16t.the_data;
+        uint32t.the_bytes[0] = data_buffer[++x];
+        uint32t.the_bytes[1] = data_buffer[++x];
+        uint32t.the_bytes[2] = data_buffer[++x];
+        uint32t.the_bytes[3] = data_buffer[++x];
+        myTrackerSettings->WAKEINT.the_data = uint32t.the_data;
         x += 1;
         break;
       case ALARMINT:

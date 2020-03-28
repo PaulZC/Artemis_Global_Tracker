@@ -41,7 +41,7 @@
 #define LEN_GEOF4LAT  LEN_INT32   // GEOFLAT is int32
 #define LEN_GEOF4LON  LEN_INT32   // GEOFLON is int32
 #define LEN_GEOF4RAD  LEN_INT32   // GEOFRAD is unit32
-#define LEN_WAKEINT   LEN_INT16   // WAKEINT is uint16
+#define LEN_WAKEINT   LEN_INT32   // WAKEINT is uint32
 #define LEN_ALARMINT  LEN_INT16   // ALARMINT is uint16
 #define LEN_TXINT     LEN_INT16   // TXINT is uint16
 #define LEN_LOWBATT   LEN_INT16   // LOWBATT is uint16
@@ -421,7 +421,7 @@ typedef struct
   union_int32t GEOF4LAT;      // The latitude of the center of geofence circle 4 in Degrees * 10^-7
   union_int32t GEOF4LON;      // The longitude of the center of geofence circle 4 in Degrees * 10^-7
   union_uint32t GEOF4RAD;     // The radius of geofence circle 4 in cm
-  union_uint16t WAKEINT;      // The wake-up interval in seconds
+  union_uint32t WAKEINT;      // The wake-up interval in seconds
   union_uint16t ALARMINT;     // The alarm transmit interval in minutes
   union_uint16t TXINT;        // The message transmit interval in minutes
   union_uint16t LOWBATT;      // The low battery limit in V * 10^-2
@@ -488,7 +488,7 @@ ID_width ID_widths[NUM_ID_WIDTHS] = {
   {GEOF4LAT  , 4 },
   {GEOF4LON  , 4 },
   {GEOF4RAD  , 4 },
-  {WAKEINT   , 2 },
+  {WAKEINT   , 4 },
   {ALARMINT  , 2 },
   {TXINT     , 2 },
   {LOWBATT   , 2 },
