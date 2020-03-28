@@ -11,6 +11,7 @@ These FAQs assume you are running the [full Global Tracker (Example16)](https://
 - [How do I monitor the ring channel continuously for new MT messages?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-monitor-the-ring-channel-continuously-for-new-MT-messages)
 - [How do I define and trigger a user function?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-define-and-trigger-a-user-function)
 - [How do I send a user value?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-send-a-user-value)
+- [How can I see the location of my trackers on a map?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-can-I-see-the-location-of-my-trackers-on-a-map)
 
 ## How do I configure the messages sent by the tracker?
 
@@ -242,7 +243,7 @@ Notes:
 
 ## How do I define and trigger a user function?
 
-The tracker can respond to eight different user functions. Each function is triggered when the corresponding field ID is received via a Mobile Terminated message.
+The tracker supports eight different user functions. Each function is triggered when the corresponding field ID is received via a Mobile Terminated message.
 
 The user functions are defined in [Tracker_User_Functions.ino](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Software/examples/Example16_GlobalTracker/Tracker_User_Functions.ino).
 
@@ -343,6 +344,38 @@ Notes:
 
 ## How do I send a user value?
 
+[Tracker_User_Functions.ino](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Software/examples/Example16_GlobalTracker/Tracker_User_Functions.ino) also contains
+eight functions which can be used to include user-defined data in the tracker messages.
+- USER_VAL_1 and USER_VAL_2 allow _byte_ values to be included.
+- USER_VAL_3 and USER_VAL_4 allow _uint16_t_ values to be included.
+- USER_VAL_5 and USER_VAL_6 allow _uint32_t_ values to be included.
+- USER_VAL_7 and USER_VAL_8 allow _float_ values to be included.
+
+Let's say you have connected a sensor to the tracker which returns a _float_ reading. You would include the code to read your sensor inside USER_VAL7 or USER_VAL_8; you would load
+your sensor reading into _retVal_.
+
+To include USERVAL7 in the messages from the tracker, you would:
+- Open the configuration tool as shown above.
+- Make sure all of the checkboxes and values are clear. Loading _empty.pkl_ is a quick way to do this.
+- Tick the MOFIELDS checkboxes for any standard message fields you want to send, e.g. **DATETIME**.
+- Tick the **USERVAL7** MOFIELDS checkbox.
+- Tick the **MOFIELDS** _Include_ checkbox.
+- Click on _Calculate Config_.
+
+The configuration tool should look like [this](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#AGTCT14). Now update the tracker settings
+as shown above.
+
+## How can I see the location of my trackers on a map?
+
+The [Tools Folder](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Tools#artemis_global_tracker_mapping_tools) contains a set of mapping tools which will display
+the location and routes of up to eight trackers on a Google Static Map image in a PyQt5 user interface. The tools have all been tried and tested on both Linux and Windows.
+However, these tools are only recommended for use by users who are familiar with Python3. E.g. the GMail Downloader tool requires you to set up your GMail credentials and
+enable access for Python. You do need to be familiar with Python3 to be able to do this; sadly there is no easy way to automate the setup process.
+
+Enjoy!
+
+**_Paul_**
+
 ## AGTCT Screenshots
 
 ### AGTCT1
@@ -403,12 +436,15 @@ Notes:
 ### AGTCT12
 ![AGTCT12](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT12.PNG)
 
-[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-monitor-the-ring-channel-continuously-for-new-MT-messages)
+[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-monitor-the-ring-channel-continuously-for-new-MT-messages)
 
 ### AGTCT13
 ![AGTCT13](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT13.PNG)
 
 [BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-define-and-trigger-a-user-function)
+
+### AGTCT14
+![AGTCT14](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT14.PNG)
 
 [BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-send-a-user-value)
 
