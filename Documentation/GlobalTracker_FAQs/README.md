@@ -7,6 +7,10 @@ These FAQs assume you are running the [full Global Tracker (Example16)](https://
 - [How do I send binary messages?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-send-binary-messages)
 - [How do I enable RockBLOCK message forwarding?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-enable-RockBLOCK-message-forwarding)
 - [How do I enable Pressure, Humidity and Temperature alarms?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-enable-Pressure-Humidity-and-Temperature-alarms)
+- [How do I enable Geofence alarms?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-enable-Geofence-alarms)
+- [How do monitor the ring channel continuously for new MT messages?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-monitor-the-ring-channel-continuously-for-new-MT-messages)
+- [How do I define and trigger a user function?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-define-and-trigger-a-user-function)
+- [How do I send a user value?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-send-a-user-value)
 
 ## How do I configure the messages sent by the tracker?
 
@@ -160,34 +164,138 @@ You would do the following:
 The configuration tool should look like [this](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#AGTCT10). Now update the tracker settings
 as shown above.
 
+## How do I enable Geofence alarms?
+
+The tracker can be configured to leave the ZOE-M8Q GNSS powered on continuously so it can generate geofence alarms.
+
+**Note: enabling geofence alerts will substantially increase the current draw and shorten battery life as the ZOE will be powered continuously.**
+
+E.g.
+- If you want to set a geofence around latitude 55.0 degrees north, longitude 1 degree west, with a radius of 100m.
+- You want to use a position confidence limit of 95%.
+- You want alarm messages to be generated when the tracker leaves the geofenced area.
+- You want to send alarm messages every 5 minutes.
+- If things are normal, you want to send a message once per day.
+
+You would do the following:
+- Open the configuration tool as shown above.
+- Make sure all of the checkboxes and values are clear. Loading _empty.pkl_ is a quick way to do this.
+- Tick the **FLAGS2** _Enable GeoFence alarm messages_ checkbox.
+- Tick the **FLAGS2** _Include_ checkbox.
+- Tick the MOFIELDS checkboxes for the message fields you want to send, e.g. **LAT**, **LON**, **SPEED** and **HEAD**
+- Tick the **MOFIELDS** _Include_ checkbox.
+- Tick the **WAKEINT** _Include_ checkbox.
+- Enter _300_ in the WAKEINT value box. This sets the wake interval to 300 seconds (5 minutes).
+- Tick the **ALARMINT** _Include_ checkbox.
+- Enter _5_ in the ALARMINT value box. This sets the alarm transmit interval to 5 minutes.
+- Tick the **TXINT** _Include_ checkbox.
+- Enter _1440_ in the TXINT value box. This sets the normal transmit interval to 1440 minutes (every 24 hours).
+- Tick the **GEOFNUM** _Include_ checkbox.
+- Enter _12_ in the GEOFNUM value box. This sets the number of geofences to 1 and the confidence to 95%. See the [GEOFNUM definition](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geofnum-0x3a) for more details.
+- Tick the **GEOF1LAT** _Include_ checkbox.
+- Enter _55.0_ in the GEOF1LAT value box. This sets the geofence latitude to 55 degrees north.
+- Tick the **GEOF1LON** _Include_ checkbox.
+- Enter _-1.0_ in the GEOF1LON value box. This sets the geofence longitude to 1 degree west (western longitudes are negative).
+- Tick the **GEOF1RAD** _Include_ checkbox.
+- Enter _100.0_ in the GEOF1RAD value box. This sets the geofence radius to 100m.
+- Click on _Calculate Config_.
+
+The configuration tool should look like [this](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#AGTCT11). Now update the tracker settings
+as shown above.
+
+Notes:
+- Enabling geofence alerts will substantially increase the current draw and shorten battery life as the ZOE will be powered continuously.
+- WAKEINT and ALARMINT need to be set to the same value.
+- If you want the alarm messages to be generated when entering a geofenced area, tick the **FLAGS2** _Alarm when inside the GeoFence_ checkbox.
+
+## How do monitor the ring channel continuously for new MT messages?
+
+The tracker can be configured to leave the Iridium 9603N powered on continuously so it can monitor the ring channel and respond to new Mobile Terminated messages immediately.
+
+**Note: monitoring the ring channel will substantially increase the current draw as the Iridium 9603N will be powered continuously.**
+**This is not recommended for battery-powered applications.**
+
+E.g.
+- You want to monitor the ring channel continuously so you can respond quickly to new MT messages.
+- If things are normal, you want to send a message once per day (so the Iridium network knows your location).
+
+You would do the following:
+- Open the configuration tool as shown above.
+- Make sure all of the checkboxes and values are clear. Loading _empty.pkl_ is a quick way to do this.
+- Tick the **FLAGS2** _Monitor Ring Channel continuously_ checkbox.
+- Tick the **FLAGS2** _Include_ checkbox.
+- Tick the **WAKEINT** _Include_ checkbox.
+- Enter _86400_ in the WAKEINT value box. This sets the wake interval to 86400 seconds (24 hours).
+- Tick the **ALARMINT** _Include_ checkbox.
+- Enter _1440_ in the ALARMINT value box. This sets the alarm transmit interval to 1440 minutes (every 24 hours).
+- Tick the **TXINT** _Include_ checkbox.
+- Enter _1440_ in the TXINT value box. This sets the normal transmit interval to 1440 minutes (every 24 hours).
+- Click on _Calculate Config_.
+
+The configuration tool should look like [this](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#AGTCT12). Now update the tracker settings
+as shown above.
+
+Notes:
+- Enabling geofence alerts will substantially increase the current draw and shorten battery life as the ZOE will be powered continuously.
+- WAKEINT should be set to the same value as ALARMINT and TXINT.
+- Iridium ring alerts are only sent if the network knows your approximate location. You need to send at least one message per day in order to receive ring alerts.
+
+## How do I define and trigger a user function?
+
+## How do I send a user value?
+
+## AGTCT Screenshots
+
 ### AGTCT1
 ![AGTCT1](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT1.PNG)
+[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-configure-the-messages-sent-by-the-tracker)
 
 ### AGTCT2
 ![AGTCT2](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT2.PNG)
+[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-configure-the-messages-sent-by-the-tracker)
 
 ### AGTCT3
 ![AGTCT3](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT3.PNG)
+[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-configure-the-messages-sent-by-the-tracker)
 
 ### AGTCT4
 ![AGTCT4](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT4.PNG)
+[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#Updating-the-configuration-via-USB)
 
 ### AGTCT5
 ![AGTCT5](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT5.PNG)
+[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#Updating-the-configuration-via-USB)
 
 ### AGTCT6
 ![AGTCT6](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT6.PNG)
+[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#Updating-the-configuration-via-Iridium)
 
 ### AGTCT7
 ![AGTCT7](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT7.PNG)
+[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-send-binary-messages)
 
 ### AGTCT8
 ![AGTCT8](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT8.PNG)
+[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-send-binary-messages)
 
 ### AGTCT9
 ![AGTCT9](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT9.PNG)
+[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-enable-RockBLOCK-message-forwarding)
 
 ### AGTCT10
 ![AGTCT10](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT10.PNG)
+[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-enable-Pressure-Humidity-and-Temperature-alarms)
+
+### AGTCT11
+![AGTCT11](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT11.PNG)
+[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-enable-Geofence-alarms)
+
+### AGTCT12
+![AGTCT12](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT12.PNG)
+[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-monitor-the-ring-channel-continuously-for-new-MT-messages)
+
+[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-define-and-trigger-a-user-function)
+
+[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-send-a-user-value)
 
 

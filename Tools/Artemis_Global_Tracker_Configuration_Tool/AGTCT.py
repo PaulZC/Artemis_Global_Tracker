@@ -1247,7 +1247,7 @@ class MainWidget(QWidget):
         self.checkbox_val_GEOF4LAT.setChecked(self.the_settings["val_GEOF4LAT"])
         self.checkbox_val_GEOF4LON.setChecked(self.the_settings["val_GEOF4LON"])
         self.checkbox_val_GEOF4RAD.setChecked(self.the_settings["val_GEOF4RAD"])
-        self.checkbox_val_WAKEINT.setChecked(self.the_settings["val_WAKEINR"])
+        self.checkbox_val_WAKEINT.setChecked(self.the_settings["val_WAKEINT"])
         self.checkbox_val_ALARMINT.setChecked(self.the_settings["val_ALARMINT"])
         self.checkbox_val_TXINT.setChecked(self.the_settings["val_TXINT"])
         self.checkbox_val_LOWBATT.setChecked(self.the_settings["val_LOWBATT"])
@@ -1405,7 +1405,7 @@ class MainWidget(QWidget):
             "val_GEOF4LAT": self.checkbox_val_GEOF4LAT.isChecked(),
             "val_GEOF4LON": self.checkbox_val_GEOF4LON.isChecked(),
             "val_GEOF4RAD": self.checkbox_val_GEOF4RAD.isChecked(),
-            "val_WAKEINR": self.checkbox_val_WAKEINT.isChecked(),
+            "val_WAKEINT": self.checkbox_val_WAKEINT.isChecked(),
             "val_ALARMINT": self.checkbox_val_ALARMINT.isChecked(),
             "val_TXINT": self.checkbox_val_TXINT.isChecked(),
             "val_LOWBATT": self.checkbox_val_LOWBATT.isChecked(),
@@ -1961,11 +1961,11 @@ class MainWidget(QWidget):
         if self.checkbox_val_WAKEINT.isChecked():
             if self.val_WAKEINT.text().isdigit():
                 try:
-                    value = int(self.val_WAKEINT.text())
-                    if (value < 0) or (value > 86400):
+                    longvalue = int(self.val_WAKEINT.text())
+                    if (longvalue < 0) or (longvalue > 86400):
                         self.messages.appendPlainText("Error: the value for WAKEINT is not valid!")
                     else:
-                        config_str = config_str + "47" + struct.pack('<H', value).hex() # Little-endian hex
+                        config_str = config_str + "47" + struct.pack('<I', longvalue).hex() # Little-endian hex
                 except:
                     self.messages.appendPlainText("Error: the value for WAKEINT is not valid!")
             else:
