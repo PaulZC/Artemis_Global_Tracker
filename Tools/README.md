@@ -31,6 +31,8 @@ You can update a Tracker remotely by:
   - Tick the RockBLOCK serial number for the Tracker(s) you want to update and click _Send Message_
   - The Tracker settings will be updated and stored the next time the Tracker sends a message
 
+Please refer to the [GlobalTracker FAQs](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md) for more information.
+
 ### /Artemis_Global_Tracker_Mapping_Tools
 
 A set of Python tools which will allow you to: download messages from the Tracker via a GMail account; stitch the messages together into a single .csv file;

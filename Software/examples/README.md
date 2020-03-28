@@ -62,13 +62,14 @@ or remotely via a binary format Iridium SBD message.
 Messages can be sent in text format (human-readable) or binary format (to save messages credits). You can configure which message fields are included in the message so you only send the data you need.
 The [Artemis Global Tracker Configuration Tool (AGTCT)](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Tools) will generate the configuration messages for you.
 
-You can trigger user-defined functions e.g. to operate an [external relay](https://www.sparkfun.com/products/15093)
+You can trigger user-defined functions e.g. to operate an [external relay](https://www.sparkfun.com/products/15093).
 
-You can also include readings from additional external sensors e.g.: [UV](https://www.sparkfun.com/products/15089), [Distance](https://www.sparkfun.com/products/14722),
-[Human Presence](https://www.sparkfun.com/products/14349).
+You can also include readings from additional external sensors.
 
 You can have the Iridium 9603N monitor the ring channel continuously for new Mobile Terminated messages so it can respond to them immediately,
 but this will increase the current draw considerably (approximately 50mA). This is not recommended for battery-powered applications.
+
+Please refer to the [GlobalTracker FAQs](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md) for more information.
 
 **Example17 - Production Test** is the code used to test the Artemis Global Tracker during production. You will need an AGT Test Header to allow this code to run.
 
