@@ -217,7 +217,7 @@ The tracker can be configured to leave the Iridium 9603N powered on continuously
 
 E.g.
 - You want to monitor the ring channel continuously so you can respond quickly to new MT messages.
-- If things are normal, you want to send a message once per day (so the Iridium network knows your location).
+- If things are normal, you want to send a message once per day.
 
 You would do the following:
 - Open the configuration tool as shown above.
@@ -242,60 +242,174 @@ Notes:
 
 ## How do I define and trigger a user function?
 
+The tracker can respond to eight different user functions. Each function is triggered when the corresponding field ID is received via a Mobile Terminated message.
+
+The user functions are defined in [Tracker_User_Functions.ino](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Software/examples/Example16_GlobalTracker/Tracker_User_Functions.ino).
+
+E.g.
+- You have connected a [Qwiic Relay](https://www.sparkfun.com/products/15093) to the tracker via the Qwiic connector.
+- You want the relay to switch on when USERFUNC1 (field ID 0x58) is received.
+- You want the relay to switch off again when USERFUNC2 (field ID 0x59) is received.
+
+You will need to install the _SparkFun Qwiic Relay Arduino Library_ first, through the Arduino Library Manager. Search for _Qwiic Relay_.
+
+Example code for the Qwiic (Single) Relay is available [here](https://github.com/sparkfun/SparkFun_Qwiic_Relay_Arduino_Library/blob/master/Examples/Example1_Single_Relay_Basics/Example1_Single_Relay_Basics.ino).
+
+We need to add these lines to the start of Tracker_User_Functions.ino:
+
+```
+#include "SparkFun_Qwiic_Relay.h"
+#define RELAY_ADDR 0x18 // Alternate address 0x19
+Qwiic_Relay relay(RELAY_ADDR);
+TwoWire myWire(4); //Will use Artemis pads 39/40
+```
+
+Then we need to add these lines to USER_FUNC_1:
+
+```
+  myWire.begin(); // Begin I2C communication to the relay
+  if(relay.begin(myWire)) // Try to begin the relay
+  {
+    relay.turnRelayOn(); // If relay.begin was successful, turn the relay on
+  }
+  myWire.end(); // End I2C communication
+```
+
+And we need to add these lines to USER_FUNC_2:
+
+```
+  myWire.begin(); // Begin I2C communication to the relay
+  if(relay.begin(myWire)) // Try to begin the relay
+  {
+    relay.turnRelayOff(); // If relay.begin was successful, turn the relay off
+  }
+  myWire.end(); // End I2C communication
+```
+
+The start of Tracker_User_Functions.ino should now look like this:
+
+```
+// Artemis Global Tracker: User Functions
+
+// Add your own code to these functions to return USERVAL's or execute USERFUNC's
+
+#include "SparkFun_Qwiic_Relay.h"
+#define RELAY_ADDR 0x18 // Alternate address 0x19
+Qwiic_Relay relay(RELAY_ADDR); 
+TwoWire myWire(4); //Will use Artemis pads 39/40
+
+void USER_FUNC_1()
+{
+  debugPrintln("Executing USERFUNC1...");
+  // Add your own code here - it will be executed when the Tracker receives a "USERFUNC1" (0x58) message field
+
+  myWire.begin(); // Begin I2C communication to the relay
+  if(relay.begin(myWire)) // Try to begin the relay
+  {
+    relay.turnRelayOn(); // If relay.begin was successful, turn the relay on
+  }
+  myWire.end(); // End I2C communication
+}
+
+void USER_FUNC_2()
+{
+  debugPrintln("Executing USERFUNC2...");
+  // Add your own code here - it will be executed when the Tracker receives a "USERFUNC2" (0x59) message field
+
+  myWire.begin(); // Begin I2C communication to the relay
+  if(relay.begin(myWire)) // Try to begin the relay
+  {
+    relay.turnRelayOff(); // If relay.begin was successful, turn the relay off
+  }
+  myWire.end(); // End I2C communication
+}
+```
+
+To trigger each user function, you need to send a configuration message to the tracker containing the appropriate field ID. E.g. to trigger USERFUNC1 you would do the following:
+- Open the configuration tool as shown above.
+- Make sure all of the checkboxes and values are clear. Loading _empty.pkl_ is a quick way to do this.
+- Tick the **USERFUNCs** _Execute USERFUNC1_ checkbox.
+- Click on _Calculate Config_.
+
+The configuration tool should look like [this](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#AGTCT13).
+Now send the configuration message _0258035db9_ to the tracker through Rock7 Operations as shown above.
+
+The configuration message for USERFUNC2 is _0259035ebb_
+
+Notes:
+- The Qwiic Relay will draw extra current while it is energised. This will shorten your battery life.
+- USERFUNCs 5 and 6 allow a 16-bit uint16_t to be passed to the user function.
+- USERFUNCs 7 and 8 allow a 32-bit uint32_t to be passed to the user function.
+
 ## How do I send a user value?
 
 ## AGTCT Screenshots
 
 ### AGTCT1
 ![AGTCT1](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT1.PNG)
-[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-configure-the-messages-sent-by-the-tracker)
+
+[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-configure-the-messages-sent-by-the-tracker)
 
 ### AGTCT2
 ![AGTCT2](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT2.PNG)
-[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-configure-the-messages-sent-by-the-tracker)
+
+[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-configure-the-messages-sent-by-the-tracker)
 
 ### AGTCT3
 ![AGTCT3](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT3.PNG)
-[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-configure-the-messages-sent-by-the-tracker)
+
+[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-configure-the-messages-sent-by-the-tracker)
 
 ### AGTCT4
 ![AGTCT4](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT4.PNG)
-[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#Updating-the-configuration-via-USB)
+
+[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#Updating-the-configuration-via-USB)
 
 ### AGTCT5
 ![AGTCT5](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT5.PNG)
-[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#Updating-the-configuration-via-USB)
+
+[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#Updating-the-configuration-via-USB)
 
 ### AGTCT6
 ![AGTCT6](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT6.PNG)
-[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#Updating-the-configuration-via-Iridium)
+
+[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#Updating-the-configuration-via-Iridium)
 
 ### AGTCT7
 ![AGTCT7](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT7.PNG)
-[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-send-binary-messages)
+
+[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-send-binary-messages)
 
 ### AGTCT8
 ![AGTCT8](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT8.PNG)
-[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-send-binary-messages)
+
+[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-send-binary-messages)
 
 ### AGTCT9
 ![AGTCT9](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT9.PNG)
-[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-enable-RockBLOCK-message-forwarding)
+
+[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-enable-RockBLOCK-message-forwarding)
 
 ### AGTCT10
 ![AGTCT10](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT10.PNG)
-[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-enable-Pressure-Humidity-and-Temperature-alarms)
+
+[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-enable-Pressure-Humidity-and-Temperature-alarms)
 
 ### AGTCT11
 ![AGTCT11](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT11.PNG)
-[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-enable-Geofence-alarms)
+
+[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-enable-Geofence-alarms)
 
 ### AGTCT12
 ![AGTCT12](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT12.PNG)
-[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-monitor-the-ring-channel-continuously-for-new-MT-messages)
 
-[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-define-and-trigger-a-user-function)
+[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-monitor-the-ring-channel-continuously-for-new-MT-messages)
 
-[<BACK>](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-send-a-user-value)
+### AGTCT13
+![AGTCT13](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT13.PNG)
+
+[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-define-and-trigger-a-user-function)
+
+[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-send-a-user-value)
 
 
