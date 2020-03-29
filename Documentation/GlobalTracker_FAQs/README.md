@@ -32,6 +32,7 @@ If you are familiar with Python and are able to install PyQt5 and all the other 
 If you are less familiar with Python, you will find a 64-bit Windows executable (.exe) version in [this folder](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Tools/Artemis_Global_Tracker_Configuration_Tool/Windows_64-bit).
 
 When you run the configuration tool, the [PyQt5 user interface](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#AGTCT1) will appear.
+If you are using the 64-bit Windows executable (.exe) version: don't panic! It takes a few seconds for the user interface to appear.
 
 It just so happens that **DATETIME** + **LAT** + **LON** + **ALT** + **SPEED** + **HEAD** are the MOFIELDS expected by the [Mapper](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Tools/Artemis_Global_Tracker_Mapping_Tools)
 and there is a pickle (.pkl) file containing those settings that you can load:
@@ -131,6 +132,7 @@ as shown above.
 Notes:
 - Including the **SOURCE** MOFIELD is optional, but is useful as it lets the destination RockBLOCK know which tracker sent the message.
 - The tracker's SOURCE serial number can only be changed via USB, to avoid it being changed accidentally. Remember to set this before you deploy your tracker.
+- You will be charged twice for each message: once when the source sends it and again when the destination receives it.
 
 ## How do I enable Pressure, Humidity and Temperature alarms?
 
@@ -169,11 +171,11 @@ as shown above.
 
 The tracker can be configured to leave the ZOE-M8Q GNSS powered on continuously so it can generate geofence alarms.
 
-**Note: enabling geofence alerts will substantially increase the current draw and shorten battery life as the ZOE will be powered continuously.**
+**Note: enabling geofence alerts will substantially increase the current draw and shorten the battery life as the ZOE will be powered continuously.**
 
 E.g.
 - If you want to set a geofence around latitude 55.0 degrees north, longitude 1 degree west, with a radius of 100m.
-- You want to use a position confidence limit of 95%.
+- You want to use a position confidence level of 95%.
 - You want alarm messages to be generated when the tracker leaves the geofenced area.
 - You want to send alarm messages every 5 minutes.
 - If things are normal, you want to send a message once per day.
@@ -192,7 +194,7 @@ You would do the following:
 - Tick the **TXINT** _Include_ checkbox.
 - Enter _1440_ in the TXINT value box. This sets the normal transmit interval to 1440 minutes (every 24 hours).
 - Tick the **GEOFNUM** _Include_ checkbox.
-- Enter _12_ in the GEOFNUM value box. This sets the number of geofences to 1 and the confidence to 95%. See the [GEOFNUM definition](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geofnum-0x3a) for more details.
+- Enter _12_ in the GEOFNUM value box. This sets the number of geofences to 1 and the confidence level to 2 (95%). See the [GEOFNUM definition](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geofnum-0x3a) for more details.
 - Tick the **GEOF1LAT** _Include_ checkbox.
 - Enter _55.0_ in the GEOF1LAT value box. This sets the geofence latitude to 55 degrees north.
 - Tick the **GEOF1LON** _Include_ checkbox.
@@ -344,14 +346,14 @@ Notes:
 
 ## How do I send a user value?
 
-[Tracker_User_Functions.ino](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Software/examples/Example16_GlobalTracker/Tracker_User_Functions.ino) also contains
+[Tracker_User_Functions.ino](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Software/examples/Example16_GlobalTracker/Tracker_User_Functions.ino#L53-L114) also contains
 eight functions which can be used to include user-defined data in the tracker messages.
 - USER_VAL_1 and USER_VAL_2 allow _byte_ values to be included.
 - USER_VAL_3 and USER_VAL_4 allow _uint16_t_ values to be included.
 - USER_VAL_5 and USER_VAL_6 allow _uint32_t_ values to be included.
 - USER_VAL_7 and USER_VAL_8 allow _float_ values to be included.
 
-Let's say you have connected a sensor to the tracker which returns a _float_ reading. You would include the code to read your sensor inside USER_VAL7 or USER_VAL_8; you would load
+Let's say you have connected a sensor to the tracker which returns a _float_ reading. You would include the code to read your sensor inside USER_VAL7() or USER_VAL_8(); you would load
 your sensor reading into _retVal_.
 
 To include USERVAL7 in the messages from the tracker, you would:
@@ -369,8 +371,7 @@ as shown above.
 
 The [Tools Folder](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Tools#artemis_global_tracker_mapping_tools) contains a set of mapping tools which will display
 the location and routes of up to eight trackers on a Google Static Map image in a PyQt5 user interface. The tools have all been tried and tested on both Linux and Windows.
-However, these tools are only recommended for use by users who are familiar with Python3. E.g. the GMail Downloader tool requires you to set up your GMail credentials and
-enable access for Python. You do need to be familiar with Python3 to be able to do this; sadly there is no easy way to automate the setup process.
+The tools are straight forward to use, but you do need to be familiar with Python3.
 
 Enjoy!
 
