@@ -250,7 +250,7 @@ The tracker supports eight different user functions. Each function is triggered 
 The user functions are defined in [Tracker_User_Functions.ino](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Software/examples/Example16_GlobalTracker/Tracker_User_Functions.ino).
 
 E.g.
-- You have connected a [Qwiic Relay](https://www.sparkfun.com/products/15093) to the tracker via the Qwiic connector.
+- You have a [Qwiic Relay](https://www.sparkfun.com/products/15093) connected to the tracker via the Qwiic connector.
 - You want the relay to switch on when USERFUNC1 (field ID 0x58) is received.
 - You want the relay to switch off again when USERFUNC2 (field ID 0x59) is received.
 
@@ -370,7 +370,7 @@ as shown above.
 ## How can I see the location of my trackers on a map?
 
 The [Tools Folder](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Tools#artemis_global_tracker_mapping_tools) contains a set of mapping tools which will display
-the location and routes of up to eight trackers on a Google Static Map image in a PyQt5 user interface. The tools have all been tried and tested on both Linux and Windows.
+the location and routes of up to eight trackers on a Google Maps Static image in a PyQt5 user interface. The tools have all been tried and tested on both Linux and Windows.
 The tools are straight forward to use, but you do need to be familiar with Python3.
 
 Enjoy!

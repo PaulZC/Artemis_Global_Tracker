@@ -67,7 +67,7 @@ You can trigger user-defined functions e.g. to operate an [external relay](https
 You can also include readings from additional external sensors.
 
 You can have the Iridium 9603N monitor the ring channel continuously for new Mobile Terminated messages so it can respond to them immediately,
-but this will increase the current draw considerably (approximately 50mA). This is not recommended for battery-powered applications.
+but this will increase the current draw considerably. This is not recommended for battery-powered applications.
 
 Please refer to the [GlobalTracker FAQs](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md) for more information.
 
@@ -80,6 +80,7 @@ To run the examples, you will need to install the SparkFun Apollo3 core and then
 
 You will need to install this version of the Iridium SBD library:
 -  https://github.com/PaulZC/IridiumSBD
+- (Available through the Arduino Library Manager: search for IridiumSBDi2c)
 
 You will also need to install the Qwiic_PHT_MS8607_Library:
 -  https://github.com/PaulZC/Qwiic_PHT_MS8607_Library

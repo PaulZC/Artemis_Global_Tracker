@@ -38,7 +38,7 @@ You can update a tracker remotely by:
 ## /Artemis_Global_Tracker_Mapping_Tools
 
 A set of Python tools which will allow you to: download messages from the tracker via a GMail account; stitch the messages together into a single .csv file;
-convert the .csv file into .kml files for Google Earth; and display the real-time paths and locations of up to eight trackers using the Google Static Maps API.
+convert the .csv file into .kml files for Google Earth; and display the real-time paths and locations of up to eight trackers using the Google Maps Static API.
 
 ![Tracker with Internet](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/Tracker_with_Internet.JPG)
 
@@ -48,7 +48,7 @@ but are updated for the tracker, using Python3 and PyQt5.
 
 The tools are:
 - **Artemis_Global_Tracker_GMail_Downloader.py:** a Python3 tool which uses the GMail API to download messages from the tracker from your GMail account.
-- **Artemis_Global_Tracker_Mapper.py:** a Python3 PyQt5 tool which will read the tracker messages downloaded by the Downloader and display the location and routes of up to eight trackers on Google Static Map images.
+- **Artemis_Global_Tracker_Mapper.py:** a Python3 PyQt5 tool which will read the tracker messages downloaded by the Downloader and display the location and routes of up to eight trackers on Google Maps Static images.
 - **Artemis_Global_Tracker_Stitcher.py:** this tool will stitch the individual tracker messages downloaded by the Downloader together into combined .csv files. Each tracker gets its own .csv file.
 - **Artemis_Global_Tracker_CSV_DateTime.py:** this tool will convert the first column of the stitched .csv files from YYYYMMDDHHMMSS DateTime format into a more friendly DD/MM/YY,HH:MM:SS format.
 - **Artemis_Global_Tracker_DateTime_CSV_to_KML.py:** this tool will convert the .csv files produced by the CSV_DateTime tool into .kml files that can be viewed in Google Earth. The path of the tracker can be shown as: a 2D (course over ground) or 3D (course and altitude) linestring; points (labelled with message sequence numbers); and arrows (indicating the heading of the tracker).
@@ -111,6 +111,8 @@ Each tracker gets its own colored button which matches the color of its map icon
 
 Each tracker's path is displayed as a coloured line on the map. The Maps Static API can only accept requests up to 8K bytes in length. When tracking multiple trackers it is
 easy to exceed this and so the start of each tracker's route is automatically truncated if required.
+
+You can change the Mapper's _Update Interval_ using the drop down menu. Selecting a longer interval will reduce the number of Maps Static API requests.
 
 The GUI uses 640x480 pixel map images. Higher resolution images are available if you have a premium plan with Google.
 
