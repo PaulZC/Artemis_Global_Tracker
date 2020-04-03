@@ -296,6 +296,7 @@ void setup()
 // -----------------------------------------------------------------------
 
   Serial.println(F("Test 3 Step 1: Enabling the ZOE GNSS (takes 4 seconds)"));
+  Serial.println(F("Test 3 Step 1: The blue GNSS LED on the Tracker should be lit up."));
 
   gnssON(); // Enable power for the ZOE
   delay(2000); // Let the ZOE power up
@@ -521,6 +522,9 @@ void setup()
   // Bit 1       : RES_16
   // Bit 0 (LSB) : SUPPLY
 
+  Serial.print(F("Test 4 Step 1: IO Pins are: 0x"));
+  Serial.println(ioPins, HEX);
+
   // Check if the ON_OFF pin is high
   if ((ioPins & ON_OFF_BIT_MASK) != ON_OFF_BIT_MASK)
   {
@@ -616,8 +620,11 @@ void setup()
 
   ioPins = readTestHeaderPins(); // Update ioPins
 
+  Serial.print(F("Test 4 Step 14: IO Pins are: 0x"));
+  Serial.println(ioPins, HEX);
+
   // Check if the ON_OFF pin is low
-  if ((ioPins & 0x1000) != 0x0000)
+  if ((ioPins & ON_OFF_BIT_MASK) != 0x0000)
   {
     Serial.println(F("Test 4 Step 14: Iridium 9603N ON_OFF (Pin 5) is HIGH. Possible open circuit!"));
     fail();
@@ -716,7 +723,7 @@ void setup()
   Serial.println(F("Test 5 Step 1: Enabling the supercapacitor charger..."));
   digitalWrite(superCapChgEN, HIGH); // Enable the super capacitor charger
   Serial.println(F("Test 5 Step 1: The yellow CHARGING LED on the Tracker should be lit up."));
-  delay(1000); // Let the PGOOD signal settle
+  delay(2000); // Let the PGOOD signal settle
 
   // Wait for up to 30 seconds for the supercapacitor charger PGOOD signal to go high
   for (unsigned long tnow = millis(); (digitalRead(superCapPGOOD) == false) && ((millis() - tnow) < (30UL * 1000UL));)
@@ -740,7 +747,7 @@ void setup()
   Serial.println(F("Test 5 Step 3: Enabling 9603N power..."));
   digitalWrite(iridiumPwrEN, HIGH); // Enable power for the 9603N
   Serial.println(F("Test 5 Step 3: 9603N power is enabled. The red 9603N POWER LED on the Tracker should be lit up."));
-  delay(1000); // Let the voltage settle
+  delay(2000); // Let the voltage settle
 
   // Now check the voltage on the two PWR pins
   
