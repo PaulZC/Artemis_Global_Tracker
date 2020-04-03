@@ -128,9 +128,9 @@ timing easier to interpret using Excel or Calc.
 
 ### Artemis_Global_Tracker_DateTime_CSV_to_KML.py:
 
-Artemis_Global_Tracker_DateTime_CSV_to_KML.py will convert the .csv file produced by Iridium_Beacon_CSV_DateTime.py into .kml files which can be opened in Google Earth.
-The complete path of the beacon can be shown as: a 2D (course over ground) or 3D (course and altitude) linestring; points (labelled with message sequence numbers);
-and arrows (indicating the heading of the beacon).
+Artemis_Global_Tracker_DateTime_CSV_to_KML.py will convert the .csv file produced by Artemis_Global_Tracker_CSV_DateTime.py into .kml files which can be opened in Google Earth.
+The complete path of the tracker can be shown as: a 2D (course over ground) or 3D (course and altitude) linestring; points (labelled with message sequence numbers);
+and arrows (indicating the heading of the tracker).
 
 You will need to install simplekml to allow the code to run:
 - pip install simplekml

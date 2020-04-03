@@ -122,7 +122,7 @@ Do the following:
 - Enter _12345_ in the DEST value box.
 - Tick the **SOURCE** _Include_ checkbox.
 - Enter _54321_ in the SOURCE value box.
-- Tick the MOFIELDS checkboxes for the message fields you want to send, including the **SOURCE** MOFIELD so the destination RockBLOCK knows whick tracker sent the message
+- Tick the MOFIELDS checkboxes for the message fields you want to send, including the **SOURCE** MOFIELD so the destination RockBLOCK knows which tracker sent the message
 - Tick the **MOFIELDS** _Include_ checkbox.
 - Click on _Calculate Config_.
 
