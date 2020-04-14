@@ -32,9 +32,9 @@
   Human Presence: https://www.sparkfun.com/products/14349
 
   You can have the Iridium 9603N monitor the ring channel continuously for new Mobile Terminated messages
-  but this will increase the current draw considerably (approximately 50mA). This is not recommended for
-  battery-powered applications. You will also need to increase WAKEINT, setting it to the same interval as
-  both ALARMINT and TXINT.
+  but this will increase the current draw considerably. This is not recommended for battery-powered
+  applications. You will also need to increase WAKEINT, setting it to the same interval as both ALARMINT
+  and TXINT.
   
   Likewise, if you want to enable geofence alarm messages, you will also need to increase WAKEINT.
   Set it to the same interval as ALARMINT.
@@ -44,6 +44,7 @@
   You will need to install this version of the Iridium SBD library
   before this example will run successfully:
   https://github.com/PaulZC/IridiumSBD
+  (Available through the Arduino Library Manager: search for IridiumSBDi2c)
   
   You will also need to install the Qwiic_PHT_MS8607_Library:
   https://github.com/PaulZC/Qwiic_PHT_MS8607_Library
