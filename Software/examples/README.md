@@ -60,7 +60,7 @@ on a GeoFence alert; or when Pressure, Temperature or Humidity limits are exceed
 or remotely via a binary format Iridium SBD message.
 
 Messages can be sent in text format (human-readable) or binary format (to save messages credits). You can configure which message fields are included in the message so you only send the data you need.
-The [Artemis Global Tracker Configuration Tool (AGTCT)](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Tools) will generate the configuration messages for you.
+The [Artemis Global Tracker Configuration Tool (AGTCT)](../../Tools) will generate the configuration messages for you.
 
 You can trigger user-defined functions e.g. to operate an [external relay](https://www.sparkfun.com/products/15093).
 
@@ -69,7 +69,7 @@ You can also include readings from additional external sensors.
 You can have the Iridium 9603N monitor the ring channel continuously for new Mobile Terminated messages so it can respond to them immediately,
 but this will increase the current draw considerably. This is not recommended for battery-powered applications.
 
-Please refer to the [GlobalTracker FAQs](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md) for more information.
+Please refer to the [GlobalTracker FAQs](../../Documentation/GlobalTracker_FAQs/README.md) for more information.
 
 **Example17 - Production Test** is the code used to test the Artemis Global Tracker during production. You will need an AGT Test Header to allow this code to run.
 
@@ -79,11 +79,11 @@ To run the examples, you will need to install the SparkFun Apollo3 core and then
 - https://learn.sparkfun.com/tutorials/artemis-development-with-arduino
 
 You will need to install this version of the Iridium SBD library:
--  https://github.com/PaulZC/IridiumSBD
+-  https://github.com/sparkfun/SparkFun_IridiumSBD_I2C_Arduino_Library
 - (Available through the Arduino Library Manager: search for IridiumSBDi2c)
 
 You will also need to install the Qwiic_PHT_MS8607_Library:
--  https://github.com/PaulZC/Qwiic_PHT_MS8607_Library
+-  https://github.com/sparkfun/SparkFun_PHT_MS8607_Arduino_Library
 - (Available through the Arduino Library Manager: search for MS8607)
 
 You also need the SparkFun Ublox library:
@@ -92,10 +92,3 @@ You also need the SparkFun Ublox library:
 
 Basic information on how to install an Arduino library is available here:
 - https://learn.sparkfun.com/tutorials/installing-an-arduino-library
-
-Enjoy!
-
-**_Paul_**
-
-
-
