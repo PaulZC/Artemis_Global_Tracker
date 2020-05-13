@@ -6,9 +6,9 @@ Tools to help: configure the full GlobalTracker example via USB or remotely via 
 
 A Python3 PyQt5 tool to configure the full GlobalTracker example via USB or remotely via Iridium messaging.
 
-![Config](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/Config.JPG)
+![Config](../img/Config.JPG)
 
-Please refer to the [GlobalTracker FAQs](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md) for full instructions.
+Please refer to the [GlobalTracker FAQs](../Documentation/GlobalTracker_FAQs/README.md) for full instructions.
 
 ### Quickstart:
 
@@ -25,7 +25,7 @@ You can upload the configuration to a tracker locally by:
   - Click _Upload Config_ to send the configuration message to the tracker
   - Check the _Serial Terminal_ to see if the configuration worked
   - Click _Close Port_ and then disconnect the tracker
-  
+
 You can update a tracker remotely by:
   - Right-clicking in the _Configuration Message_ window and select _Select All_
   - Right-click again and select _Copy_
@@ -40,11 +40,7 @@ You can update a tracker remotely by:
 A set of Python tools which will allow you to: download messages from the tracker via a GMail account; stitch the messages together into a single .csv file;
 convert the .csv file into .kml files for Google Earth; and display the real-time paths and locations of up to eight trackers using the Google Maps Static API.
 
-![Tracker with Internet](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/Tracker_with_Internet.JPG)
-
-The tools are very similar to those written for the
-[Iridium_9603_Beacon](https://github.com/PaulZC/Iridium_9603_Beacon/blob/master/RockBLOCK.md#tracking-your-beacon-with-an-internet-connection)
-but are updated for the tracker, using Python3 and PyQt5.
+![Tracker with Internet](../img/Tracker_with_Internet.JPG)
 
 The tools are:
 - **Artemis_Global_Tracker_GMail_Downloader.py:** a Python3 tool which uses the GMail API to download messages from the tracker from your GMail account.
@@ -60,7 +56,7 @@ Artemis_Global_Tracker_GMail_Downloader.py is a Python3 tool which uses the GMai
 
 Create yourself a GMail account. You can then add that email address to the _Delivery Group_ for your tracker in [Rock7 Operations](https://rockblock.rock7.com/Operations). Choose _EMAIL_ROCKBLOCK_ as the message format.
 
-![Delivery Group](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/Delivery_Group.PNG)
+![Delivery Group](../img/Delivery_Group.PNG)
 
 Log in to your GMail account in a web browser and create a 'label' (folder) called _SBD_. You can do this by: selecting an email in your inbox; then click on the _Move to_ icon
 (the folder icon with the right arrow); select _Create new_; enter _SBD_ as the new label name; leave the Nest box empty; click _Create_. Your tracker messages will be automatically
@@ -74,11 +70,11 @@ Downloader.
 You may see a warning message in your browser when you log in to authenticate the new token.pickle. This is normal. Follow the _Advanced_ link; then _Go to Quickstart (unsafe)_;
 then click _Allow_; then click _Allow_ again. If the credentials were created successfully, you should see the message _The authentication flow has completed. You may close this window._
 
-![Quickstart1](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/Quickstart1.PNG)
-![Quickstart2](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/Quickstart2.PNG)
-![Quickstart3](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/Quickstart3.PNG)
-![Quickstart4](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/Quickstart4.PNG)
-![Quickstart5](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/Quickstart5.PNG)
+![Quickstart1](../img/Quickstart1.PNG)
+![Quickstart2](../img/Quickstart2.PNG)
+![Quickstart3](../img/Quickstart3.PNG)
+![Quickstart4](../img/Quickstart4.PNG)
+![Quickstart5](../img/Quickstart5.PNG)
 
 When you run the Downloader, it will automatically check your GMail inbox every 15 seconds for new tracker messages. When it finds one, it will download the SBD .bin attachment to to your computer,
 mark the message as seen (read) and 'move' it to a folder called SBD by changing the message labels. This avoids clogging up your inbox. All of the messages are in SBD if you need to download the
@@ -86,7 +82,7 @@ attachments again.
 
 ### Artemis_Global_Tracker_Mapper.py:
 
-![Mapper](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/Mapper.JPG)
+![Mapper](../img/Mapper.JPG)
 
 Artemis_Global_Tracker_Mapper.py uses the Google Maps Static API to display the location and paths of up to eight trackers. The code will check
 for the arrival of new .bin SBD messages, downloaded by the Downloader, every 15 seconds. When it finds one, it will display the location and path
@@ -141,11 +137,6 @@ Also included is a _Flight Simulator_ tool which will generate fake .bin SBD mes
 St. James' Park (Newcastle, UK) to The Stadium of Light (Sunderland, UK) and reaching an altitude of 30km along the way.
 You can use this tool to test both the Mapper and the Stitcher / CSV / KML converters.
 
-![Google_Earth](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/Google_Earth.JPG)
+![Google_Earth](../img/Google_Earth.JPG)
 
 You can edit the code to create your own UK flight paths. The code uses Hannah Fry's Latitude and Longitude to OSGB coordinate converter.
-
-Enjoy!
-
-_**Paul**_
-

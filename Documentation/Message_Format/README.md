@@ -12,10 +12,10 @@ The Iridium 9603N and the RockBLOCK Gateway support messaging in both text and b
 
 Messages can be sent in both formats in both directions. However, for the Artemis Tracker we define that:
 
-- MO messages can be sent in binary or text format. 
+- MO messages can be sent in binary or text format.
 - MT messages are only used to configure the tracker (remotely) and so should be sent in binary format only.
 
-The [Tools](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Tools) folder contains a tool which will generate a configuration message in ASCII-encoded Hex format,
+The [Tools](../../Tools) folder contains a tool which will generate a configuration message in ASCII-encoded Hex format,
 which you can then send to the tracker via the _Send a Message_ function in Rock7 Operations. You can of course configure the tracker via USB-C too.
 
 ## The message formats:
@@ -29,7 +29,7 @@ The general format is:
 | Header | , | Field 1 | , | Field 2 | , | ... | , | Field n |
 |---|---|---|---|---|---|---|---|---|
 
-- Gateway Header: **OPTIONAL** - 9 characters - [see below](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/Message_Format/README.md#gateway-header) - followed by a comma (to make it easy to split the message string)
+- Gateway Header: **OPTIONAL** - 9 characters - [see below](#gateway-header) - followed by a comma (to make it easy to split the message string)
 - Message Fields: sent as ASCII text in Comma Separated Value (CSV) format
 
 MOFIELDS defines which message fields are to be or are being sent. The fields are sent in ascending ID order.
@@ -46,7 +46,7 @@ The general format is:
 | Header | STX | ID 1 | Data | ID 2 | Data | ... | ID n | Data | ETX | CS_A | CS_B
 |---|---|---|---|---|---|---|---|---|---|---|---|
 
-- Gateway Header: **OPTIONAL** - 5 bytes - [see below](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/Message_Format/README.md#gateway-header)
+- Gateway Header: **OPTIONAL** - 5 bytes - [see below](#gateway-header)
 - STX: 0x02
 - Message fields: sent as a single unsigned byte (uint8_t) field ID followed by the correct number of data bytes for that field
 - ETX: 0x03
@@ -101,83 +101,83 @@ If the number of IDs is expanded beyond 0x5f, MOFIELDS will need to be redefined
 |---|---|---|---|---|---|---|---|---|---|
 | 0x00 | RESV | | | | | | | | **Reserved - do not use** |
 | 0x01 | RESV | | | | | | | | **Reserved - do not use** |
-| [0x02](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#stx-0x02) | STX | | | | | | | Yes | ASCII STX - used to indicate the start of a binary message |
-| [0x03](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#etx-0x03) | ETX | | | | | | | Yes | ASCII ETX - used to indicate the end of a binary message |
-| [0x04](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#swver-0x04) | SWVER | byte | 1 | 5 | Yes | No | No | Yes | The tracker software version |
+| [0x02](#stx-0x02) | STX | | | | | | | Yes | ASCII STX - used to indicate the start of a binary message |
+| [0x03](#etx-0x03) | ETX | | | | | | | Yes | ASCII ETX - used to indicate the end of a binary message |
+| [0x04](#swver-0x04) | SWVER | byte | 1 | 5 | Yes | No | No | Yes | The tracker software version |
 | 0x05 | RESV | | | | | | | | **Reserved - do not use** |
 | 0x06 | RESV | | | | | | | | **Reserved - do not use** |
 | 0x07 | RESV | | | | | | | | **Reserved - do not use** |
-| [0x08](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#source-0x08) | SOURCE | uint32_t | 4 | 7 | Yes | No | Yes | Yes | The source address = the tracker's RockBLOCK serial number |
-| [0x09](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#battv-0x09) | BATTV | uint16_t | 2 | 4 | Yes | No | No | No | The battery voltage (actually the bus voltage) |
-| [0x0a](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#press-0x0a) | PRESS | uint16_t | 2 | 4 | Yes | No | No | No | The atmospheric pressure in mbar |
-| [0x0b](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#temp-0x0b) | TEMP | int16_t | 2 | 6 | Yes | No | No | No | The atmospheric temperature in Centigrade |
-| [0x0c](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#humid-0x0c) | HUMID | uint16_t | 2 | 6 | Yes | No | No | No | The atmospheric humidity in %RH |
-| [0x0d](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#year-0x0d) | YEAR | uint16_t | 2 | 4 | Yes | No | No | No | UTC year |
-| [0x0e](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#month-0x0e) | MONTH | byte | 1 | 2 | Yes | No | No | No | UTC month |
-| [0x0f](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#day-0x0f) | DAY | byte | 1 | 2 | Yes | No | No | No | UTC day |
-| [0x10](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#hour-0x10) | HOUR | byte | 1 | 2 | Yes | No | No | No | UTC hour |
-| [0x11](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#min-0x11) | MIN | byte | 1 | 2 | Yes | No | No | No | UTC minute |
-| [0x12](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#sec-0x12) | SEC | byte | 1 | 2 | Yes | No | No | No | UTC second |
-| [0x13](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#millis-0x13) | MILLIS | uint16_t | 2 | 3 | Yes | No | No | No | UTC milliseconds |
-| [0x14](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#datetime-0x14) | DATETIME | | 7 | 14 | Yes | No | No | No | Concatenated UTC Date & Time |
-| [0x15](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#lat-0x15) | LAT | int32_t | 4 | 11 | Yes | No | No | No | The latitude in degrees |
-| [0x16](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#lon-0x16) | LON | int32_t | 4 | 12 | Yes | No | No | No | The longitude in degrees |
-| [0x17](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#alt-0x17) | ALT | int32_t | 4 | 9 | Yes | No | No | No | The altitude above MSL |
-| [0x18](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#speed-0x18) | SPEED | int32_t | 4 | 7 | Yes | No | No | No | The ground speed |
-| [0x19](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#head-0x19) | HEAD | int32_t | 4 | 6 | Yes | No | No | No | The course (heading) in degrees |
-| [0x1a](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#sats-0x1a) | SATS | byte | 1 | 2 | Yes | No | No | No | The number of satellites (space vehicles) used in the solution | 
-| [0x1b](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#pdop-0x1b) | PDOP | uint16_t | 2 | 6 | Yes | No | No | No | The positional dilution of precision |
-| [0x1c](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#fix-0x1c) | FIX | byte | 1 | 1 | Yes | No | No | No | The GNSS fix type |
-| [0x1d](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geofstat-0x1d) | GEOFSTAT | 3 x byte | 3 | 6 | Yes | No | No | No | The geofence status |
+| [0x08](#source-0x08) | SOURCE | uint32_t | 4 | 7 | Yes | No | Yes | Yes | The source address = the tracker's RockBLOCK serial number |
+| [0x09](#battv-0x09) | BATTV | uint16_t | 2 | 4 | Yes | No | No | No | The battery voltage (actually the bus voltage) |
+| [0x0a](#press-0x0a) | PRESS | uint16_t | 2 | 4 | Yes | No | No | No | The atmospheric pressure in mbar |
+| [0x0b](#temp-0x0b) | TEMP | int16_t | 2 | 6 | Yes | No | No | No | The atmospheric temperature in Centigrade |
+| [0x0c](#humid-0x0c) | HUMID | uint16_t | 2 | 6 | Yes | No | No | No | The atmospheric humidity in %RH |
+| [0x0d](#year-0x0d) | YEAR | uint16_t | 2 | 4 | Yes | No | No | No | UTC year |
+| [0x0e](#month-0x0e) | MONTH | byte | 1 | 2 | Yes | No | No | No | UTC month |
+| [0x0f](#day-0x0f) | DAY | byte | 1 | 2 | Yes | No | No | No | UTC day |
+| [0x10](#hour-0x10) | HOUR | byte | 1 | 2 | Yes | No | No | No | UTC hour |
+| [0x11](#min-0x11) | MIN | byte | 1 | 2 | Yes | No | No | No | UTC minute |
+| [0x12](#sec-0x12) | SEC | byte | 1 | 2 | Yes | No | No | No | UTC second |
+| [0x13](#millis-0x13) | MILLIS | uint16_t | 2 | 3 | Yes | No | No | No | UTC milliseconds |
+| [0x14](#datetime-0x14) | DATETIME | | 7 | 14 | Yes | No | No | No | Concatenated UTC Date & Time |
+| [0x15](#lat-0x15) | LAT | int32_t | 4 | 11 | Yes | No | No | No | The latitude in degrees |
+| [0x16](#lon-0x16) | LON | int32_t | 4 | 12 | Yes | No | No | No | The longitude in degrees |
+| [0x17](#alt-0x17) | ALT | int32_t | 4 | 9 | Yes | No | No | No | The altitude above MSL |
+| [0x18](#speed-0x18) | SPEED | int32_t | 4 | 7 | Yes | No | No | No | The ground speed |
+| [0x19](#head-0x19) | HEAD | int32_t | 4 | 6 | Yes | No | No | No | The course (heading) in degrees |
+| [0x1a](#sats-0x1a) | SATS | byte | 1 | 2 | Yes | No | No | No | The number of satellites (space vehicles) used in the solution |
+| [0x1b](#pdop-0x1b) | PDOP | uint16_t | 2 | 6 | Yes | No | No | No | The positional dilution of precision |
+| [0x1c](#fix-0x1c) | FIX | byte | 1 | 1 | Yes | No | No | No | The GNSS fix type |
+| [0x1d](#geofstat-0x1d) | GEOFSTAT | 3 x byte | 3 | 6 | Yes | No | No | No | The geofence status |
 | 0x1e - 0x1f | | | | | | | | | **Currently undefined - do not use** |
-| [0x20](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userval1-0x20) | USERVAL1 | byte | 1 | 3 | Yes | No | No | No | User value 1 (e.g. from an external sensor) |
-| [0x21](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userval2-0x21) | USERVAL2 | byte | 1 | 3 |Yes | No | No | No | User value 2 |
-| [0x22](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userval3-0x22) | USERVAL3 | uint16_t | 2 | 5 |Yes | No | No | No | User value 3 |
-| [0x23](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userval4-0x23) | USERVAL4 | uint16_t | 2 | 5 |Yes | No | No | No | User value 4 |
-| [0x24](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userval5-0x24) | USERVAL5 | uint32_t | 4 | 10 |Yes | No | No | No | User value 5 |
-| [0x25](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userval6-0x25) | USERVAL6 | uint32_t | 4 | 10 |Yes | No | No | No | User value 6 |
-| [0x26](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userval7-0x26) | USERVAL7 | float | 4 | 14 |Yes | No | No | No | User value 7 |
-| [0x27](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userval8-0x27) | USERVAL8 | float | 4 | 14 |Yes | No | No | No | User value 8 |
+| [0x20](#userval1-0x20) | USERVAL1 | byte | 1 | 3 | Yes | No | No | No | User value 1 (e.g. from an external sensor) |
+| [0x21](#userval2-0x21) | USERVAL2 | byte | 1 | 3 |Yes | No | No | No | User value 2 |
+| [0x22](#userval3-0x22) | USERVAL3 | uint16_t | 2 | 5 |Yes | No | No | No | User value 3 |
+| [0x23](#userval4-0x23) | USERVAL4 | uint16_t | 2 | 5 |Yes | No | No | No | User value 4 |
+| [0x24](#userval5-0x24) | USERVAL5 | uint32_t | 4 | 10 |Yes | No | No | No | User value 5 |
+| [0x25](#userval6-0x25) | USERVAL6 | uint32_t | 4 | 10 |Yes | No | No | No | User value 6 |
+| [0x26](#userval7-0x26) | USERVAL7 | float | 4 | 14 |Yes | No | No | No | User value 7 |
+| [0x27](#userval8-0x27) | USERVAL8 | float | 4 | 14 |Yes | No | No | No | User value 8 |
 | 0x28 - 0x2f | | | | | | | | | **Currently undefined - do not use** |
-| [0x30](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#mofields-0x30) | MOFIELDS | 3 x uint32_t | 12 | 24 | Yes | Yes | Yes | Yes | Defines which fields are included in MO messages |
-| [0x31](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#flags1-0x31) | FLAGS1 | byte | 1 | 2 | Yes | Yes | Yes | Yes | Defines various message options - see below for the full definition |
-| [0x32](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#flags2-0x32) | FLAGS2 | byte | 1 | 2 | Yes | Yes | Yes | Yes | Defines various message options - see below for the full definition |
-| [0x33](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#dest-0x33) | DEST | uint32_t | 4 | 7 | Yes | Yes | Yes | Yes | The destination RockBLOCK serial number for message forwarding |
-| [0x34](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#hipress-0x34) | HIPRESS | uint16_t | 2 | 4 | Yes | Yes | Yes | Yes | The high pressure alarm limit |
-| [0x35](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#lopress-0x35) | LOPRESS | uint16_t | 2 | 4 | Yes | Yes | Yes | Yes | The low pressure alarm limit |
-| [0x36](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#hitemp-0x36) | HITEMP | int16_t | 2 | 6 | Yes | Yes | Yes | Yes | The high temperature alarm limit |
-| [0x37](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#lotemp-0x37) | LOTEMP | int16_t | 2 | 6 | Yes | Yes | Yes | Yes | The low temperature alarm limit |
-| [0x38](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#hihumid-0x38) | HIHUMID | uint16_t | 2 | 6 | Yes | Yes | Yes | Yes | The high humidity alarm limit |
-| [0x39](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#lohumid-0x39) | LOHUMID | uint16_t | 2 | 6 | Yes | Yes | Yes | Yes | The low humidity alarm limit |
-| [0x3a](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geofnum-0x3a) | GEOFNUM | byte | 1 | 2 | Yes | Yes | Yes | Yes | The number of geofences (0-4) and confidence level (0-4) |
-| [0x3b](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geof1lat-0x3b) | GEOF1LAT | int32_t | 4 | 11 | Yes | Yes | Yes | Yes | The latitude of the center of geofence circle 1 |
-| [0x3c](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geof1lon-0x3c) | GEOF1LON | int32_t | 4 | 12 | Yes | Yes | Yes | Yes | The longitude of the center of geofence circle 1 |
-| [0x3d](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geof1rad-0x3d) | GEOF1RAD | uint32_t | 4 | 9 | Yes | Yes | Yes | Yes | The radius of geofence circle 1 |
-| [0x3e](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geof2lat-0x3e) | GEOF2LAT | int32_t | 4 | 11 | Yes | Yes | Yes | Yes | The latitude of the center of geofence circle 2 |
-| [0x3f](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geof2lon-0x3f) | GEOF2LON | int32_t | 4 | 12 | Yes | Yes | Yes | Yes | The longitude of the center of geofence circle 2 |
-| [0x40](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geof2rad-0x40) | GEOF2RAD | uint32_t | 4 | 9 | Yes | Yes | Yes | Yes | The radius of geofence circle 2 |
-| [0x41](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geof3lat-0x41) | GEOF3LAT | int32_t | 4 | 11 | Yes | Yes | Yes | Yes | The latitude of the center of geofence circle 3 |
-| [0x42](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geof3lon-0x42) | GEOF3LON | int32_t | 4 | 12 | Yes | Yes | Yes | Yes | The longitude of the center of geofence circle 3 |
-| [0x43](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geof3rad-0x43) | GEOF3RAD | uint32_t | 4 | 9 | Yes | Yes | Yes | Yes | The radius of geofence circle 3 |
-| [0x44](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geof4lat-0x44) | GEOF4LAT | int32_t | 4 | 11 | Yes | Yes | Yes | Yes | The latitude of the center of geofence circle 4 |
-| [0x45](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geof4lon-0x45) | GEOF4LON | int32_t | 4 | 12 | Yes | Yes | Yes | Yes | The longitude of the center of geofence circle 4 |
-| [0x46](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geof4rad-0x46) | GEOF4RAD | uint32_t | 4 | 9 | Yes | Yes | Yes | Yes | The radius of geofence circle 4 |
-| [0x47](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#wakeint-0x47) | WAKEINT | uint32_t | 4 | 5 | Yes | Yes | Yes | Yes | Defines the tracker's wake-up interval (seconds)  |
-| [0x48](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#alarmint-0x48) | ALARMINT | uint16_t | 2 | 4 | Yes | Yes | Yes | Yes | Defines the tracker's transmission interval during an alarm (minutes)  |
-| [0x49](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#txint-0x49) | TXINT | uint16_t | 2 | 4 | Yes | Yes | Yes | Yes | Defines the tracker's normal transmission interval (minutes)  |
-| [0x4a](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#lowbatt-0x4a) | LOWBATT | uint16_t | 2 | 4 | Yes | Yes | Yes | Yes | The low battery limit |
-| [0x4b](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#dynmodel-0x4b) | DYNMODEL | byte | 1 | 2 | Yes | Yes | Yes | Yes | The GNSS dynamic platform model |
+| [0x30](#mofields-0x30) | MOFIELDS | 3 x uint32_t | 12 | 24 | Yes | Yes | Yes | Yes | Defines which fields are included in MO messages |
+| [0x31](#flags1-0x31) | FLAGS1 | byte | 1 | 2 | Yes | Yes | Yes | Yes | Defines various message options - see below for the full definition |
+| [0x32](#flags2-0x32) | FLAGS2 | byte | 1 | 2 | Yes | Yes | Yes | Yes | Defines various message options - see below for the full definition |
+| [0x33](#dest-0x33) | DEST | uint32_t | 4 | 7 | Yes | Yes | Yes | Yes | The destination RockBLOCK serial number for message forwarding |
+| [0x34](#hipress-0x34) | HIPRESS | uint16_t | 2 | 4 | Yes | Yes | Yes | Yes | The high pressure alarm limit |
+| [0x35](#lopress-0x35) | LOPRESS | uint16_t | 2 | 4 | Yes | Yes | Yes | Yes | The low pressure alarm limit |
+| [0x36](#hitemp-0x36) | HITEMP | int16_t | 2 | 6 | Yes | Yes | Yes | Yes | The high temperature alarm limit |
+| [0x37](#lotemp-0x37) | LOTEMP | int16_t | 2 | 6 | Yes | Yes | Yes | Yes | The low temperature alarm limit |
+| [0x38](#hihumid-0x38) | HIHUMID | uint16_t | 2 | 6 | Yes | Yes | Yes | Yes | The high humidity alarm limit |
+| [0x39](#lohumid-0x39) | LOHUMID | uint16_t | 2 | 6 | Yes | Yes | Yes | Yes | The low humidity alarm limit |
+| [0x3a](#geofnum-0x3a) | GEOFNUM | byte | 1 | 2 | Yes | Yes | Yes | Yes | The number of geofences (0-4) and confidence level (0-4) |
+| [0x3b](#geof1lat-0x3b) | GEOF1LAT | int32_t | 4 | 11 | Yes | Yes | Yes | Yes | The latitude of the center of geofence circle 1 |
+| [0x3c](#geof1lon-0x3c) | GEOF1LON | int32_t | 4 | 12 | Yes | Yes | Yes | Yes | The longitude of the center of geofence circle 1 |
+| [0x3d](#geof1rad-0x3d) | GEOF1RAD | uint32_t | 4 | 9 | Yes | Yes | Yes | Yes | The radius of geofence circle 1 |
+| [0x3e](#geof2lat-0x3e) | GEOF2LAT | int32_t | 4 | 11 | Yes | Yes | Yes | Yes | The latitude of the center of geofence circle 2 |
+| [0x3f](#geof2lon-0x3f) | GEOF2LON | int32_t | 4 | 12 | Yes | Yes | Yes | Yes | The longitude of the center of geofence circle 2 |
+| [0x40](#geof2rad-0x40) | GEOF2RAD | uint32_t | 4 | 9 | Yes | Yes | Yes | Yes | The radius of geofence circle 2 |
+| [0x41](#geof3lat-0x41) | GEOF3LAT | int32_t | 4 | 11 | Yes | Yes | Yes | Yes | The latitude of the center of geofence circle 3 |
+| [0x42](#geof3lon-0x42) | GEOF3LON | int32_t | 4 | 12 | Yes | Yes | Yes | Yes | The longitude of the center of geofence circle 3 |
+| [0x43](#geof3rad-0x43) | GEOF3RAD | uint32_t | 4 | 9 | Yes | Yes | Yes | Yes | The radius of geofence circle 3 |
+| [0x44](#geof4lat-0x44) | GEOF4LAT | int32_t | 4 | 11 | Yes | Yes | Yes | Yes | The latitude of the center of geofence circle 4 |
+| [0x45](#geof4lon-0x45) | GEOF4LON | int32_t | 4 | 12 | Yes | Yes | Yes | Yes | The longitude of the center of geofence circle 4 |
+| [0x46](#geof4rad-0x46) | GEOF4RAD | uint32_t | 4 | 9 | Yes | Yes | Yes | Yes | The radius of geofence circle 4 |
+| [0x47](#wakeint-0x47) | WAKEINT | uint32_t | 4 | 5 | Yes | Yes | Yes | Yes | Defines the tracker's wake-up interval (seconds)  |
+| [0x48](#alarmint-0x48) | ALARMINT | uint16_t | 2 | 4 | Yes | Yes | Yes | Yes | Defines the tracker's transmission interval during an alarm (minutes)  |
+| [0x49](#txint-0x49) | TXINT | uint16_t | 2 | 4 | Yes | Yes | Yes | Yes | Defines the tracker's normal transmission interval (minutes)  |
+| [0x4a](#lowbatt-0x4a) | LOWBATT | uint16_t | 2 | 4 | Yes | Yes | Yes | Yes | The low battery limit |
+| [0x4b](#dynmodel-0x4b) | DYNMODEL | byte | 1 | 2 | Yes | Yes | Yes | Yes | The GNSS dynamic platform model |
 | 0x4c - 0x51 | | | | | | | | | **Currently undefined - do not use** |
 | 0x52 | RBHEAD | | 4 | | | | | | **ASCII "R" - Reserved for the RockBLOCK gateway header (message forwarding)** |
 | 0x53 - 0x57 | | | | | | | | | **Currently undefined - do not use** |
-| [0x58](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc1-0x58) | USERFUNC1 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 1 |
-| [0x59](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc2-0x59) | USERFUNC2 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 2 |
-| [0x5a](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc3-0x5a) | USERFUNC3 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 3 |
-| [0x5b](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc4-0x5b) | USERFUNC4 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 4 |
-| [0x5c](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc5-0x5c) | USERFUNC5 | uint16_t | 2 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 5 |
-| [0x5d](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc6-0x5d) | USERFUNC6 | uint16_t | 2 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 6 |
-| [0x5e](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc7-0x5e) | USERFUNC7 | uint32_t | 4 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 7 |
-| [0x5f](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#userfunc8-0x5f) | USERFUNC8 | uint32_t | 4 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 8 |
+| [0x58](#userfunc1-0x58) | USERFUNC1 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 1 |
+| [0x59](#userfunc2-0x59) | USERFUNC2 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 2 |
+| [0x5a](#userfunc3-0x5a) | USERFUNC3 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 3 |
+| [0x5b](#userfunc4-0x5b) | USERFUNC4 | N/A | 0 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 4 |
+| [0x5c](#userfunc5-0x5c) | USERFUNC5 | uint16_t | 2 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 5 |
+| [0x5d](#userfunc6-0x5d) | USERFUNC6 | uint16_t | 2 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 6 |
+| [0x5e](#userfunc7-0x5e) | USERFUNC7 | uint32_t | 4 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 7 |
+| [0x5f](#userfunc8-0x5f) | USERFUNC8 | uint32_t | 4 | N/A | No | Yes | Yes | N/A | Instructs the tracker to execute user function 8 |
 
 ---
 ### Field Definition
@@ -1012,5 +1012,3 @@ USERFUNC8 (0x5f)
 ---
 
 See USERFUNC7
-
-

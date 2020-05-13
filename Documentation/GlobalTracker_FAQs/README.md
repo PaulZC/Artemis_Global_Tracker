@@ -1,17 +1,17 @@
 # Artemis Global Tracker: GlobalTracker FAQs
 
-These FAQs assume you are running the [full Global Tracker (Example16)](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Software/examples/Example16_GlobalTracker)
+These FAQs assume you are running the [full Global Tracker (Example16)](../../Software/examples/Example16_GlobalTracker)
 
 ## Contents:
-- [How do I configure the messages sent by the tracker?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-configure-the-messages-sent-by-the-tracker)
-- [How do I send binary messages?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-send-binary-messages)
-- [How do I enable RockBLOCK message forwarding?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-enable-RockBLOCK-message-forwarding)
-- [How do I enable Pressure, Humidity and Temperature alarms?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-enable-Pressure-Humidity-and-Temperature-alarms)
-- [How do I enable Geofence alarms?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-enable-Geofence-alarms)
-- [How do I monitor the ring channel continuously for new MT messages?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-monitor-the-ring-channel-continuously-for-new-MT-messages)
-- [How do I define and trigger a user function?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-define-and-trigger-a-user-function)
-- [How do I send a user value?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-send-a-user-value)
-- [How can I see the location of my trackers on a map?](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-can-I-see-the-location-of-my-trackers-on-a-map)
+- [How do I configure the messages sent by the tracker?](#How-do-I-configure-the-messages-sent-by-the-tracker)
+- [How do I send binary messages?](#How-do-I-send-binary-messages)
+- [How do I enable RockBLOCK message forwarding?](#How-do-I-enable-RockBLOCK-message-forwarding)
+- [How do I enable Pressure, Humidity and Temperature alarms?](#How-do-I-enable-Pressure-Humidity-and-Temperature-alarms)
+- [How do I enable Geofence alarms?](#How-do-I-enable-Geofence-alarms)
+- [How do I monitor the ring channel continuously for new MT messages?](#How-do-I-monitor-the-ring-channel-continuously-for-new-MT-messages)
+- [How do I define and trigger a user function?](#How-do-I-define-and-trigger-a-user-function)
+- [How do I send a user value?](#How-do-I-send-a-user-value)
+- [How can I see the location of my trackers on a map?](#How-can-I-see-the-location-of-my-trackers-on-a-map)
 
 ## How do I configure the messages sent by the tracker?
 
@@ -23,35 +23,35 @@ By default, Example16_GlobalTracker sends a _text_ message, every 5 minutes, con
 - **LON** : the GNSS longitude in degrees
 - **ALT** : the GNSS altitude above mean sea level in meters
 
-For a full definition of the message fields, please see the [message format documentation](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format).
+For a full definition of the message fields, please see the [message format documentation](../Message_Format).
 
 Let's say you also want to include the **SPEED** (ground speed) and **HEAD** (heading) MOFIELDS:
 
-You will find the Configuration Tool in the [Tools folder](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Tools/Artemis_Global_Tracker_Configuration_Tool).
+You will find the Configuration Tool in the [Tools folder](../../Tools/Artemis_Global_Tracker_Configuration_Tool).
 If you are familiar with Python and are able to install PyQt5 and all the other required modules, you can run _AGTCT.py_.
-If you are less familiar with Python, you will find a 64-bit Windows executable (.exe) version in [this folder](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Tools/Artemis_Global_Tracker_Configuration_Tool/Windows_64-bit).
+If you are less familiar with Python, you will find a 64-bit Windows executable (.exe) version in [this folder](../../Tools/Artemis_Global_Tracker_Configuration_Tool/Windows_64-bit).
 
-When you run the configuration tool, the [PyQt5 user interface](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#AGTCT1) will appear.
+When you run the configuration tool, the [PyQt5 user interface](#AGTCT1) will appear.
 If you are using the 64-bit Windows executable (.exe) version: don't panic! It takes a few seconds for the user interface to appear.
 
-It just so happens that **DATETIME** + **LAT** + **LON** + **ALT** + **SPEED** + **HEAD** are the MOFIELDS expected by the [Mapper](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Tools/Artemis_Global_Tracker_Mapping_Tools)
+It just so happens that **DATETIME** + **LAT** + **LON** + **ALT** + **SPEED** + **HEAD** are the MOFIELDS expected by the [Mapper](../../Tools/Artemis_Global_Tracker_Mapping_Tools)
 and there is a pickle (.pkl) file containing those settings that you can load:
 - Click on the _Browse_ button
 - Click on _mapper.pkl_ and then click _Open_
 - Click on the _Load Config_ button
 
-The user interface should now look like [this](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#AGTCT2). You will notice that:
+The user interface should now look like [this](#AGTCT2). You will notice that:
 - The **DATETIME**, **LAT**, **LON**, **ALT**, **SPEED** and **HEAD** MOFIELDS checkboxes are ticked. This tells the tracker to send (only) these MOFIELDS.
 - The **MOFIELDS** _Include_ checkbox is ticked. This must be ticked otherwise the MOFIELDS will not be included in the configuration message. You will get a warning message if you forget.
 - None of the _FLAGS1_ checkboxes are ticked. This ensures the message is sent in _text_ format, not _binary_.
 - The **FLAGS1** _Include_ checkbox is ticked. This must be ticked otherwise FLAGS1 will not be included in the configuration message.
 - The **TXINT** _Include_ checkbox is ticked and the value box contains _15_. This will change the message transmit interval to 15 minutes. The default is 5 minutes.
 
-Now click on the _Calculate Config_ button and you should see the [configuration message](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#AGTCT3)
+Now click on the _Calculate Config_ button and you should see the [configuration message](#AGTCT3)
 _02310030c00f00000000000000000000490f00038d30_ in the _Configuration Message_ window.
 
-You now have a choice to make. You can either update the tracker settings [via a USB cable](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#Updating-the-configuration-via-USB),
-or remotely [via an Iridium message](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#Updating-the-configuration-via-Iridium).
+You now have a choice to make. You can either update the tracker settings [via a USB cable](#Updating-the-configuration-via-USB),
+or remotely [via an Iridium message](#Updating-the-configuration-via-Iridium).
 
 If you want to restore the default settings, you can repeat the tracker configuration using the _default.pkl_ pickle file.
 
@@ -60,8 +60,8 @@ Loading the _empty.pkl_ is a quick way to clear all of the checkboxes and values
 ### Updating the configuration via USB
 - Connect the tracker to your computer using a standard USB-C cable. If you are using Windows, you should hear the usual bing-bong connection sound.
 - Click on the _Refresh_ button and select the tracker's COM port from the drop-down box.
-- Click on _Open Port_ and you should see a [welcome message from the tracker](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#AGTCT4) in the _Serial Monitor_ window.
-- Click on _Upload Config_ and you should see [these messages in the _Serial Monitor_](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#AGTCT5):
+- Click on _Open Port_ and you should see a [welcome message from the tracker](#AGTCT4) in the _Serial Monitor_ window.
+- Click on _Upload Config_ and you should see [these messages in the _Serial Monitor_](#AGTCT5):
 
 ```
 *** Tracker Configuration ***
@@ -84,7 +84,7 @@ You can now disconnect the tracker and close the configuration tool. The tracker
 - Right-click in the _Hex String_ window and click _Paste_.
 - Click _Send Message_ to send the configuration message.
 
-![AGTCT6](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT6.PNG)
+![AGTCT6](../../img/AGTCT6.PNG)
 
 The tracker settings will be updated the next time the tracker transmits.
 
@@ -99,10 +99,10 @@ credit for every 50 bytes sent (or part thereof). The only downside is that bina
 - Tick the **FLAGS1** _Include_ checkbox.
 - Click on _Calculate Config_.
 
-The configuration tool should look like [this](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#AGTCT7). Now update the tracker settings
+The configuration tool should look like [this](#AGTCT7). Now update the tracker settings
 as shown above.
 
-If you want to change the MOFIELDS, you can do that in the [same message](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#AGTCT8).
+If you want to change the MOFIELDS, you can do that in the [same message](#AGTCT8).
 
 ## How do I enable RockBLOCK message forwarding?
 
@@ -126,7 +126,7 @@ Do the following:
 - Tick the **MOFIELDS** _Include_ checkbox.
 - Click on _Calculate Config_.
 
-The configuration tool should look like [this](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#AGTCT9). Now update the tracker settings
+The configuration tool should look like [this](#AGTCT9). Now update the tracker settings
 as shown above.
 
 Notes:
@@ -164,7 +164,7 @@ You would do the following:
 - Enter _30.0_ in the LOHUMID value box. This sets the low humidity alarm limit to 30.0% RH.
 - Click on _Calculate Config_.
 
-The configuration tool should look like [this](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#AGTCT10). Now update the tracker settings
+The configuration tool should look like [this](#AGTCT10). Now update the tracker settings
 as shown above.
 
 ## How do I enable Geofence alarms?
@@ -194,7 +194,7 @@ You would do the following:
 - Tick the **TXINT** _Include_ checkbox.
 - Enter _1440_ in the TXINT value box. This sets the normal transmit interval to 1440 minutes (every 24 hours).
 - Tick the **GEOFNUM** _Include_ checkbox.
-- Enter _12_ in the GEOFNUM value box. This sets the number of geofences to 1 and the confidence level to 2 (95%). See the [GEOFNUM definition](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Documentation/Message_Format#geofnum-0x3a) for more details.
+- Enter _12_ in the GEOFNUM value box. This sets the number of geofences to 1 and the confidence level to 2 (95%). See the [GEOFNUM definition](../Message_Format#geofnum-0x3a) for more details.
 - Tick the **GEOF1LAT** _Include_ checkbox.
 - Enter _55.0_ in the GEOF1LAT value box. This sets the geofence latitude to 55 degrees north.
 - Tick the **GEOF1LON** _Include_ checkbox.
@@ -203,7 +203,7 @@ You would do the following:
 - Enter _100.0_ in the GEOF1RAD value box. This sets the geofence radius to 100m.
 - Click on _Calculate Config_.
 
-The configuration tool should look like [this](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#AGTCT11). Now update the tracker settings
+The configuration tool should look like [this](#AGTCT11). Now update the tracker settings
 as shown above.
 
 Notes:
@@ -235,7 +235,7 @@ You would do the following:
 - Enter _1440_ in the TXINT value box. This sets the normal transmit interval to 1440 minutes (every 24 hours).
 - Click on _Calculate Config_.
 
-The configuration tool should look like [this](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#AGTCT12). Now update the tracker settings
+The configuration tool should look like [this](#AGTCT12). Now update the tracker settings
 as shown above.
 
 Notes:
@@ -247,7 +247,7 @@ Notes:
 
 The tracker supports eight different user functions. Each function is triggered when the corresponding field ID is received via a Mobile Terminated message.
 
-The user functions are defined in [Tracker_User_Functions.ino](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Software/examples/Example16_GlobalTracker/Tracker_User_Functions.ino).
+The user functions are defined in [Tracker_User_Functions.ino](../../Software/examples/Example16_GlobalTracker/Tracker_User_Functions.ino).
 
 E.g.
 - You have a [Qwiic Relay](https://www.sparkfun.com/products/15093) connected to the tracker via the Qwiic connector.
@@ -298,7 +298,7 @@ The start of Tracker_User_Functions.ino should now look like this:
 
 #include "SparkFun_Qwiic_Relay.h"
 #define RELAY_ADDR 0x18 // Alternate address 0x19
-Qwiic_Relay relay(RELAY_ADDR); 
+Qwiic_Relay relay(RELAY_ADDR);
 TwoWire myWire(4); //Will use Artemis pads 39/40
 
 void USER_FUNC_1()
@@ -334,7 +334,7 @@ To trigger each user function, you need to send a configuration message to the t
 - Tick the **USERFUNCs** _Execute USERFUNC1_ checkbox.
 - Click on _Calculate Config_.
 
-The configuration tool should look like [this](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#AGTCT13).
+The configuration tool should look like [this](#AGTCT13).
 Now send the configuration message _0258035db9_ to the tracker through Rock7 Operations as shown above.
 
 The configuration message for USERFUNC2 is _0259035ebb_
@@ -346,7 +346,7 @@ Notes:
 
 ## How do I send a user value?
 
-[Tracker_User_Functions.ino](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Software/examples/Example16_GlobalTracker/Tracker_User_Functions.ino#L53-L114) also contains
+[Tracker_User_Functions.ino](../../Software/examples/Example16_GlobalTracker/Tracker_User_Functions.ino#L53-L114) also contains
 eight functions which can be used to include user-defined data in the tracker messages.
 - USER_VAL_1 and USER_VAL_2 allow _byte_ values to be included.
 - USER_VAL_3 and USER_VAL_4 allow _uint16_t_ values to be included.
@@ -364,89 +364,84 @@ To include USERVAL7 in the messages from the tracker, you would:
 - Tick the **MOFIELDS** _Include_ checkbox.
 - Click on _Calculate Config_.
 
-The configuration tool should look like [this](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#AGTCT14). Now update the tracker settings
+The configuration tool should look like [this](#AGTCT14). Now update the tracker settings
 as shown above.
 
 ## How can I see the location of my trackers on a map?
 
-The [Tools Folder](https://github.com/PaulZC/Artemis_Global_Tracker/tree/master/Tools#artemis_global_tracker_mapping_tools) contains a set of mapping tools which will display
+The [Tools Folder](../../Tools#artemis_global_tracker_mapping_tools) contains a set of mapping tools which will display
 the location and routes of up to eight trackers on a Google Maps Static image in a PyQt5 user interface. The tools have all been tried and tested on both Linux and Windows.
 The tools are straight forward to use, but you do need to be familiar with Python3.
 
-Enjoy!
-
-**_Paul_**
 
 ## AGTCT Screenshots
 
 ### AGTCT1
-![AGTCT1](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT1.PNG)
+![AGTCT1](../../img/AGTCT1.PNG)
 
-[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-configure-the-messages-sent-by-the-tracker)
+[BACK](#How-do-I-configure-the-messages-sent-by-the-tracker)
 
 ### AGTCT2
-![AGTCT2](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT2.PNG)
+![AGTCT2](../../img/AGTCT2.PNG)
 
-[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-configure-the-messages-sent-by-the-tracker)
+[BACK](#How-do-I-configure-the-messages-sent-by-the-tracker)
 
 ### AGTCT3
-![AGTCT3](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT3.PNG)
+![AGTCT3](../../img/AGTCT3.PNG)
 
-[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-configure-the-messages-sent-by-the-tracker)
+[BACK](#How-do-I-configure-the-messages-sent-by-the-tracker)
 
 ### AGTCT4
-![AGTCT4](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT4.PNG)
+![AGTCT4](../../img/AGTCT4.PNG)
 
-[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#Updating-the-configuration-via-USB)
+[BACK](#Updating-the-configuration-via-USB)
 
 ### AGTCT5
-![AGTCT5](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT5.PNG)
+![AGTCT5](../../img/AGTCT5.PNG)
 
-[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#Updating-the-configuration-via-USB)
+[BACK](#Updating-the-configuration-via-USB)
 
 ### AGTCT6
-![AGTCT6](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT6.PNG)
+![AGTCT6](../../img/AGTCT6.PNG)
 
-[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#Updating-the-configuration-via-Iridium)
+[BACK](#Updating-the-configuration-via-Iridium)
 
 ### AGTCT7
-![AGTCT7](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT7.PNG)
+![AGTCT7](../../img/AGTCT7.PNG)
 
-[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-send-binary-messages)
+[BACK](#How-do-I-send-binary-messages)
 
 ### AGTCT8
-![AGTCT8](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT8.PNG)
+![AGTCT8](../../img/AGTCT8.PNG)
 
-[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-send-binary-messages)
+[BACK](#How-do-I-send-binary-messages)
 
 ### AGTCT9
-![AGTCT9](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT9.PNG)
+![AGTCT9](../../img/AGTCT9.PNG)
 
-[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-enable-RockBLOCK-message-forwarding)
+[BACK](#How-do-I-enable-RockBLOCK-message-forwarding)
 
 ### AGTCT10
-![AGTCT10](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT10.PNG)
+![AGTCT10](../../img/AGTCT10.PNG)
 
-[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-enable-Pressure-Humidity-and-Temperature-alarms)
+[BACK](#How-do-I-enable-Pressure-Humidity-and-Temperature-alarms)
 
 ### AGTCT11
-![AGTCT11](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT11.PNG)
+![AGTCT11](../../img/AGTCT11.PNG)
 
-[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-enable-Geofence-alarms)
+[BACK](#How-do-I-enable-Geofence-alarms)
 
 ### AGTCT12
-![AGTCT12](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT12.PNG)
+![AGTCT12](../../img/AGTCT12.PNG)
 
-[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-monitor-the-ring-channel-continuously-for-new-MT-messages)
+[BACK](#How-do-I-monitor-the-ring-channel-continuously-for-new-MT-messages)
 
 ### AGTCT13
-![AGTCT13](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT13.PNG)
+![AGTCT13](../../img/AGTCT13.PNG)
 
-[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-define-and-trigger-a-user-function)
+[BACK](#How-do-I-define-and-trigger-a-user-function)
 
 ### AGTCT14
-![AGTCT14](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/img/AGTCT14.PNG)
+![AGTCT14](../../img/AGTCT14.PNG)
 
-[BACK](https://github.com/PaulZC/Artemis_Global_Tracker/blob/master/Documentation/GlobalTracker_FAQs/README.md#How-do-I-send-a-user-value)
-
-
+[BACK](#How-do-I-send-a-user-value)
