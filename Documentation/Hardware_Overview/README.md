@@ -30,7 +30,7 @@ The tracker can be powered from:
 - a LiPo battery (recharged via the USB-C interface)
 - an external solar panel or battery pack (6V maximum)
 
-3 x Energizer� Ultimate Lithium AA or AAA cells are recommended as they will work down to -40C
+3 x Energizer&trade; Ultimate Lithium AA or AAA cells are recommended as they will work down to -40C
 
 Low-forward-voltage diodes isolate the power sources from each other. You can have the USB, LiPo and external cells connected simultaneously, it will do no harm.
 The tracker will preferentially draw power from USB if it is connected.

@@ -247,7 +247,7 @@ Notes:
 
 The tracker supports eight different user functions. Each function is triggered when the corresponding field ID is received via a Mobile Terminated message.
 
-The user functions are defined in [Tracker_User_Functions.ino](../../master/Software/examples/Example16_GlobalTracker/Tracker_User_Functions.ino).
+The user functions are defined in [Tracker_User_Functions.ino](../../Software/examples/Example16_GlobalTracker/Tracker_User_Functions.ino).
 
 E.g.
 - You have a [Qwiic Relay](https://www.sparkfun.com/products/15093) connected to the tracker via the Qwiic connector.
