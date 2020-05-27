@@ -1,6 +1,6 @@
 # Artemis Global Tracker
 
-###We've moved!
+### We've moved!
 
 This repo has a new home over at [SparkFun](https://github.com/sparkfun/Artemis_Global_Tracker)
 
